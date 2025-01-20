@@ -39,7 +39,7 @@ jobs:
       - name: Upload runtime to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.run_number }}-runtime
+          name: ${{ github.ref }}-runtime
           path: ./target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
 
   release:
@@ -47,31 +47,30 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.run_number }}-runtime
           path: ./target/release
 
-      - name: Pre-release
-        uses: softprops/action-gh-release@v2
-        if: endsWith(github.ref, '-pre')
-        with:
-          generate_release_notes: true
-          prerelease: true
-          append_body: true
-          body: |
-            You can create the `authorizeUpgrade` extrinsic [here](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Ftestnet.virto.dev#/extrinsics/decode/0x00090000000000000000000000000000000000000000000000000000000000000000).
-          files: |
-            target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
+      - name: Generate release notes
+        env:
+          ENDPOINT: ${{ endsWith(github.ref, '-pre') && 'testnet.virto.dev' || 'kreivo.io' }}
+        run: |
+          echo "You can create the \`authorizeUpgrade\` extrinsic [here](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2F" \
+            > RELEASE_NOTES.txt
+          echo $ENDPOINT >> RELEASE_NOTES.txt
+          echo "#/extrinsics/decode/0x00090000000000000000000000000000000000000000000000000000000000000000)." \
+            >> RELEASE_NOTES.txt
 
-      - name: Release
+      - name: Publish Release
         uses: softprops/action-gh-release@v2
-        if: !endsWith(github.ref, '-pre')
         with:
           generate_release_notes: true
+          prerelease: ${{ endsWith(github.ref, '-pre') }}
+          body_path: RELEASE_NOTES.txt
           append_body: true
-          body: |
-            You can create the `authorizeUpgrade` extrinsic [here](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fkreivo.io#/extrinsics/decode/0x00090000000000000000000000000000000000000000000000000000000000000000).
           files: |
-            target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
+            kreivo_runtime.compact.compressed.wasm

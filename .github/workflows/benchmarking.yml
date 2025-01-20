@@ -57,7 +57,7 @@ jobs:
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.run_number }}-runtime
+          name: ${{ github.ref }}-runtime
           path: ./target/release
 
       - run: |
