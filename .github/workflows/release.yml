@@ -34,12 +34,12 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --profile production
+          args: --profile production --locked -p kreivo-runtime
 
       - name: Upload runtime to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.ref }}-runtime
+          name: ${{ github.run_number }}-runtime
           path: ./target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
 
   release:
@@ -53,16 +53,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.run_number }}-runtime
-          path: ./target/release
 
       - name: Generate release notes
         env:
           ENDPOINT: ${{ endsWith(github.ref, '-pre') && 'testnet.virto.dev' || 'kreivo.io' }}
         run: |
-          echo "You can create the \`authorizeUpgrade\` extrinsic [here](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2F" \
-            > RELEASE_NOTES.txt
-          echo $ENDPOINT >> RELEASE_NOTES.txt
-          echo "#/extrinsics/decode/0x00090000000000000000000000000000000000000000000000000000000000000000)." \
+          HASH=$(b2sum -l256 kreivo_runtime.compact.compressed.wasm | awk '{print $1}')
+
+          echo "You can create the \`authorizeUpgrade\` extrinsic [here](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2F"$ENDPOINT"#/extrinsics/decode/0x0009"$HASH")." \
             >> RELEASE_NOTES.txt
 
       - name: Publish Release
