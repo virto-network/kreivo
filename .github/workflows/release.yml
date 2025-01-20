@@ -7,27 +7,71 @@ on:
 
 jobs:
   build:
-    name: Build node
-    runs-on: [self-hosted, builder]
+    runs-on: ubuntu-latest
     steps:
+      - name: Setup Ubuntu dependencies
+        shell: bash
+        run: sudo apt update && sudo apt install -y protobuf-compiler
+
+      - name: Use Stable
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          components: rust-src
+
       - uses: actions/checkout@v4
 
-      - name: Build parachain node & artifacts
-        run: just build-container-local
-      
-  release:
-    name: Create GH Release
-    needs: build
-    runs-on: [self-hosted, builder]
-    steps:
-      - name: Build collator artifacts
-        run: just release-artifacts
-      - name: Build full-node artifacts
-        run: just rol=full release-artifacts
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
         with:
+          cache-on-failure: true
+          cache-all-crates: true
+          key: build
+
+      - name: Release build with runtime-benchmarks
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --profile production
+
+      - name: Upload runtime to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.run_number }}-runtime
+          path: ./target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
+
+  release:
+    name: Publish Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.run_number }}-runtime
+          path: ./target/release
+
+      - name: Pre-release
+        uses: softprops/action-gh-release@v2
+        if: endsWith(github.ref, '-pre')
+        with:
+          generate_release_notes: true
+          prerelease: true
+          append_body: true
+          body: |
+            You can create the `authorizeUpgrade` extrinsic [here](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Ftestnet.virto.dev#/extrinsics/decode/0x00090000000000000000000000000000000000000000000000000000000000000000).
           files: |
-            release/*
+            target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: !endsWith(github.ref, '-pre')
+        with:
+          generate_release_notes: true
+          append_body: true
+          body: |
+            You can create the `authorizeUpgrade` extrinsic [here](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Fkreivo.io#/extrinsics/decode/0x00090000000000000000000000000000000000000000000000000000000000000000).
+          files: |
+            target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
