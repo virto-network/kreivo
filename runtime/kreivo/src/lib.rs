@@ -77,9 +77,8 @@ use pallet_payments::types::*;
 
 pub use impls::{EqualOrGreatestRootCmp, ProxyType, RuntimeBlackListedCalls};
 
-pub use parachains_common::{
-	AccountId, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature, DAYS, HOURS, MINUTES,
-};
+pub use parachains_common::{AccountId, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature};
+pub use runtime_constants::time::{DAYS, HOURS, MINUTES};
 
 /// The address format for describing accounts.
 pub type Address = MultiAddress<AccountId, CommunityId>;
