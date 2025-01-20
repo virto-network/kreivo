@@ -16,8 +16,6 @@
 
 //! Custom origins for governance interventions.
 
-pub use pallet_custom_origins::*;
-
 #[frame_support::pallet]
 pub mod pallet_custom_origins {
 	use frame_support::pallet_prelude::*;

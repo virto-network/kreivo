@@ -43,7 +43,7 @@ impl FeeHandler<Runtime> for KreivoFeeHandler {
 		_remark: Option<&[u8]>,
 	) -> Fees<Runtime> {
 		let min = <Assets as fungibles::Inspect<AccountId>>::minimum_balance(*asset);
-		let pallet_id = crate::communities::CommunityPalletId::get();
+		let pallet_id = crate::config::communities::CommunityPalletId::get();
 		let default_fee = |fee: Percent| (TreasuryAccount::get(), min.max(fee.mul_floor(*amount)), MANDATORY_FEE);
 		let is_community =
 			|who| matches!(PalletId::try_from_sub_account::<CommunityId>(who), Some((pid, _)) if pallet_id == pid );

@@ -18,17 +18,9 @@
 
 use super::*;
 use core::cmp::Ordering;
-use frame_support::traits::{Contains, Currency, InstanceFilter, PrivilegeCmp};
+use frame_support::traits::{Contains, InstanceFilter, PrivilegeCmp};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_runtime::RuntimeDebug;
-
-/// Type alias to conveniently refer to the `Currency::NegativeImbalance`
-/// associated type.
-pub type NegativeImbalance<T> =
-	<pallet_balances::Pallet<T> as Currency<<T as frame_system::Config>::AccountId>>::NegativeImbalance;
-
-/// Type alias to conveniently refer to `frame_system`'s `Config::AccountId`.
-pub type AccountIdOf<R> = <R as frame_system::Config>::AccountId;
 
 pub struct RuntimeBlackListedCalls;
 impl Contains<RuntimeCall> for RuntimeBlackListedCalls {

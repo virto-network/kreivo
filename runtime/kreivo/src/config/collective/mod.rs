@@ -23,25 +23,25 @@ impl pallet_ranked_collective::Config<KreivoCollectiveInstance> for Runtime {
 
 	type AddOrigin = EnsureNever<()>;
 
+	type RemoveOrigin = Self::DemoteOrigin;
+
 	// Initially, members of kreivo collective are promoted via governance action
-	// In the future, it's expected to have an auxilliary pallet to observe the
+	// In the future, it's expected to have an auxiliary pallet to observe the
 	// criteria for ranking
 	type PromoteOrigin = EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>;
 
-	type RemoveOrigin = Self::DemoteOrigin;
-
 	// Initially, members of kreivo collective are demoted via governance action
-	// In the future, it's expected to have an auxilliary pallet to observe the
+	// In the future, it's expected to have an auxiliary pallet to observe the
 	// criteria for ranking
 	type DemoteOrigin = EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>;
 
 	type ExchangeOrigin = EnsureRoot<AccountId>;
-	type MemberSwappedHandler = ();
-
 	type Polls = KreivoReferenda;
+
 	type MinRankOfClass = AtLeastRank<1>;
-	type MaxMemberCount = ();
+	type MemberSwappedHandler = ();
 	type VoteWeight = pallet_ranked_collective::Linear;
+	type MaxMemberCount = ();
 
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkSetup = CollectiveBenchmarkSetup;

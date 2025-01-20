@@ -1,10 +1,17 @@
 use super::*;
 
+use frame_support::{
+	traits::{ConstU8, WithdrawReasons},
+	weights::ConstantMultiplier,
+};
+
+use polkadot_runtime_common::SlowAdjustingFeeUpdate;
+use runtime_common::impls::AssetsToBlockAuthor;
+
 use fc_traits_gas_tank::{NonFungibleGasTank, SelectNonFungibleItem};
 use pallet_asset_tx_payment::FungiblesAdapter;
 use pallet_assets::BalanceToAssetBalance;
 use pallet_transaction_payment::FungibleAdapter;
-use runtime_common::impls::AssetsToBlockAuthor;
 use virto_common::MembershipId;
 
 #[cfg(not(feature = "runtime-benchmarks"))]
@@ -20,21 +27,21 @@ parameter_types! {
 }
 
 impl pallet_balances::Config for Runtime {
-	type MaxLocks = ConstU32<50>;
-	/// The type for recording an account's balance.
-	type Balance = Balance;
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+	/// The type for recording an account's balance.
+	type Balance = Balance;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
-	type MaxReserves = ConstU32<50>;
 	type ReserveIdentifier = [u8; 8];
-	type RuntimeHoldReason = RuntimeHoldReason;
 	type FreezeIdentifier = RuntimeFreezeReason;
+	type MaxLocks = ConstU32<50>;
+	type MaxReserves = ConstU32<50>;
 	type MaxFreezes = ConstU32<256>;
-	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
 // #[runtime::pallet_index(11)]
@@ -56,8 +63,8 @@ impl pallet_transaction_payment::Config for Runtime {
 // #[runtime::pallet_index(12)]
 // pub type AssetsFreezer
 impl pallet_assets_freezer::Config<KreivoAssetsInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type RuntimeEvent = RuntimeEvent;
 }
 
 // #[runtime::pallet_index(13)]
@@ -81,6 +88,7 @@ pub type KreivoAssetsCall = pallet_assets::Call<Runtime, KreivoAssetsInstance>;
 impl pallet_assets::Config<KreivoAssetsInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
+	type RemoveItemsLimit = frame_support::traits::ConstU32<1000>;
 	type AssetId = FungibleAssetLocation;
 	type AssetIdParameter = FungibleAssetLocation;
 	type Currency = Balances;
@@ -89,20 +97,19 @@ impl pallet_assets::Config<KreivoAssetsInstance> for Runtime {
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type CreateOrigin = EnsureSigned<AccountId>;
+	type RuntimeHoldReason = RuntimeHoldReason;
 	type ForceOrigin = AssetsForceOrigin;
 	type AssetDeposit = AssetDeposit;
+	type AssetAccountDeposit = AssetAccountDeposit;
 	type MetadataDepositBase = MetadataDepositBase;
 	type MetadataDepositPerByte = MetadataDepositPerByte;
 	type ApprovalDeposit = ApprovalDeposit;
 	type StringLimit = AssetsStringLimit;
+	type MaxHolds = frame_support::traits::ConstU32<50>;
 	type Freezer = AssetsFreezer;
 	type Extra = ();
-	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
 	type CallbackHandle = ();
-	type AssetAccountDeposit = AssetAccountDeposit;
-	type RemoveItemsLimit = frame_support::traits::ConstU32<1000>;
-	type MaxHolds = frame_support::traits::ConstU32<50>;
-	type RuntimeHoldReason = RuntimeHoldReason;
+	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
 }

@@ -1,7 +1,18 @@
 use super::*;
 
 use frame_system::EnsureRootWithSuccess;
+use sp_runtime::traits::Verify;
+
+use pallet_nfts::PalletFeatures;
 use virto_common::MembershipId;
+
+parameter_types! {
+	pub MembershipsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
+	pub const MaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
+	pub const MetadataDepositBase: Balance = 0;
+	pub const AttributeDepositBase: Balance = 0;
+	pub const DepositPerByte: Balance = 0;
+}
 
 pub type CommunityMembershipsInstance = pallet_nfts::Instance2;
 
@@ -20,9 +31,9 @@ impl pallet_nfts::Config<CommunityMembershipsInstance> for Runtime {
 
 	type CollectionDeposit = ();
 	type ItemDeposit = ();
-	type MetadataDepositBase = NftsMetadataDepositBase;
-	type AttributeDepositBase = NftsAttributeDepositBase;
-	type DepositPerByte = NftsDepositPerByte;
+	type MetadataDepositBase = MetadataDepositBase;
+	type AttributeDepositBase = AttributeDepositBase;
+	type DepositPerByte = DepositPerByte;
 
 	type StringLimit = ConstU32<256>;
 	type KeyLimit = ConstU32<64>;
@@ -30,16 +41,16 @@ impl pallet_nfts::Config<CommunityMembershipsInstance> for Runtime {
 	type ApprovalsLimit = ConstU32<20>;
 	type ItemAttributesApprovalsLimit = ConstU32<30>;
 	type MaxTips = ConstU32<10>;
-	type MaxDeadlineDuration = NftsMaxDeadlineDuration;
+	type MaxDeadlineDuration = MaxDeadlineDuration;
 	type MaxAttributesPerCall = ConstU32<10>;
-	type Features = NftsPalletFeatures;
+	type Features = MembershipsPalletFeatures;
 
 	type OffchainSignature = Signature;
 	type OffchainPublic = <Signature as Verify>::Signer;
-	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
-
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = NftsBenchmarksHelper;
+
+	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

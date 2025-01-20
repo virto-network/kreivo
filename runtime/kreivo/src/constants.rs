@@ -33,17 +33,14 @@ pub mod currency {
 
 /// Fee-related.
 pub mod fee {
-	use super::currency::CENTS;
 	use frame_support::weights::{
-		constants::{ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_SECOND},
-		FeePolynomial, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+		constants::ExtrinsicBaseWeight, FeePolynomial, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
 	};
 	use polkadot_core_primitives::Balance;
 	use smallvec::smallvec;
 	pub use sp_runtime::Perbill;
 
-	/// The block saturation level. Fees will be updates based on this value.
-	pub const TARGET_BLOCK_FULLNESS: Perbill = Perbill::from_percent(25);
 	/// Handles converting a weight scalar to a fee value, based on the scale
 	/// and granularity of the node's balance type.
 	///
@@ -107,21 +104,8 @@ pub mod fee {
 			}]
 		}
 	}
-
-	pub fn base_tx_fee() -> Balance {
-		CENTS / 10
-	}
-
-	pub fn default_fee_per_second() -> u128 {
-		let base_weight = Balance::from(ExtrinsicBaseWeight::get().ref_time());
-		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
-		base_tx_per_second * base_tx_fee()
-	}
 }
 
 pub mod locations {
 	pub const ASSET_HUB_ID: u32 = 1000;
-	// Even if they are not used yet, let's keep these for the future.
-	pub const STATEMINE_ASSET_PALLET_ID: u8 = 50;
-	pub const USDT_ASSET_ID: u128 = 1984;
 }

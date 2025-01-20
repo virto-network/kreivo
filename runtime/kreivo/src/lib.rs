@@ -13,85 +13,55 @@ mod tests;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
-pub mod apis;
-pub mod configuration;
-pub mod constants;
-pub mod contracts;
+mod apis;
+mod config;
+mod constants;
 mod genesis_config_presets;
-pub mod governance;
-pub mod impls;
+mod impls;
 mod weights;
-pub mod xcm_config;
-
-pub use configuration::*;
+mod xcm_config;
 
 use apis::*;
-use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+use config::*;
+
+use sp_std::prelude::*;
+
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
-use governance::pallet_custom_origins;
-use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
-use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
-use sp_runtime::traits::{LookupError, StaticLookup, Verify};
+use sp_core::crypto::KeyTypeId;
+
 pub use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto, IdentityLookup},
-	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
-	AccountId32, ApplyExtrinsicResult, MultiAddress, Perbill, Percent, Permill,
+	traits::{Block as BlockT, ConvertInto},
+	MultiAddress, Perbill, Percent,
 };
-use sp_std::prelude::*;
+
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use virto_common::CommunityId;
 
-pub use apis::RuntimeApi;
 pub use virto_common::FungibleAssetLocation;
 
 use frame_support::{
-	derive_impl,
-	dispatch::DispatchClass,
 	ensure,
 	genesis_builder_helper::{build_state, get_preset},
 	parameter_types,
 	traits::{
-		fungible::HoldConsideration,
-		fungibles,
-		tokens::{imbalance::ResolveTo, PayFromAccount, UnityAssetBalanceConversion},
-		ConstBool, ConstU32, ConstU64, ConstU8, Contains, EitherOf, EitherOfDiverse, EnsureOriginWithArg,
-		LinearStoragePrice, TransformOrigin, WithdrawReasons,
+		fungibles, tokens::imbalance::ResolveTo, ConstBool, ConstU32, ConstU64, Contains, EitherOf, EnsureOriginWithArg,
 	},
-	weights::{constants::RocksDbWeight, ConstantMultiplier, Weight},
+	weights::{constants::RocksDbWeight, Weight},
 	BoundedVec, PalletId,
 };
+use frame_system::{limits::BlockWeights, EnsureRoot};
 
-pub use frame_system::Call as SystemCall;
-
-use frame_system::{
-	limits::{BlockLength, BlockWeights},
-	EnsureRoot,
-};
-
-use pallet_nfts::PalletFeatures;
-
-use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
+use pallet_xcm::EnsureXcm;
 use xcm_config::{LocationConvertedConcreteId, RelayLocation, XcmOriginToTransactDispatchOrigin};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
 // Polkadot imports
-pub use polkadot_runtime_common::{prod_or_fast, BlockHashCount, SlowAdjustingFeeUpdate};
-
 pub use weights::{BlockExecutionWeight, ExtrinsicBaseWeight};
-
-// Kreivo Governance
-pub mod collective;
-
-// Virto toolchain
-pub mod payments;
-
-pub mod communities;
 
 use pallet_asset_tx_payment::ChargeAssetTxPayment;
 use pallet_gas_transaction_payment::ChargeTransactionPayment as ChargeGasTxPayment;
@@ -107,15 +77,8 @@ use pallet_payments::types::*;
 
 pub use impls::{EqualOrGreatestRootCmp, ProxyType, RuntimeBlackListedCalls};
 
-pub use parachains_common::{
-	opaque, AccountId, AssetIdForTrustBackedAssets, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
-	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MINUTES, NORMAL_DISPATCH_RATIO,
-};
-
-pub(crate) const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
-	sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
-	cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
-);
+pub use parachains_common::{AccountId, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature};
+pub use runtime_constants::time::{DAYS, HOURS, MINUTES};
 
 /// The address format for describing accounts.
 pub type Address = MultiAddress<AccountId, CommunityId>;
@@ -125,9 +88,6 @@ pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 
 /// A Block signed with a Justification
 pub type SignedBlock = generic::SignedBlock<Block>;
-
-/// BlockId type as expected by this runtime.
-pub type BlockId = generic::BlockId<Block>;
 
 pub type ChargeTransaction = ChargeGasTxPayment<Runtime, ChargeAssetTxPayment<Runtime>>;
 
@@ -268,6 +228,8 @@ mod runtime {
 	// Governance
 	#[runtime::pallet_index(50)]
 	pub type Treasury = pallet_treasury;
+
+	// Governance: Collective
 	#[runtime::pallet_index(51)]
 	pub type KreivoCollective = pallet_ranked_collective<Instance1>;
 	#[runtime::pallet_index(52)]
@@ -293,319 +255,6 @@ mod runtime {
 	#[runtime::pallet_index(80)]
 	pub type Contracts = pallet_contracts;
 }
-
-impl pallet_authorship::Config for Runtime {
-	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
-	type EventHandler = (CollatorSelection,);
-}
-
-parameter_types! {
-	pub MessageQueueServiceWeight: Weight = Perbill::from_percent(35) * RuntimeBlockWeights::get().max_block;
-}
-
-impl pallet_message_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
-	#[cfg(feature = "runtime-benchmarks")]
-	type MessageProcessor =
-		pallet_message_queue::mock_helpers::NoopMessageProcessor<cumulus_primitives_core::AggregateMessageOrigin>;
-	#[cfg(not(feature = "runtime-benchmarks"))]
-	type MessageProcessor = xcm_builder::ProcessXcmMessage<
-		AggregateMessageOrigin,
-		xcm_executor::XcmExecutor<xcm_config::XcmConfig>,
-		RuntimeCall,
-	>;
-	type Size = u32;
-	// The XCMP queue pallet is only ever able to handle the `Sibling(ParaId)`
-	// origin:
-	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
-	type QueuePausedQuery = NarrowOriginToSibling<XcmpQueue>;
-	type HeapSize = sp_core::ConstU32<{ 64 * 1024 }>;
-	type MaxStale = sp_core::ConstU32<8>;
-	type ServiceWeight = MessageQueueServiceWeight;
-	type IdleMaxServiceWeight = ();
-}
-
-impl cumulus_pallet_aura_ext::Config for Runtime {}
-
-mod async_backing_params {
-	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
-	/// included into the relay chain.
-	pub(crate) const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
-	/// How many parachain blocks are processed by the relay chain per parent.
-	/// Limits the number of blocks authored per slot.
-	pub(crate) const BLOCK_PROCESSING_VELOCITY: u32 = 1;
-	/// Relay chain slot duration, in milliseconds.
-	pub(crate) const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6_000;
-}
-
-/// Aura consensus hook
-type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
-	Runtime,
-	{ async_backing_params::RELAY_CHAIN_SLOT_DURATION_MILLIS },
-	{ async_backing_params::BLOCK_PROCESSING_VELOCITY },
-	{ async_backing_params::UNINCLUDED_SEGMENT_CAPACITY },
->;
-
-// `SLOT_DURATION` is picked up by `pallet_timestamp` which is in turn picked
-// up by `pallet_aura` to implement `fn slot_duration()`.
-//
-// Change this to adjust the block time.
-pub const MILLISECS_PER_BLOCK: u64 = 6_000;
-pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
-
-impl pallet_aura::Config for Runtime {
-	type AuthorityId = AuraId;
-	type DisabledValidators = ();
-	type MaxAuthorities = ConstU32<100_000>;
-	type AllowMultipleBlocksPerSlot = ConstBool<true>;
-	type SlotDuration = ConstU64<SLOT_DURATION>;
-}
-
-impl cumulus_pallet_xcmp_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type ChannelInfo = ParachainSystem;
-	type VersionWrapper = ();
-	// Enqueue XCMP messages from siblings for later processing.
-	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
-	type MaxActiveOutboundChannels = ConstU32<128>;
-	// From https://github.com/polkadot-fellows/runtimes/blob/88da7d0abb9edbff027e57bc998a97c6ff10c18c/system-parachains/asset-hubs/asset-hub-kusama/src/lib.rs#L783:
-	//
-	// Most on-chain HRMP channels are configured to use 102400 bytes of max message
-	// size, so we need to set the page size larger than that until we reduce the
-	// channel size on-chain.
-	type MaxPageSize = ConstU32<{ 103 * 1024 }>;
-	type MaxInboundSuspended = sp_core::ConstU32<1_000>;
-	type ControllerOrigin = EnsureRoot<AccountId>;
-	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	type WeightInfo = ();
-	type PriceForSiblingDelivery = NoPriceForMessageDelivery<ParaId>;
-}
-
-parameter_types! {
-	pub const Period: u32 = 6 * HOURS;
-	pub const Offset: u32 = 0;
-}
-
-impl pallet_session::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type ValidatorId = <Self as frame_system::Config>::AccountId;
-	// we don't have stash and controller, thus we don't need the convert as well.
-	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
-	type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
-	type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
-	type SessionManager = CollatorSelection;
-	// Essentially just Aura, but let's be pedantic.
-	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
-	type Keys = SessionKeys;
-	type WeightInfo = ();
-}
-
-// === Parachain: Collators / Staking ====
-
-parameter_types! {
-	pub const PotId: PalletId = PalletId(*b"PotStake");
-	pub const MaxCandidates: u32 = 1000;
-	pub const MinEligibleCollators: u32 = 1;
-	pub const SessionLength: BlockNumber = 6 * HOURS;
-	pub const MaxInvulnerables: u32 = 100;
-	// StakingAdmin pluralistic body.
-	pub const StakingAdminBodyId: BodyId = BodyId::Defense;
-}
-
-/// We allow root and the StakingAdmin to execute privileged collator selection
-/// operations.
-pub type CollatorSelectionUpdateOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, EnsureXcm<IsVoiceOfBody<RelayLocation, StakingAdminBodyId>>>;
-
-impl pallet_collator_selection::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type UpdateOrigin = CollatorSelectionUpdateOrigin;
-	type PotId = PotId;
-	type MaxCandidates = MaxCandidates;
-	type MinEligibleCollators = MinEligibleCollators;
-	type MaxInvulnerables = MaxInvulnerables;
-	// should be a multiple of session or things will get inconsistent
-	type KickThreshold = Period;
-	type ValidatorId = <Self as frame_system::Config>::AccountId;
-	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
-	type ValidatorRegistration = Session;
-	type WeightInfo = ();
-}
-
-parameter_types! {
-	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 2000 * CENTS;
-	pub const ProposalBondMaximum: Balance = GRAND;
-	pub const SpendPeriod: BlockNumber = 6 * DAYS;
-	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
-	pub const TipCountdown: BlockNumber = DAYS;
-	pub const TipFindersFee: Percent = Percent::from_percent(20);
-	pub const TipReportDepositBase: Balance = 100 * CENTS;
-	pub const DataDepositPerByte: Balance = CENTS;
-	pub const MaxApprovals: u32 = 100;
-	pub const MaxAuthorities: u32 = 100_000;
-	pub const MaxKeys: u32 = 10_000;
-	pub const MaxPeerInHeartbeats: u32 = 10_000;
-	pub const MaxPeerDataEncodingSize: u32 = 1_000;
-	pub TreasuryAccount: AccountId = Treasury::account_id();
-	pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
-}
-
-impl pallet_treasury::Config for Runtime {
-	type Currency = Balances;
-	type RejectOrigin = frame_system::EnsureRoot<Self::AccountId>;
-	type RuntimeEvent = RuntimeEvent;
-	type SpendPeriod = SpendPeriod;
-	type Burn = ();
-	type PalletId = TreasuryPalletId;
-	type BurnDestination = ();
-	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
-	type SpendFunds = ();
-	type MaxApprovals = MaxApprovals;
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
-	type AssetKind = ();
-	type Beneficiary = Self::AccountId;
-	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
-	type BalanceConverter = UnityAssetBalanceConversion;
-	type PayoutPeriod = PayoutSpendPeriod;
-	#[cfg(feature = "runtime-benchmarks")]
-	/// TODO: fix this benchmark helper in next release. We can proceed with the
-	/// empty implementation. type BenchmarkHelper =
-	/// polkadot_runtime_common::impls::benchmarks::TreasuryArguments;
-	type BenchmarkHelper = ();
-}
-
-parameter_types! {
-	// One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
-	pub const DepositBase: Balance = deposit(1, 88);
-	// Additional storage item size of 32 bytes.
-	pub const DepositFactor: Balance = deposit(0, 32);
-}
-
-impl pallet_multisig::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type DepositBase = DepositBase;
-	type DepositFactor = DepositFactor;
-	type MaxSignatories = ConstU32<100>;
-	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
-}
-
-impl pallet_utility::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type PalletsOrigin = OriginCaller;
-	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
-}
-
-parameter_types! {
-	// One storage item; key size 32, value size 8; .
-	pub const ProxyDepositBase: Balance = deposit(1, 40);
-	// Additional storage item size of 33 bytes.
-	pub const ProxyDepositFactor: Balance = deposit(0, 33);
-	pub const MaxProxies: u16 = 32;
-	// One storage item; key size 32, value size 16
-	pub const AnnouncementDepositBase: Balance = deposit(1, 48);
-	pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
-	pub const MaxPending: u16 = 32;
-}
-
-impl pallet_proxy::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type ProxyType = ProxyType;
-	type ProxyDepositBase = ProxyDepositBase;
-	type ProxyDepositFactor = ProxyDepositFactor;
-	type MaxProxies = MaxProxies;
-	type WeightInfo = weights::pallet_proxy::WeightInfo<Runtime>;
-	type MaxPending = MaxPending;
-	type CallHasher = BlakeTwo256;
-	type AnnouncementDepositBase = AnnouncementDepositBase;
-	type AnnouncementDepositFactor = AnnouncementDepositFactor;
-}
-
-parameter_types! {
-	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * RuntimeBlockWeights::get().max_block;
-}
-
-#[cfg(not(feature = "runtime-benchmarks"))]
-parameter_types! {
-	pub const MaxScheduledPerBlock: u32 = 50;
-}
-
-#[cfg(feature = "runtime-benchmarks")]
-parameter_types! {
-	pub const MaxScheduledPerBlock: u32 = 200;
-}
-
-impl pallet_scheduler::Config for Runtime {
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeEvent = RuntimeEvent;
-	type PalletsOrigin = OriginCaller;
-	type RuntimeCall = RuntimeCall;
-	type MaximumWeight = MaximumSchedulerWeight;
-	type ScheduleOrigin = EnsureRoot<AccountId>;
-	type MaxScheduledPerBlock = MaxScheduledPerBlock;
-	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
-	type OriginPrivilegeCmp = EqualOrGreatestRootCmp;
-	type Preimages = Preimage;
-}
-
-parameter_types! {
-	pub const PreimageBaseDeposit: Balance = deposit(2, 64);
-	pub const PreimageByteDeposit: Balance = deposit(0, 1);
-	pub const PreimageHoldReason: RuntimeHoldReason = RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
-}
-
-impl pallet_preimage::Config for Runtime {
-	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type ManagerOrigin = EnsureRoot<AccountId>;
-	type Consideration = HoldConsideration<
-		AccountId,
-		Balances,
-		PreimageHoldReason,
-		LinearStoragePrice<PreimageBaseDeposit, PreimageByteDeposit, Balance>,
-	>;
-}
-
-parameter_types! {
-	pub NftsPalletFeatures: PalletFeatures = PalletFeatures::all_enabled();
-	pub const NftsMaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
-	// From https://github.com/polkadot-fellows/runtimes/blob/main/system-parachains/asset-hubs/asset-hub-kusama/src/lib.rs#L745
-	pub const NftsCollectionDeposit: Balance = UNITS / 10;
-	pub const NftsItemDeposit: Balance = UNITS / 1_000;
-	pub const NftsMetadataDepositBase: Balance = MetadataDepositBase::get();
-	pub const NftsAttributeDepositBase: Balance = deposit(1, 0);
-	pub const NftsDepositPerByte: Balance = MetadataDepositPerByte::get();
-}
-
-parameter_types! {
-	/// The asset ID for the asset that we use to pay for message delivery fees.
-	pub FeeAssetId: cumulus_primitives_core::AssetId = xcm_config::RelayLocation::get().into();
-	/// The base fee for the message delivery fees.
-	pub const ToSiblingBaseDeliveryFee: u128 = CENTS.saturating_mul(3);
-	pub const ToParentBaseDeliveryFee: u128 = CENTS.saturating_mul(3);
-}
-
-pub type PriceForSiblingParachainDelivery = polkadot_runtime_common::xcm_sender::ExponentialPrice<
-	FeeAssetId,
-	ToSiblingBaseDeliveryFee,
-	TransactionByteFee,
-	XcmpQueue,
->;
-pub type PriceForParentDelivery = polkadot_runtime_common::xcm_sender::ExponentialPrice<
-	FeeAssetId,
-	ToParentBaseDeliveryFee,
-	TransactionByteFee,
-	ParachainSystem,
->;
 
 cumulus_pallet_parachain_system::register_validate_block! {
 	Runtime = Runtime,

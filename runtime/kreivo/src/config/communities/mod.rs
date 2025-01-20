@@ -9,7 +9,6 @@ use sp_runtime::{morph_types, traits::AccountIdConversion};
 use virto_common::{CommunityId, MembershipId};
 
 use fc_traits_memberships::{NonFungiblesMemberships, WithHooks};
-
 pub mod governance;
 mod kreivo_memberships;
 pub mod memberships;

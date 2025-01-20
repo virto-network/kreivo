@@ -1,14 +1,25 @@
 //! System support stuff.
 
-use fc_traits_authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
-use frame_support::{traits::EnsureOrigin, PalletId};
-use frame_system::EnsureRootWithSuccess;
-use pallet_communities::origin::AsSignedByCommunity;
-
 use super::*;
+
+use frame_support::{derive_impl, dispatch::DispatchClass, traits::EnsureOrigin, PalletId};
+use frame_system::{limits::BlockLength, EnsureRootWithSuccess};
+use sp_runtime::traits::{LookupError, StaticLookup};
+
+use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
+use polkadot_runtime_common::BlockHashCount;
+
+use fc_traits_authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
+use pallet_communities::origin::AsSignedByCommunity;
 
 // #[runtime::pallet_index(0)]
 // pub type System
+const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+	sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
+	cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
+);
+
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
 
@@ -151,6 +162,7 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 
 pub type WebAuthn =
 	pass_webauthn::Authenticator<BlockHashChallenger<{ 30 * MINUTES }>, AuthorityFromPalletId<PassPalletId>>;
+#[cfg(feature = "runtime-benchmarks")]
 pub type Dummy = fc_traits_authn::util::dummy::Dummy<AuthorityFromPalletId<PassPalletId>>;
 
 #[cfg(not(feature = "runtime-benchmarks"))]
