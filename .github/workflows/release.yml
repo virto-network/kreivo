@@ -56,7 +56,7 @@ jobs:
 
       - name: Generate release notes
         env:
-          ENDPOINT: ${{ endsWith(github.ref, '-pre') && 'testnet.virto.dev' || 'kreivo.io' }}
+          ENDPOINT: ${{ contains(github.ref, '-pre') && 'testnet.virto.dev' || 'kreivo.io' }}
         run: |
           HASH=$(b2sum -l256 kreivo_runtime.compact.compressed.wasm | awk '{print $1}')
 
@@ -67,7 +67,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          prerelease: ${{ endsWith(github.ref, '-pre') }}
+          prerelease: ${{ contains(github.ref, '-pre') }}
           body_path: RELEASE_NOTES.txt
           append_body: true
           files: |
