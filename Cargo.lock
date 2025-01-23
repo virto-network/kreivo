@@ -3608,6 +3608,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "hex-literal",
+ "kreivo-apis",
  "log",
  "pallet-asset-tx-payment",
  "pallet-assets",
