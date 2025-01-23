@@ -3571,6 +3571,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kreivo-apis"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-contracts",
+]
+
+[[package]]
 name = "kreivo-runtime"
 version = "0.15.0"
 dependencies = [
