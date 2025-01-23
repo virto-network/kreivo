@@ -8,8 +8,8 @@ use types::*;
 
 use apis::{AssetsAPI, KreivoAPI};
 use core::marker::PhantomData;
-use frame_support::DefaultNoBound;
 use frame_support::pallet_prelude::Encode;
+use frame_support::DefaultNoBound;
 use pallet_contracts::chain_extension::{ChainExtension, Environment, Ext, InitState, RetVal};
 
 /// A helper structure that implements [`KreivoAPI`] in the context of the
