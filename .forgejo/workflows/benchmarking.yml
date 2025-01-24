@@ -1,7 +1,7 @@
 name: Benchmarks
 
 on:
-  workflow_dispatch:
+  push:
 
 jobs:
   build:
@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Setup Ubuntu dependencies
         shell: bash
-        run: sudo apt update && sudo apt install -y protobuf-compiler
+        run: apt update && apt install -y protobuf-compiler
 
       - name: Use Stable
         uses: https://github.com/actions-rs/toolchain@v1
