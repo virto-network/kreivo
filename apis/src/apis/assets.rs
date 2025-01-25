@@ -22,6 +22,9 @@ pub trait AssetsAPI<Env> {
 	type AssetId: Parameter;
 	type Balance: Parameter + Copy;
 
+	/// Returns the balance of an asset account.
+	fn balance(&self, asset: Self::AssetId, who: &Self::AccountId) -> Self::Balance;
+
 	/// Receives an `amount` of a certain `asset` from the caller of the
 	/// application. Then, deposits that amount into the balance of the
 	/// application asset account.

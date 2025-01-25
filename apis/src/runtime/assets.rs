@@ -41,6 +41,10 @@ where
 	type AssetId = Assets::AssetId;
 	type Balance = Assets::Balance;
 
+	fn balance(&self, asset: Self::AssetId, who: &Self::AccountId) -> Self::Balance {
+		Assets::balance(asset, who)
+	}
+
 	fn deposit(&self, asset: Self::AssetId, amount: Self::Balance) -> Result<Self::Balance, DispatchError> {
 		let caller = self.ext().caller().account_id()?.clone();
 		Assets::transfer(asset, &caller, self.ext().address(), amount, Preservation::Preserve)
