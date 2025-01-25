@@ -23,6 +23,8 @@ serde_json = { workspace = true, features = ["alloc"] }
 smallvec.workspace = true
 
 # Local
+kreivo-apis = { workspace = true, features = ["runtime"] }
+
 pallet-communities = { workspace = true, features = ["xcm"] }
 pallet-communities-manager.workspace = true
 pallet-payments.workspace = true
@@ -139,6 +141,7 @@ std = [
   "fc-traits-authn/std",
   "fc-traits-gas-tank/std",
   "fc-traits-memberships/std",
+  "kreivo-apis/std",
   "log/std",
   "runtime-constants/std",
   "pallet-assets-freezer/std",

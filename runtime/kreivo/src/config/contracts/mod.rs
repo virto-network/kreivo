@@ -1,21 +1,22 @@
-use crate::{
-	deposit, AccountId, Balance, Balances, Perbill, Runtime, RuntimeCall, RuntimeEvent, RuntimeHoldReason, Timestamp,
-	TreasuryAccount,
-};
+use super::*;
 use frame_support::{
 	parameter_types,
 	traits::{ConstBool, ConstU32, EitherOf, Randomness},
 };
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureRootWithSuccess};
+use kreivo_apis::KreivoChainExtensions;
 use pallet_balances::Call as BalancesCall;
 use pallet_communities::origin::AsSignedByStaticCommunity;
 use sp_core::ConstU16;
 
-pub enum AllowBalancesCall {}
+pub enum CallFilter {}
 
-impl frame_support::traits::Contains<RuntimeCall> for AllowBalancesCall {
+impl frame_support::traits::Contains<RuntimeCall> for CallFilter {
 	fn contains(call: &RuntimeCall) -> bool {
-		matches!(call, RuntimeCall::Balances(BalancesCall::transfer_allow_death { .. }))
+		match call {
+			RuntimeCall::Balances(BalancesCall::transfer_allow_death { .. }) | RuntimeCall::Assets(_) => true,
+			_ => false,
+		}
 	}
 }
 
@@ -58,15 +59,7 @@ impl pallet_contracts::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 
-	type UploadOrigin = EnsureRootWithSuccess<AccountId, TreasuryAccount>;
-	type InstantiateOrigin = EitherOf<
-		EnsureRootWithSuccess<AccountId, TreasuryAccount>,
-		EitherOf<
-			AsSignedByStaticCommunity<Runtime, ConstU16<1>>, // Virto
-			AsSignedByStaticCommunity<Runtime, ConstU16<2>>, // Kippu
-		>,
-	>;
-
+	type RuntimeHoldReason = RuntimeHoldReason;
 	/// The safest default is to allow no calls at all.
 	///
 	/// Runtimes should whitelist dispatchables that are allowed to be called
@@ -74,17 +67,18 @@ impl pallet_contracts::Config for Runtime {
 	/// contracts are not allowed to change because that would break already
 	/// deployed contracts. The `RuntimeCall` structure itself is not allowed
 	/// to change the indices of existing pallets, too.
-	type CallFilter = AllowBalancesCall;
-	type DepositPerItem = DepositPerItem;
-	type DepositPerByte = DepositPerByte;
-	type CallStack = [pallet_contracts::Frame<Self>; 23];
+	type CallFilter = CallFilter;
+
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = pallet_contracts::weights::SubstrateWeight<Self>;
+	type ChainExtension = KreivoChainExtensions<Self, Assets>;
 	type Schedule = Schedule;
+	type CallStack = [pallet_contracts::Frame<Self>; 23];
+	type DepositPerByte = DepositPerByte;
+	type DefaultDepositLimit = DefaultDepositLimit;
+	type DepositPerItem = DepositPerItem;
+	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
 	type AddressGenerator = pallet_contracts::DefaultAddressGenerator;
-
-	type ChainExtension = ();
-	type ApiVersion = ();
 
 	// ## From Pop Network
 	// This node is geared towards development and testing of contracts.
@@ -96,17 +90,23 @@ impl pallet_contracts::Config for Runtime {
 	// less friction during development when the requirement here is
 	// just more lax.
 	type MaxCodeLen = ConstU32<{ 192 * 1024 }>;
-	type MaxTransientStorageSize = ConstU32<{ 1024 * 1024 }>;
-	type DefaultDepositLimit = DefaultDepositLimit;
 	type MaxStorageKeyLen = ConstU32<128>;
-	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
-	type UnsafeUnstableInterface = ConstBool<true>;
-	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
+	type MaxTransientStorageSize = ConstU32<{ 1024 * 1024 }>;
 	type MaxDelegateDependencies = ConstU32<32>;
-	type RuntimeHoldReason = RuntimeHoldReason;
-
-	type Environment = ();
-	type Debug = ();
+	type UnsafeUnstableInterface = ConstBool<true>;
+	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
+	type UploadOrigin = EnsureRootWithSuccess<AccountId, TreasuryAccount>;
+	type InstantiateOrigin = EitherOf<
+		EnsureRootWithSuccess<AccountId, TreasuryAccount>,
+		EitherOf<
+			AsSignedByStaticCommunity<Runtime, ConstU16<1>>, // Virto
+			AsSignedByStaticCommunity<Runtime, ConstU16<2>>, // Kippu
+		>,
+	>;
 	type Migrations = ();
+
+	type Debug = ();
+	type Environment = ();
+	type ApiVersion = ();
 	type Xcm = pallet_xcm::Pallet<Self>;
 }

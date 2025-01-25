@@ -1,5 +1,5 @@
 [workspace]
-members = ["chain-spec-generator", "runtime/kreivo", "common"]
+members = ["apis", "chain-spec-generator", "common", "runtime/kreivo"]
 resolver = "2"
 
 [profile.release]
@@ -27,10 +27,10 @@ futures = { version = "0.3.28" }
 hex-literal = { version = "0.4.1" }
 log = { version = "0.4.22" }
 parity-scale-codec = { version = "3.6.4", default-features = false, features = [
-  "derive",
+    "derive",
 ] }
 scale-info = { version = "2.10.0", default-features = false, features = [
-  "derive",
+    "derive",
 ] }
 serde = { version = "1.0.188", default-features = false }
 serde_json = { version = "1.0.121", default-features = false }
@@ -41,6 +41,7 @@ kreivo-runtime = { path = "runtime/kreivo" }
 
 # Virto Pallets
 virto-common = { default-features = false, path = "common" }
+kreivo-apis = { path = "apis", default-features = false }
 
 pallet-communities = { default-features = false, path = "pallets/communities" }
 pallet-communities-manager = { default-features = false, path = "pallets/communities-manager" }
