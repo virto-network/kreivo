@@ -105,7 +105,6 @@ parameter_types! {
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
-	type WeightInfo = ();
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
 	type SelfParaId = parachain_info::Pallet<Runtime>;
@@ -115,6 +114,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
+	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Self>;
 	type ConsensusHook = ConsensusHook;
 }
 
@@ -125,7 +125,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = Aura;
 	type MinimumPeriod = ConstU64<0>;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_timestamp::WeightInfo<Self>;
 }
 
 // #[runtime::pallet_index(3)]
@@ -214,7 +214,7 @@ impl pallet_pass::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
-	type WeightInfo = pallet_pass::SubstrateWeight<Self>;
+	type WeightInfo = weights::pallet_pass::WeightInfo<Self>;
 	type Authenticator = PassAuthenticator; // WebAuthn;
 	type PalletsOrigin = OriginCaller;
 	type PalletId = PassPalletId;

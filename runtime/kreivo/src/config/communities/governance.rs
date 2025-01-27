@@ -37,12 +37,12 @@ impl EnsureOriginWithArg<RuntimeOrigin, TrackIdOf<Runtime, CommunityTracksInstan
 }
 
 impl pallet_referenda_tracks::Config<CommunityTracksInstance> for Runtime {
+	type AdminOrigin = EnsureRoot<AccountId>;
+	type UpdateOrigin = EnsureOriginToTrack;
 	type RuntimeEvent = RuntimeEvent;
 	type TrackId = CommunityId;
 	type MaxTracks = ConstU32<65536>;
-	type AdminOrigin = EnsureRoot<AccountId>;
-	type UpdateOrigin = EnsureOriginToTrack;
-	type WeightInfo = pallet_referenda_tracks::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_referenda_tracks::WeightInfo<Self>;
 
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = CommunityTracksBenchmarkHelper;
@@ -90,9 +90,9 @@ where
 
 // Paritally from https://github.com/polkadot-fellows/runtimes/blob/b5ba0e91d5dd3c4020e848b27be5f2b47e16f281/relay/kusama/src/governance/mod.rs#L75
 impl pallet_referenda::Config<CommunityReferendaInstance> for Runtime {
-	type WeightInfo = pallet_referenda::weights::SubstrateWeight<Runtime>;
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::pallet_referenda::WeightInfo<Self>;
 	type Scheduler = Scheduler;
 	type Currency = Balances;
 	type SubmitOrigin = EitherOf<
