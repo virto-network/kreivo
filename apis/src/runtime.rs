@@ -85,7 +85,7 @@ where
 			Err(error) => {
 				let error_code: KreivoApisErrorCode = error.into();
 				Ok(RetVal::Converging(error_code.into()))
-			},
+			}
 		}
 	}
 }
