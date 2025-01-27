@@ -18,20 +18,28 @@ frame-system = { workspace = true, optional = true }
 pallet-contracts = { workspace = true, optional = true }
 log = { workspace = true, optional = true }
 
+# Contract
+ink = { workspace = true, optional = true }
+virto-common = { workspace = true, optional = true, features = ["scale"] }
 
 [features]
 default = ["std", "runtime", "contract"]
 std = [
     "frame-support/std",
     "frame-system/std",
+    "ink?/std",
     "log?/std",
     "pallet-contracts?/std",
     "parity-scale-codec/std",
     "scale-info/std",
+    "virto-common?/std",
 ]
 runtime = [
     "dep:frame-system",
     "dep:log",
     "dep:pallet-contracts",
 ]
-contract = []
+contract = [
+    "dep:ink",
+    "dep:virto-common"
+]

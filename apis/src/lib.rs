@@ -13,9 +13,12 @@
 //!   regarding assets.
 
 pub mod apis;
-
+#[cfg(feature = "contract")]
+mod contract;
 #[cfg(feature = "runtime")]
 mod runtime;
 
+#[cfg(feature = "contract")]
+pub use contract::KreivoApiEnvironment;
 #[cfg(feature = "runtime")]
 pub use runtime::KreivoChainExtensions;
