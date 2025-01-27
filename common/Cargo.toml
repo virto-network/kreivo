@@ -36,6 +36,13 @@ std = [
   "sp-runtime?/std",
   "xcm?/std",
 ]
+scale = [
+  "dep:parity-scale-codec",
+  "dep:scale-info",
+]
+serde = [
+  "dep:serde",
+]
 alloc = []
 js = ["alloc", "wasm-bindgen"]
 nightly = []
@@ -43,9 +50,8 @@ runtime = [
   "dep:cumulus-primitives-core",
   "dep:frame-support",
   "dep:pallet-payments",
-  "dep:parity-scale-codec",
-  "dep:serde",
-  "dep:scale-info",
   "dep:sp-runtime",
   "dep:xcm",
+  "scale",
+  "serde",
 ]

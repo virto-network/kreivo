@@ -1,0 +1,45 @@
+[package]
+name = "kreivo-apis"
+description = "A set of APIs to connect Smart Contract creators with the Kreivo runtime."
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+frame-support = { workspace = true }
+parity-scale-codec = { workspace = true }
+scale-info = { workspace = true }
+
+# Runtime
+frame-system = { workspace = true, optional = true }
+pallet-contracts = { workspace = true, optional = true }
+log = { workspace = true, optional = true }
+
+# Contract
+ink = { workspace = true, optional = true }
+virto-common = { workspace = true, optional = true, features = ["scale"] }
+
+[features]
+default = ["std", "runtime", "contract"]
+std = [
+    "frame-support/std",
+    "frame-system/std",
+    "ink?/std",
+    "log?/std",
+    "pallet-contracts?/std",
+    "parity-scale-codec/std",
+    "scale-info/std",
+    "virto-common?/std",
+]
+runtime = [
+    "dep:frame-system",
+    "dep:log",
+    "dep:pallet-contracts",
+]
+contract = [
+    "dep:ink",
+    "dep:virto-common"
+]

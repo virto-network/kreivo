@@ -1,14 +1,14 @@
-#[cfg(feature = "runtime")]
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "scale")]
 use {
-	frame_support::pallet_prelude::{Decode, Encode, MaxEncodedLen, TypeInfo},
-	serde::{Deserialize, Serialize},
+	parity_scale_codec::{Decode, Encode, MaxEncodedLen},
+	scale_info::TypeInfo,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(
-	feature = "runtime",
-	derive(Encode, Decode, Serialize, Deserialize, MaxEncodedLen, TypeInfo)
-)]
+#[cfg_attr(feature = "scale", derive(Encode, Decode, MaxEncodedLen, TypeInfo))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum FungibleAssetLocation {
 	Here(u32),
 	Sibling(Para),
@@ -16,10 +16,8 @@ pub enum FungibleAssetLocation {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(
-	feature = "runtime",
-	derive(Encode, Decode, Serialize, Deserialize, MaxEncodedLen, TypeInfo)
-)]
+#[cfg_attr(feature = "scale", derive(Encode, Decode, MaxEncodedLen, TypeInfo))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Para {
 	id: u16,
 	pallet: u8,
@@ -27,10 +25,8 @@ pub struct Para {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(
-	feature = "runtime",
-	derive(Encode, Decode, Serialize, Deserialize, MaxEncodedLen, TypeInfo)
-)]
+#[cfg_attr(feature = "scale", derive(Encode, Decode, MaxEncodedLen, TypeInfo))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum NetworkId {
 	Polkadot,
 	Kusama,
@@ -124,9 +120,6 @@ pub mod runtime {
 					1,
 					[Parachain(id.into()), PalletInstance(pallet), GeneralIndex(index.into())],
 				)),
-				FungibleAssetLocation::External { network, child: None } => {
-					Some(Location::new(2, [GlobalConsensus(network.into())]))
-				}
 				FungibleAssetLocation::External {
 					network,
 					child: Some(Para { id, pallet, index }),
@@ -139,6 +132,9 @@ pub mod runtime {
 						GeneralIndex(index.into()),
 					],
 				)),
+				FungibleAssetLocation::External { network, .. } => {
+					Some(Location::new(2, [GlobalConsensus(network.into())]))
+				}
 			}
 		}
 	}
