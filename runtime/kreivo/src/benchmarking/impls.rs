@@ -52,24 +52,18 @@ impl pallet_xcm_benchmarks::Config for Runtime {
 		let holding_fungibles = holding_non_fungibles.saturating_sub(1);
 		let fungibles_amount: u128 = 100;
 		let mut assets = (0..holding_fungibles)
-			.map(|i| Asset {
-				id: AssetId(GeneralIndex(i as u128).into()),
-				fun: Fungible(fungibles_amount * i as u128),
-			})
-			.chain(core::iter::once(Asset {
-				id: AssetId(Here.into()),
-				fun: Fungible(u128::MAX),
-			}))
-			.chain((0..holding_non_fungibles).map(|i| Asset {
-				id: AssetId(GeneralIndex(i as u128).into()),
-				fun: NonFungible(asset_instance_from(i)),
+			.map(|i| (AssetId(GeneralIndex(i as u128).into()), fungibles_amount * i as u128).into())
+			.chain(core::iter::once((AssetId(Here.into()), u128::MAX).into()))
+			.chain((0..holding_non_fungibles).map(|i| {
+				(
+					AssetId(GeneralIndex(i as u128).into()),
+					NonFungible(asset_instance_from(i)),
+				)
+					.into()
 			}))
 			.collect::<Vec<_>>();
 
-		assets.push(Asset {
-			id: AssetId(RelayLocation::get()),
-			fun: Fungible(1_000_000 * UNITS),
-		});
+		assets.push((RelayLocation::get(), 1_000_000 * UNITS).into());
 		assets.into()
 	}
 }
@@ -91,11 +85,7 @@ impl pallet_xcm_benchmarks::fungible::Config for Runtime {
 	type TrustedReserve = TrustedReserve;
 
 	fn get_asset() -> Asset {
-		Asset {
-			id: AssetId(RelayLocation::get()),
-			fun: Fungible(1 * UNITS),
-		}
-		.into()
+		(RelayLocation::get(), UNITS).into()
 	}
 }
 
@@ -129,18 +119,12 @@ impl pallet_xcm_benchmarks::generic::Config for Runtime {
 	fn claimable_asset() -> Result<(Location, Location, XcmAssets), BenchmarkError> {
 		let origin = RelayLocation::get();
 		let assets: XcmAssets = (AssetId(RelayLocation::get()), 1_000 * UNITS).into();
-		let ticket = Location {
-			parents: 0,
-			interior: Here,
-		};
+		let ticket = Here.into();
 		Ok((origin, ticket, assets))
 	}
 
 	fn fee_asset() -> Result<Asset, BenchmarkError> {
-		Ok(Asset {
-			id: AssetId(RelayLocation::get()),
-			fun: Fungible(1_000_000 * UNITS),
-		})
+		Ok((RelayLocation::get(), 1_000_000 * UNITS).into())
 	}
 
 	fn unlockable_asset() -> Result<(Location, Location, Asset), BenchmarkError> {
