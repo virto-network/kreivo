@@ -10,7 +10,6 @@ use virto_common::{CommunityId, MembershipId};
 
 use fc_traits_memberships::{NonFungiblesMemberships, WithHooks};
 pub mod governance;
-mod kreivo_memberships;
 pub mod memberships;
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -65,7 +64,7 @@ impl pallet_communities::Config for Runtime {
 	type AdminOrigin = EitherOf<EnsureCommunity<Self>, EnsureCommunityAccount>;
 	type MemberMgmtOrigin = EitherOf<EnsureCommunity<Self>, EnsureCommunityAccount>;
 	type MemberMgmt =
-		WithHooks<NonFungiblesMemberships<CommunityMemberships>, kreivo_memberships::CopySystemAttributesOnAssign>;
+		WithHooks<NonFungiblesMemberships<CommunityMemberships>, memberships::CopySystemAttributesOnAssign>;
 	type MembershipId = MembershipId;
 
 	type Polls = CommunityReferenda;
