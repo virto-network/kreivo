@@ -1,5 +1,6 @@
 use super::*;
 
+use fc_traits_memberships::OnMembershipAssigned;
 use frame_system::EnsureRootWithSuccess;
 use sp_runtime::traits::Verify;
 
@@ -12,6 +13,22 @@ parameter_types! {
 	pub const MetadataDepositBase: Balance = 0;
 	pub const AttributeDepositBase: Balance = 0;
 	pub const DepositPerByte: Balance = 0;
+}
+
+const WELL_KNOWN_ATTR_KEYS: [&[u8]; 3] = [b"membership_member_rank", b"membership_gas", b"membership_expiration"];
+
+parameter_types! {
+	pub CopySystemAttributesOnAssign: Box<dyn OnMembershipAssigned<AccountId, CommunityId, MembershipId>> =
+		Box::new(|_, group, m| {
+			use frame_support::traits::nonfungibles_v2::{Inspect as NonFunsInspect, Mutate};
+			for key in WELL_KNOWN_ATTR_KEYS.into_iter() {
+				if let Some(value) = CommunityMemberships::system_attribute(&group, Some(&m), key) {
+					<CommunityMemberships as Mutate<_, _>>::set_attribute(&group, &m, key, &value)?;
+				}
+			}
+
+			Ok(())
+		});
 }
 
 pub type CommunityMembershipsInstance = pallet_nfts::Instance2;
@@ -63,8 +80,8 @@ use sp_runtime::traits::IdentifyAccount;
 impl pallet_nfts::BenchmarkHelper<CommunityId, MembershipId, <Signature as Verify>::Signer, AccountId, Signature>
 	for NftsBenchmarksHelper
 {
-	fn collection(_: u16) -> CommunityId {
-		<Runtime as pallet_communities::Config>::BenchmarkHelper::community_id()
+	fn collection(id: u16) -> CommunityId {
+		id.into()
 	}
 	fn item(i: u16) -> MembershipId {
 		i.into()

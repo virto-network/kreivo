@@ -1,22 +1,29 @@
 use super::*;
 use frame_support::{
 	parameter_types,
-	traits::{ConstBool, ConstU32, EitherOf, Randomness},
+	traits::{ConstBool, ConstU32, Randomness},
 };
-use frame_system::{pallet_prelude::BlockNumberFor, EnsureRootWithSuccess};
+use frame_system::pallet_prelude::BlockNumberFor;
 use kreivo_apis::KreivoChainExtensions;
 use pallet_balances::Call as BalancesCall;
-use pallet_communities::origin::AsSignedByStaticCommunity;
-use sp_core::ConstU16;
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+use {
+	frame_support::traits::EitherOf, frame_system::EnsureRootWithSuccess,
+	pallet_communities::origin::AsSignedByStaticCommunity, sp_core::ConstU16,
+};
+
+#[cfg(feature = "runtime-benchmarks")]
+use frame_system::EnsureSigned;
 
 pub enum CallFilter {}
 
 impl frame_support::traits::Contains<RuntimeCall> for CallFilter {
 	fn contains(call: &RuntimeCall) -> bool {
-		match call {
-			RuntimeCall::Balances(BalancesCall::transfer_allow_death { .. }) | RuntimeCall::Assets(_) => true,
-			_ => false,
-		}
+		matches!(
+			call,
+			RuntimeCall::Balances(BalancesCall::transfer_allow_death { .. }) | RuntimeCall::Assets(_)
+		)
 	}
 }
 
@@ -95,7 +102,11 @@ impl pallet_contracts::Config for Runtime {
 	type MaxDelegateDependencies = ConstU32<32>;
 	type UnsafeUnstableInterface = ConstBool<true>;
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type UploadOrigin = EnsureRootWithSuccess<AccountId, TreasuryAccount>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type UploadOrigin = EnsureSigned<AccountId>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type InstantiateOrigin = EitherOf<
 		EnsureRootWithSuccess<AccountId, TreasuryAccount>,
 		EitherOf<
@@ -103,7 +114,15 @@ impl pallet_contracts::Config for Runtime {
 			AsSignedByStaticCommunity<Runtime, ConstU16<2>>, // Kippu
 		>,
 	>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type InstantiateOrigin = EnsureSigned<AccountId>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Migrations = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = (
+		pallet_contracts::migration::v15::Migration<Self>,
+		pallet_contracts::migration::v16::Migration<Self>,
+	);
 
 	type Debug = ();
 	type Environment = ();
