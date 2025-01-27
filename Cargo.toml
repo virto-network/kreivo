@@ -40,8 +40,8 @@ smallvec = "1.11"
 kreivo-runtime = { path = "runtime/kreivo" }
 
 # Virto Pallets
+kreivo-apis = { default-features = false, path = "apis" }
 virto-common = { default-features = false, path = "common" }
-kreivo-apis = { path = "apis", default-features = false }
 
 pallet-communities = { default-features = false, path = "pallets/communities" }
 pallet-communities-manager = { default-features = false, path = "pallets/communities-manager" }
@@ -159,3 +159,6 @@ polkadot-runtime-common = { default-features = false, git = "https://github.com/
 xcm = { package = "staging-xcm", default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 xcm-builder = { package = "staging-xcm-builder", default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 xcm-executor = { package = "staging-xcm-executor", default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
+
+# ink!
+ink = { version = "5.1.1", default-features = false }

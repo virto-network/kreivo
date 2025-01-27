@@ -11,6 +11,10 @@ where
 }
 
 pub enum AssetsApiInfo<T: frame_system::Config, F: fungibles::Inspect<T::AccountId>> {
+	Balance {
+		asset: F::AssetId,
+		who: T::AccountId,
+	},
 	Deposit {
 		asset: F::AssetId,
 		amount: F::Balance,
@@ -33,10 +37,14 @@ where
 	fn try_from(env: &mut Environment<'_, '_, E, BufInBufOutState>) -> Result<Self, Self::Error> {
 		match env.func_id() {
 			0x0000 => {
+				let (asset, who) = env.read_as()?;
+				Ok(Self::Assets(AssetsApiInfo::Balance { asset, who }))
+			}
+			0x0001 => {
 				let (asset, amount) = env.read_as()?;
 				Ok(Self::Assets(AssetsApiInfo::Deposit { asset, amount }))
 			}
-			0x0001 => {
+			0x0002 => {
 				let (asset, amount, beneficiary) = env.read_as()?;
 				Ok(Self::Assets(AssetsApiInfo::Transfer {
 					asset,

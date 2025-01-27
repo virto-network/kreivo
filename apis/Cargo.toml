@@ -10,6 +10,8 @@ repository.workspace = true
 
 [dependencies]
 frame-support = { workspace = true }
+parity-scale-codec = { workspace = true }
+scale-info = { workspace = true }
 
 # Runtime
 frame-system = { workspace = true, optional = true }
@@ -24,6 +26,8 @@ std = [
     "frame-system/std",
     "log?/std",
     "pallet-contracts?/std",
+    "parity-scale-codec/std",
+    "scale-info/std",
 ]
 runtime = [
     "dep:frame-system",

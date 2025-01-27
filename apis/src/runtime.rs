@@ -6,7 +6,7 @@ mod types;
 use assets::*;
 use types::*;
 
-use apis::{AssetsAPI, KreivoAPI};
+use apis::{AssetsAPI, KreivoAPI, KreivoApisErrorCode};
 use core::marker::PhantomData;
 use frame_support::pallet_prelude::Encode;
 use frame_support::DefaultNoBound;
@@ -56,12 +56,15 @@ where
 	) -> pallet_contracts::chain_extension::Result<RetVal> {
 		let mut env = env.buf_in_buf_out();
 
-		match ApiInfo::<T, A>::try_from(&mut env)? {
+		let result = match ApiInfo::<T, A>::try_from(&mut env)? {
 			ApiInfo::Assets(api_info) => match api_info {
+				AssetsApiInfo::Balance { asset, who } => {
+					let api = RuntimeKreivoAPI::<T, E, RuntimeKreivoAssetsAPI<T, E, A>>::new(env.ext());
+					Ok(api.assets().balance(asset, &who).encode())
+				}
 				AssetsApiInfo::Deposit { asset, amount } => {
 					let api = RuntimeKreivoAPI::<T, E, RuntimeKreivoAssetsAPI<T, E, A>>::new(env.ext());
-					let balance = api.assets().deposit(asset, amount)?;
-					env.write(&balance.encode(), false, None)?;
+					api.assets().deposit(asset, amount).map(|v| v.encode())
 				}
 				AssetsApiInfo::Transfer {
 					asset,
@@ -69,12 +72,20 @@ where
 					beneficiary,
 				} => {
 					let api = RuntimeKreivoAPI::<T, E, RuntimeKreivoAssetsAPI<T, E, A>>::new(env.ext());
-					let balance = api.assets().transfer(asset, amount, &beneficiary)?;
-					env.write(&balance.encode(), false, None)?;
+					api.assets().transfer(asset, amount, &beneficiary).map(|v| v.encode())
 				}
 			},
-		}
+		};
 
-		Ok(RetVal::Converging(0))
+		match result {
+			Ok(result) => {
+				env.write(&result, false, None)?;
+				Ok(RetVal::Converging(0))
+			}
+			Err(error) => {
+				let error_code: KreivoApisErrorCode = error.into();
+				Ok(RetVal::Converging(error_code.into()))
+			},
+		}
 	}
 }

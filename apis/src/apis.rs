@@ -1,6 +1,8 @@
 mod assets;
+mod error;
 
-pub use assets::AssetsAPI;
+pub use assets::*;
+pub use error::*;
 
 /// A set of APIs to interact between applications (like Smart Contracts) and
 /// the Kreivo runtime.

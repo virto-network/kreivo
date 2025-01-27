@@ -13,7 +13,7 @@
 //! - **[`transfer`][AssetsAPI::transfer]:** Transfers an `amount` of a certain
 //!   `asset` to a `beneficiary`.
 
-use frame_support::pallet_prelude::DispatchError;
+use crate::apis::error::KreivoApisError;
 use frame_support::Parameter;
 
 /// An API for transacting with arbitrary assets.
@@ -28,7 +28,7 @@ pub trait AssetsAPI<Env> {
 	/// Receives an `amount` of a certain `asset` from the caller of the
 	/// application. Then, deposits that amount into the balance of the
 	/// application asset account.
-	fn deposit(&self, asset: Self::AssetId, amount: Self::Balance) -> Result<Self::Balance, DispatchError>;
+	fn deposit(&self, asset: Self::AssetId, amount: Self::Balance) -> Result<Self::Balance, KreivoApisError>;
 
 	/// Transfers an `amount` of a certain `asset` to a `beneficiary`.
 	fn transfer(
@@ -36,5 +36,5 @@ pub trait AssetsAPI<Env> {
 		asset: Self::AssetId,
 		amount: Self::Balance,
 		beneficiary: &Self::AccountId,
-	) -> Result<Self::Balance, DispatchError>;
+	) -> Result<Self::Balance, KreivoApisError>;
 }

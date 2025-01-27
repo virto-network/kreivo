@@ -2,8 +2,8 @@ use super::*;
 
 use core::marker::PhantomData;
 
+use crate::apis::{AssetsApiError, KreivoApisError};
 use apis::AssetsAPI;
-use frame_support::sp_runtime::DispatchError;
 use frame_support::traits::tokens::Preservation;
 use pallet_contracts::chain_extension::Ext;
 
@@ -45,9 +45,15 @@ where
 		Assets::balance(asset, who)
 	}
 
-	fn deposit(&self, asset: Self::AssetId, amount: Self::Balance) -> Result<Self::Balance, DispatchError> {
-		let caller = self.ext().caller().account_id()?.clone();
+	fn deposit(&self, asset: Self::AssetId, amount: Self::Balance) -> Result<Self::Balance, KreivoApisError> {
+		let caller = self
+			.ext()
+			.caller()
+			.account_id()
+			.map_err(|_| KreivoApisError::ExtQueryError)?
+			.clone();
 		Assets::transfer(asset, &caller, self.ext().address(), amount, Preservation::Preserve)
+			.map_err(|_| AssetsApiError::CannotDeposit.into())
 	}
 
 	fn transfer(
@@ -55,7 +61,8 @@ where
 		asset: Self::AssetId,
 		amount: Self::Balance,
 		beneficiary: &Self::AccountId,
-	) -> Result<Self::Balance, DispatchError> {
+	) -> Result<Self::Balance, KreivoApisError> {
 		Assets::transfer(asset, self.ext().address(), beneficiary, amount, Preservation::Preserve)
+			.map_err(|_| AssetsApiError::CannotTransfer.into())
 	}
 }
