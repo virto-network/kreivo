@@ -77,7 +77,7 @@ impl pallet_contracts::Config for Runtime {
 	type CallFilter = CallFilter;
 
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
-	type WeightInfo = pallet_contracts::weights::SubstrateWeight<Self>;
+	type WeightInfo = weights::pallet_contracts::WeightInfo<Self>;
 	type ChainExtension = KreivoChainExtensions<Self, Assets>;
 	type Schedule = Schedule;
 	type CallStack = [pallet_contracts::Frame<Self>; 23];
