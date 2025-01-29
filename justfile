@@ -46,6 +46,9 @@ check: _check_deps
 build-local features="":
 	cargo build --release --features '{{features}}'
 
+build-benchmarks:
+	cargo build --release --features 'runtime-benchmarks' -p kreivo-runtime
+
 benchmarks:
 	# TODO: build benchmarks for every pallet that's currently within the runtime as
 	# a dependency
@@ -72,6 +75,8 @@ release-artifacts:
 	cp {{ runtime }} release/
 	cp *.container release
 
+prerelease-tag count="1":
+	git tag {{ ver }}-pre.{{count}}
 release-tag:
 	git tag {{ ver }}
 

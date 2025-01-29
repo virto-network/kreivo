@@ -28,6 +28,7 @@ frame_benchmarking::define_benchmarks!(
 
 	// XCM
 	[cumulus_pallet_xcmp_queue, XcmpQueue]
+	[pallet_message_queue, MessageQueue]
 	// NOTE: Make sure you point to the individual modules below.
 	[pallet_xcm_benchmarks::fungible, XcmBalances]
 	[pallet_xcm_benchmarks::generic, XcmGeneric]

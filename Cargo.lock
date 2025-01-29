@@ -866,17 +866,12 @@ dependencies = [
 
 [[package]]
 name = "chain-spec-generator"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "clap",
- "cumulus-primitives-core",
  "kreivo-runtime",
  "sc-chain-spec",
- "sc-network",
  "serde",
- "serde_json",
- "sp-core",
- "sp-runtime",
 ]
 
 [[package]]
@@ -3857,7 +3852,7 @@ dependencies = [
 
 [[package]]
 name = "kreivo-runtime"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "assets-common",
  "cumulus-pallet-aura-ext",
