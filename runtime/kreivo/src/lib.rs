@@ -238,6 +238,10 @@ mod runtime {
 	// Virto Tooling
 	#[runtime::pallet_index(60)]
 	pub type Payments = pallet_payments;
+	#[runtime::pallet_index(61)]
+	pub type Listings = pallet_listings<Instance1>;
+	#[runtime::pallet_index(62)]
+	pub type ListingsCatalog = pallet_nfts<Instance1>;
 
 	// Communities at Kreivo
 	#[runtime::pallet_index(71)]

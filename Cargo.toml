@@ -56,6 +56,7 @@ fc-traits-gas-tank = { git = "https://github.com/virto-network/frame-contrib", d
 fc-traits-memberships = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
 fc-traits-tracks = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
 pallet-gas-transaction-payment = { git = "https://github.com/virto-network/frame-contrib", package = "fc-pallet-gas-transaction-payment", default-features = false }
+pallet-listings = { git = "https://github.com/virto-network/frame-contrib", branch = "feat/listings-and-payments", package = "fc-pallet-listings", default-features = false }
 pallet-pass = { git = "https://github.com/virto-network/frame-contrib", package = "fc-pallet-pass", default-features = false }
 pallet-referenda-tracks = { git = "https://github.com/virto-network/frame-contrib", package = "fc-pallet-referenda-tracks", default-features = false }
 pass-webauthn = { git = "https://github.com/virto-network/webauthn", default-features = false }

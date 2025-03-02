@@ -113,6 +113,7 @@ fc-traits-authn.workspace = true
 fc-traits-gas-tank.workspace = true
 fc-traits-memberships.workspace = true
 pallet-gas-transaction-payment.workspace = true
+pallet-listings.workspace = true
 pallet-pass.workspace = true
 pallet-referenda-tracks.workspace = true
 pass-webauthn = { workspace = true, features = ["runtime"] }
