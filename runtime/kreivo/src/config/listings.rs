@@ -1,9 +1,7 @@
 use super::*;
 
-use frame_support::traits::EnsureOrigin;
-use pallet_communities::origin::AsSignedByCommunity;
 use pallet_listings::{InventoryId, ItemType};
-use sp_runtime::traits::Verify;
+use sp_runtime::traits::{AccountIdConversion, Verify};
 
 #[cfg(not(feature = "runtime-benchmarks"))]
 use frame_system::EnsureNever;
@@ -25,8 +23,12 @@ impl<Id> EnsureOriginWithArg<RuntimeOrigin, InventoryId<CommunityId, Id>> for En
 			OriginCaller::Communities(origin) => (origin.id() == *community_id)
 				.then_some(Communities::community_account(community_id))
 				.ok_or(o),
-			OriginCaller::system(frame_system::RawOrigin::Signed(who)) => {
-				AsSignedByCommunity::ensure_origin(RuntimeOrigin::signed(who)).map_err(|_| o)
+			OriginCaller::system(frame_system::RawOrigin::Signed(ref who)) => {
+				let Some((_, id)) = PalletId::try_from_sub_account::<CommunityId>(who) else {
+					return Err(o);
+				};
+				ensure!(community_id == &id, o);
+				Ok(who.clone())
 			}
 			_ => Err(o),
 		}
