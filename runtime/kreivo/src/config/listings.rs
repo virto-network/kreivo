@@ -1,11 +1,12 @@
 use super::*;
 
-use core::marker::PhantomData;
 use frame_support::traits::EnsureOrigin;
-use frame_system::EnsureNever;
 use pallet_communities::origin::AsSignedByCommunity;
 use pallet_listings::{InventoryId, ItemType};
 use sp_runtime::traits::Verify;
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+use frame_system::EnsureNever;
 
 pub type ListingsInstance = pallet_listings::Instance1;
 
@@ -60,9 +61,9 @@ impl pallet_nfts::Config<ListingsInstance> for Runtime {
 	#[cfg(feature = "runtime-benchmarks")]
 	type ForceOrigin = EnsureRoot<AccountId>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type CreateOrigin = EnsureSigned<AccountId>;
-	#[cfg(feature = "runtime-benchmarks")]
 	type CreateOrigin = EnsureNever<AccountId>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type CreateOrigin = frame_system::EnsureSigned<AccountId>;
 	type Locker = ();
 	type CollectionDeposit = ();
 	type ItemDeposit = ();
@@ -86,7 +87,7 @@ impl pallet_nfts::Config<ListingsInstance> for Runtime {
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-pub struct CommunitiesCatalogBenchmarkHelper<T, I>(PhantomData<(T, I)>);
+pub struct CommunitiesCatalogBenchmarkHelper<T, I>(core::marker::PhantomData<(T, I)>);
 
 #[cfg(feature = "runtime-benchmarks")]
 impl<T, I: 'static>
