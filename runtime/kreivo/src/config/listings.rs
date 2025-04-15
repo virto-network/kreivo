@@ -1,10 +1,15 @@
 use super::*;
 
-use pallet_listings::{InventoryId, ItemType};
+use pallet_listings::{InventoryId, InventoryIdOf, ItemIdOf, ItemType};
 use sp_runtime::traits::{AccountIdConversion, Verify};
 
 #[cfg(not(feature = "runtime-benchmarks"))]
 use frame_system::EnsureNever;
+
+parameter_types! {
+	pub KeyLimit: u32 = 64;
+	pub ValueLimit: u32 = 256;
+}
 
 pub type ListingsInstance = pallet_listings::Instance1;
 
@@ -43,12 +48,31 @@ impl<Id> EnsureOriginWithArg<RuntimeOrigin, InventoryId<CommunityId, Id>> for En
 impl pallet_listings::Config<ListingsInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
+	type Balances = Balances;
 	type Assets = Assets;
+	type Nonfungibles = ListingsCatalog;
+	type NonfungiblesKeyLimit = KeyLimit;
+	type NonfungiblesValueLimit = ValueLimit;
 	type CreateInventoryOrigin = EnsureCommunity;
 	type InventoryAdminOrigin = EnsureCommunity;
 	type MerchantId = CommunityId;
 	type InventoryId = u32;
 	type ItemSKU = u64;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = Self;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_listings::BenchmarkHelper<InventoryIdOf<Self, ListingsInstance>, ItemIdOf<Self, ListingsInstance>>
+	for Runtime
+{
+	fn inventory_id() -> InventoryIdOf<Self, ListingsInstance> {
+		InventoryId(0, 1)
+	}
+
+	fn item_id() -> ItemIdOf<Self, ListingsInstance> {
+		ItemType::Unit(1)
+	}
 }
 
 // #[runtime::pallet_index(62)]
@@ -72,9 +96,9 @@ impl pallet_nfts::Config<ListingsInstance> for Runtime {
 	type MetadataDepositBase = ();
 	type AttributeDepositBase = ();
 	type DepositPerByte = ();
-	type StringLimit = ConstU32<256>;
-	type KeyLimit = ConstU32<64>;
-	type ValueLimit = ConstU32<256>;
+	type StringLimit = ValueLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
 	type ApprovalsLimit = ();
 	type ItemAttributesApprovalsLimit = ();
 	type MaxTips = ();
