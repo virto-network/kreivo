@@ -31,4 +31,7 @@ std = [
 	"sp-runtime/std",
 	"sp-weights/std",
 	"xcm-builder/std",
+	"parachains-common/std",
+	"sp-std/std",
+	"xcm/std"
 ]

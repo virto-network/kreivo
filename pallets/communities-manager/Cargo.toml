@@ -87,6 +87,9 @@ runtime-benchmarks = [
 	"pallet-referenda/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
+	"fc-traits-gas-tank/runtime-benchmarks",
+	"fc-traits-memberships/runtime-benchmarks",
+	"fc-traits-tracks/runtime-benchmarks"
 ]
 try-runtime = [
 	"frame-support/try-runtime",
@@ -100,4 +103,5 @@ try-runtime = [
 	"pallet-referenda/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"sp-runtime/try-runtime",
+	"pallet-communities/try-runtime"
 ]

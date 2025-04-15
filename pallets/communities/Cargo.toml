@@ -82,6 +82,7 @@ runtime-benchmarks = [
 	"pallet-scheduler/runtime-benchmarks",
 	"dep:sp-io",
 	"sp-runtime/runtime-benchmarks",
+	"fc-traits-memberships/runtime-benchmarks"
 ]
 try-runtime = [
 	"frame-support/try-runtime",
