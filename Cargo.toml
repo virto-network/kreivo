@@ -23,14 +23,13 @@ repository = 'https://github.com/virto-network/virto-node'
 [workspace.dependencies]
 # common
 clap = { version = "4.5.3" }
-futures = { version = "0.3.28" }
 hex-literal = { version = "0.4.1" }
 log = { version = "0.4.22" }
 parity-scale-codec = { version = "3.6.4", default-features = false, features = [
-    "derive",
+  "derive",
 ] }
 scale-info = { version = "2.10.0", default-features = false, features = [
-    "derive",
+  "derive",
 ] }
 serde = { version = "1.0.188", default-features = false }
 serde_json = { version = "1.0.121", default-features = false }
@@ -45,18 +44,19 @@ virto-common = { default-features = false, path = "common" }
 
 pallet-communities = { default-features = false, path = "pallets/communities" }
 pallet-communities-manager = { default-features = false, path = "pallets/communities-manager" }
-pallet-payments = { default-features = false, path = "pallets/payments" }
 
 runtime-constants = { default-features = false, path = "runtime/runtime-constants" }
 runtime-common = { default-features = false, path = "runtime/common" }
 
 # Frame Contrib
+frame-contrib-traits = { git = "https://github.com/virto-network/frame-contrib", branch = "feat/pallet-orders", default-features = false }
 fc-traits-authn = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
 fc-traits-gas-tank = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
 fc-traits-memberships = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
 fc-traits-tracks = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
 pallet-gas-transaction-payment = { git = "https://github.com/virto-network/frame-contrib", package = "fc-pallet-gas-transaction-payment", default-features = false }
-pallet-listings = { git = "https://github.com/virto-network/frame-contrib", branch = "feat/listings-and-payments", package = "fc-pallet-listings", default-features = false }
+pallet-listings = { git = "https://github.com/virto-network/frame-contrib", branch = "feat/pallet-orders", package = "fc-pallet-listings", default-features = false }
+pallet-payments = { git = "https://github.com/virto-network/frame-contrib", branch = "feat/pallet-orders", package = "fc-pallet-payments", default-features = false }
 pallet-pass = { git = "https://github.com/virto-network/frame-contrib", package = "fc-pallet-pass", default-features = false }
 pallet-referenda-tracks = { git = "https://github.com/virto-network/frame-contrib", package = "fc-pallet-referenda-tracks", default-features = false }
 pass-webauthn = { git = "https://github.com/virto-network/webauthn", default-features = false }
@@ -64,7 +64,6 @@ pass-webauthn = { git = "https://github.com/virto-network/webauthn", default-fea
 # Substrate std
 pallet-transaction-payment-rpc = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 sc-chain-spec = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
-sc-network = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 sp-consensus = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 
 # Substrate non-std
@@ -74,7 +73,6 @@ sp-block-builder = { default-features = false, git = "https://github.com/virto-n
 sp-consensus-aura = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 sp-core = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 sp-io = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
-sp-keystore = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 sp-offchain = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 sp-session = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 sp-transaction-pool = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
@@ -105,19 +103,13 @@ pallet-assets-freezer = { default-features = false, git = "https://github.com/vi
 pallet-aura = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-authorship = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-balances = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
-pallet-collective = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-contracts = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
-pallet-contracts-primitives = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
-pallet-democracy = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
-pallet-identity = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
-pallet-insecure-randomness-collective-flip = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-multisig = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-nfts = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-preimage = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-proxy = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-ranked-collective = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-referenda = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
-pallet-remark = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-scheduler = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-session = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-skip-feeless-payment = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
@@ -126,7 +118,6 @@ pallet-timestamp = { default-features = false, git = "https://github.com/virto-n
 pallet-transaction-payment = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-transaction-payment-rpc-runtime-api = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-treasury = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
-pallet-uniques = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-utility = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 pallet-vesting = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409" }
 
