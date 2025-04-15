@@ -12,6 +12,8 @@
 //! - **[`AssetsAPI`][apis::AssetsAPI]:** These APIs can facilitate transactions
 //!   regarding assets.
 
+extern crate alloc;
+
 pub mod apis;
 #[cfg(feature = "contract")]
 mod contract;
