@@ -102,21 +102,33 @@
 //! [t00]: `Config::CommunityId`
 //! [t01]: `types::CommunityMetadata`
 //!
-//! [c00]: `crate::Pallet::create`
-//! [c01]: `crate::Pallet::set_metadata`
-//! [c02]: `crate::Pallet::add_member`
-//! [c03]: `crate::Pallet::remove_member`
+//! [c00]: `Pallet::create`
+//! [c01]: `Pallet::set_metadata`
+//! [c02]: `Pallet::add_member`
+//! [c03]: `Pallet::remove_member`
 //!
-//! [g00]: `crate::Pallet::community`
-//! [g01]: `crate::Pallet::metadata`
-//! [g02]: `crate::Pallet::membership`
-//! [g03]: `crate::Pallet::members_count`
-pub use pallet::*;
+//! [g00]: `Pallet::community`
+//! [g01]: `Pallet::metadata`
+//! [g02]: `Pallet::membership`
+//! [g03]: `Pallet::members_count`
+
+extern crate alloc;
+
+use alloc::{boxed::Box, vec, vec::Vec};
+use core::num::NonZeroU8;
+use fc_traits_memberships::{self as membership, Inspect, Manager, Rank};
+use frame_support::{
+	dispatch::{DispatchResultWithPostInfo, GetDispatchInfo, PostDispatchInfo},
+	pallet_prelude::*,
+	traits::{fungible, fungibles, EnsureOrigin, IsSubType, OriginTrait, Polling},
+	Blake2_128Concat, Parameter,
+};
+use frame_system::pallet_prelude::{ensure_signed, BlockNumberFor, OriginFor};
+use sp_runtime::traits::AccountIdConversion;
+use sp_runtime::traits::{Dispatchable, StaticLookup};
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
-#[cfg(feature = "runtime-benchmarks")]
-pub use types::BenchmarkHelper;
 
 #[cfg(test)]
 mod mock;
@@ -125,6 +137,8 @@ mod tests;
 
 mod functions;
 mod impls;
+
+pub use pallet::*;
 
 pub mod types;
 pub use types::*;
@@ -137,18 +151,6 @@ pub mod origin;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use core::num::NonZeroU8;
-	use fc_traits_memberships::{self as membership, Inspect, Manager, Rank};
-	use frame_support::{
-		dispatch::{DispatchResultWithPostInfo, GetDispatchInfo, PostDispatchInfo},
-		pallet_prelude::*,
-		traits::{fungible, fungibles, EnsureOrigin, IsSubType, OriginTrait, Polling},
-		Blake2_128Concat, Parameter,
-	};
-	use frame_system::pallet_prelude::{ensure_signed, BlockNumberFor, OriginFor};
-	use sp_runtime::traits::AccountIdConversion;
-	use sp_runtime::traits::{Dispatchable, StaticLookup};
-	use sp_std::prelude::Box;
 
 	const ONE: NonZeroU8 = NonZeroU8::MIN;
 
@@ -158,29 +160,23 @@ pub mod pallet {
 	/// Configure the pallet by specifying the parameters and types on which it
 	/// depends.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config
+	where
+		AssetIdOf<Self>: MaybeSerializeDeserialize,
+	{
 		/// This type represents an unique ID for the community
-		type CommunityId: Parameter + MaxEncodedLen + Copy;
+		type CommunityId: Parameter + MaxEncodedLen + Copy + MaybeSerializeDeserialize;
 
 		/// This type represents an unique ID to identify a membership within a
 		/// community
-		type MembershipId: Parameter + MaxEncodedLen + Copy;
+		type MembershipId: Parameter + MaxEncodedLen + Copy + MaybeSerializeDeserialize;
 
 		type ItemConfig: Default;
 
 		/// Means to manage memberships of a community
-		type MemberMgmt: membership::Inspect<Self::AccountId, Group = CommunityIdOf<Self>, Membership = MembershipIdOf<Self>>
-			+ membership::Manager<
-				Self::AccountId,
-				Self::ItemConfig,
-				Group = CommunityIdOf<Self>,
-				Membership = MembershipIdOf<Self>,
-			> + membership::Rank<
-				Self::AccountId,
-				Self::ItemConfig,
-				Group = CommunityIdOf<Self>,
-				Membership = MembershipIdOf<Self>,
-			>;
+		type MemberMgmt: Inspect<Self::AccountId, Group = CommunityIdOf<Self>, Membership = MembershipIdOf<Self>>
+			+ Manager<Self::AccountId, Self::ItemConfig, Group = CommunityIdOf<Self>, Membership = MembershipIdOf<Self>>
+			+ Rank<Self::AccountId, Self::ItemConfig, Group = CommunityIdOf<Self>, Membership = MembershipIdOf<Self>>;
 
 		type CreateOrigin: EnsureOrigin<
 			OriginFor<Self>,

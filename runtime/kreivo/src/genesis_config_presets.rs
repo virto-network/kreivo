@@ -1,14 +1,23 @@
 use crate::*;
 use runtime_constants::genesis_presets::*;
 use sp_genesis_builder::PresetId;
-use sp_std::vec::Vec;
 
 fn local_genesis(
+	sudo: AccountId,
 	id: ParaId,
 	invulnerables: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
 ) -> serde_json::Value {
 	serde_json::json!({
+		"communitiesManager": CommunitiesManagerConfig {
+			// A community to cover a sudo-ish management.
+			communities: vec![
+				(1, String::from("root"), sudo, None, Some(1)),
+			],
+			memberships: vec![
+				(1, 10, UNITS, (None, None), None)
+			]
+		},
 		"balances": BalancesConfig {
 			balances: endowed_accounts
 				.iter()
@@ -45,7 +54,7 @@ fn local_genesis(
 }
 
 pub fn local_testnet_genesis(para_id: ParaId) -> serde_json::Value {
-	local_genesis(para_id, invulnerables(), testnet_accounts())
+	local_genesis(alice(), para_id, invulnerables(), testnet_accounts())
 }
 
 pub fn preset_names() -> Vec<PresetId> {

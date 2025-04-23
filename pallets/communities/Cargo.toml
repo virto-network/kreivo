@@ -21,15 +21,13 @@ log.workspace = true
 
 parity-scale-codec = { workspace = true, features = ["derive"] }
 scale-info = { workspace = true, features = ["derive"] }
-
-sp-io = { workspace = true, optional = true }
+serde = { optional = true, features = ["alloc", "derive"], workspace = true }
 sp-runtime.workspace = true
-sp-std.workspace = true
 xcm = { workspace = true, optional = true }
 
 [dev-dependencies]
 sp-core.workspace = true
-
+sp-io.workspace = true
 pallet-assets.workspace = true
 pallet-assets-freezer.workspace = true
 pallet-balances.workspace = true
@@ -43,7 +41,11 @@ virto-common = { workspace = true, default-features = false, features = [
 ] }
 
 [features]
-default = ["std", "xcm"]
+default = ["std", "xcm", "serde"]
+serde = [
+  "dep:serde",
+  "scale-info/serde",
+]
 std = [
   "frame-benchmarking?/std",
   "frame-support/std",
@@ -60,11 +62,10 @@ std = [
   "pallet-scheduler/std",
   "parity-scale-codec/std",
   "scale-info/std",
+  "serde?/std",
   "sp-core/std",
-  "dep:sp-io",
-  "sp-io?/std",
+  "sp-io/std",
   "sp-runtime/std",
-  "sp-std/std",
   "virto-common/std",
   "xcm?/std",
 ]
@@ -80,7 +81,6 @@ runtime-benchmarks = [
   "pallet-referenda/runtime-benchmarks",
   "pallet-referenda-tracks/runtime-benchmarks",
   "pallet-scheduler/runtime-benchmarks",
-  "dep:sp-io",
   "sp-runtime/runtime-benchmarks",
   "fc-traits-memberships/runtime-benchmarks",
 ]

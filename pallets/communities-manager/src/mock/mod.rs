@@ -1,6 +1,5 @@
 use super::*;
-use fc_traits_gas_tank::NonFungibleGasTank;
-use fc_traits_memberships::NonFungiblesMemberships;
+use frame_contrib_traits::{gas_tank::NonFungibleGasTank, memberships::NonFungiblesMemberships};
 use frame_support::{
 	assert_ok, derive_impl, parameter_types,
 	traits::{AsEnsureOriginWithArg, ConstU16, ConstU32, ConstU64, EitherOf, EqualPrivilegeOnly, VariantCountOf},

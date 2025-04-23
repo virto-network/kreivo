@@ -1,8 +1,8 @@
 use super::*;
 
+use alloc::borrow::Cow;
 use pallet_referenda::Track;
 use sp_runtime::{str_array as s, FixedI64};
-use sp_std::borrow::Cow;
 
 pub type TrackId = u16;
 
