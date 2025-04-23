@@ -458,7 +458,7 @@ pub(crate) struct TestEnvBuilder {
 	assets_config: AssetsConfig,
 	balances: Vec<(AccountId, Balance)>,
 	communities: Vec<CommunityId>,
-	decision_methods: sp_std::collections::btree_map::BTreeMap<CommunityId, DecisionMethod<AssetId, Balance>>,
+	decision_methods: alloc::collections::btree_map::BTreeMap<CommunityId, DecisionMethod<AssetId, Balance>>,
 	members: Vec<(CommunityId, AccountId)>,
 	memberships: Vec<(CommunityId, MembershipId)>,
 	tracks: Vec<(TrackIdOf<Test, ()>, TrackInfoOf<Test>)>,

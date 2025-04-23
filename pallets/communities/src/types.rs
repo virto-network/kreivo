@@ -7,7 +7,7 @@ use frame_support::traits::{
 	Polling,
 };
 use sp_runtime::traits::{StaticLookup, UniqueSaturatedInto};
-use sp_runtime::SaturatedConversion;
+use sp_runtime::{Deserialize, SaturatedConversion, Serialize};
 
 pub type AssetIdOf<T> = <<T as Config>::Assets as fungibles::Inspect<AccountIdOf<T>>>::AssetId;
 pub type AssetBalanceOf<T> = <<T as Config>::Assets as fungibles::Inspect<AccountIdOf<T>>>::Balance;
@@ -55,6 +55,7 @@ pub enum CommunityState {
 
 /// The mechanism used by the community or one of its subsets to make decisions
 #[derive(Clone, Debug, Decode, Default, Encode, Eq, MaxEncodedLen, PartialEq, TypeInfo)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum DecisionMethod<AssetId, MinVote> {
 	#[default]
 	Membership,
