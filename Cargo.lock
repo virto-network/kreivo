@@ -5707,10 +5707,8 @@ name = "pallet-communities-manager"
 version = "0.1.0"
 dependencies = [
  "fc-pallet-referenda-tracks",
- "fc-traits-gas-tank",
- "fc-traits-memberships",
- "fc-traits-tracks",
  "frame-benchmarking",
+ "frame-contrib-traits",
  "frame-support",
  "frame-system",
  "log",

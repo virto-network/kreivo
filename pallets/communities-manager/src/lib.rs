@@ -13,8 +13,7 @@ mod tests;
 pub mod weights;
 pub use weights::*;
 
-use fc_traits_gas_tank::MakeTank;
-use fc_traits_tracks::MutateTracks;
+use frame_contrib_traits::{gas_tank::MakeTank, tracks::MutateTracks};
 use frame_support::{
 	pallet_prelude::*,
 	traits::{
@@ -65,7 +64,7 @@ pub mod pallet {
 			CollectionId = CommunityIdOf<Self>,
 		>;
 
-		type MakeTank: fc_traits_gas_tank::MakeTank<
+		type MakeTank: MakeTank<
 			Gas = Weight,
 			TankId = (CommunityIdOf<Self>, <Self as Config>::MembershipId),
 			BlockNumber = BlockNumberFor<Self>,
@@ -153,7 +152,6 @@ pub mod pallet {
 			first_admin: pallet_communities::AccountIdLookupOf<T>,
 			maybe_decision_method: Option<DecisionMethodFor<T>>,
 			maybe_track_info: Option<TrackInfoOf<T>>,
-			// _maybe_first_member: Option<AccountIdLookupOf<T>>,
 		) -> DispatchResult {
 			let maybe_deposit = T::RegisterOrigin::ensure_origin(origin)?;
 
