@@ -244,6 +244,8 @@ mod runtime {
 	pub type Listings = pallet_listings<Instance1>;
 	#[runtime::pallet_index(62)]
 	pub type ListingsCatalog = pallet_nfts<Instance1>;
+	#[runtime::pallet_index(63)]
+	pub type Orders = pallet_orders<Instance1>;
 
 	// Communities at Kreivo
 	#[runtime::pallet_index(71)]
