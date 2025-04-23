@@ -1,6 +1,6 @@
 use super::*;
 
-use pallet_listings::{InventoryId, InventoryIdOf, ItemIdOf, ItemType};
+use pallet_listings::{InventoryId, InventoryIdFor, ItemIdOf};
 use sp_runtime::traits::{AccountIdConversion, Verify};
 
 #[cfg(not(feature = "runtime-benchmarks"))]
@@ -45,6 +45,9 @@ impl<Id> EnsureOriginWithArg<RuntimeOrigin, InventoryId<CommunityId, Id>> for En
 	}
 }
 
+pub type KreivoInventoryId = u32;
+pub type ItemSKU = u64;
+
 impl pallet_listings::Config<ListingsInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
@@ -56,31 +59,18 @@ impl pallet_listings::Config<ListingsInstance> for Runtime {
 	type CreateInventoryOrigin = EnsureCommunity;
 	type InventoryAdminOrigin = EnsureCommunity;
 	type MerchantId = CommunityId;
-	type InventoryId = u32;
-	type ItemSKU = u64;
+	type InventoryId = KreivoInventoryId;
+	type ItemSKU = ItemSKU;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = Self;
-}
-
-#[cfg(feature = "runtime-benchmarks")]
-impl pallet_listings::BenchmarkHelper<InventoryIdOf<Self, ListingsInstance>, ItemIdOf<Self, ListingsInstance>>
-	for Runtime
-{
-	fn inventory_id() -> InventoryIdOf<Self, ListingsInstance> {
-		InventoryId(0, 1)
-	}
-
-	fn item_id() -> ItemIdOf<Self, ListingsInstance> {
-		ItemType::Unit(1)
-	}
+	type BenchmarkHelper = benchmarks::ListingsBenchmarkHelper<Self, ListingsInstance>;
 }
 
 // #[runtime::pallet_index(62)]
 // pub type ListingsCatalog
 impl pallet_nfts::Config<ListingsInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type CollectionId = InventoryId<CommunityId, u32>;
-	type ItemId = ItemType<u64>;
+	type CollectionId = InventoryIdFor<Self, ListingsInstance>;
+	type ItemId = ItemIdOf<Self, ListingsInstance>;
 	type Currency = Balances;
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type ForceOrigin = EnsureNever<AccountId>;
@@ -108,50 +98,70 @@ impl pallet_nfts::Config<ListingsInstance> for Runtime {
 	type OffchainSignature = Signature;
 	type OffchainPublic = <Signature as Verify>::Signer;
 	#[cfg(feature = "runtime-benchmarks")]
-	type Helper = CommunitiesCatalogBenchmarkHelper<Self, ListingsInstance>;
+	type Helper = benchmarks::ListingsCatalogBenchmarkHelper<Self, ListingsInstance>;
 	type WeightInfo = ();
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-pub struct CommunitiesCatalogBenchmarkHelper<T, I>(core::marker::PhantomData<(T, I)>);
+mod benchmarks {
+	use super::*;
+	use core::marker::PhantomData;
 
-#[cfg(feature = "runtime-benchmarks")]
-impl<T, I: 'static>
-	pallet_nfts::BenchmarkHelper<
-		InventoryId<CommunityId, u32>,
-		ItemType<u64>,
-		sp_runtime::MultiSigner,
-		sp_runtime::AccountId32,
-		sp_runtime::MultiSignature,
-	> for CommunitiesCatalogBenchmarkHelper<T, I>
-where
-	T: pallet_nfts::Config<I>,
-{
-	fn collection(i: u16) -> InventoryId<CommunityId, u32> {
-		InventoryId(i, 0)
+	pub struct ListingsBenchmarkHelper<T, I>(PhantomData<(T, I)>);
+
+	impl<T, I: 'static> pallet_listings::BenchmarkHelper<InventoryIdFor<T, I>> for ListingsBenchmarkHelper<T, I>
+	where
+		T: pallet_listings::Config<I>,
+		<T as pallet_listings::Config<I>>::MerchantId: From<u16>,
+		<T as pallet_listings::Config<I>>::InventoryId: From<u16>,
+	{
+		fn inventory_id() -> InventoryIdFor<T, I> {
+			InventoryId(0.into(), 1.into())
+		}
 	}
 
-	fn item(i: u16) -> ItemType<u64> {
-		ItemType::Unit(i.into())
-	}
+	pub struct ListingsCatalogBenchmarkHelper<T, I>(PhantomData<(T, I)>);
 
-	fn signer() -> (sp_runtime::MultiSigner, sp_runtime::AccountId32) {
-		<() as pallet_nfts::BenchmarkHelper<
-			u16,
-			u16,
+	impl<T, I: 'static>
+		pallet_nfts::BenchmarkHelper<
+			InventoryIdFor<T, I>,
+			ItemIdOf<T, I>,
 			sp_runtime::MultiSigner,
 			sp_runtime::AccountId32,
 			sp_runtime::MultiSignature,
-		>>::signer()
-	}
+		> for ListingsCatalogBenchmarkHelper<T, I>
+	where
+		T: pallet_nfts::Config<I> + pallet_listings::Config<I>,
+		<T as pallet_listings::Config<I>>::MerchantId: From<u16>,
+		<T as pallet_listings::Config<I>>::InventoryId: From<u16>,
+		<T as pallet_listings::Config<I>>::ItemSKU: From<u16>,
+	{
+		fn collection(i: u16) -> InventoryIdFor<T, I> {
+			InventoryId(i.into(), 0.into())
+		}
 
-	fn sign(signer: &sp_runtime::MultiSigner, message: &[u8]) -> sp_runtime::MultiSignature {
-		<() as pallet_nfts::BenchmarkHelper<
-			u16,
-			u16,
-			sp_runtime::MultiSigner,
-			sp_runtime::AccountId32,
-			sp_runtime::MultiSignature,
-		>>::sign(signer, message)
+		fn item(i: u16) -> ItemIdOf<T, I> {
+			i.into()
+		}
+
+		fn signer() -> (sp_runtime::MultiSigner, sp_runtime::AccountId32) {
+			<() as pallet_nfts::BenchmarkHelper<
+				u16,
+				u16,
+				sp_runtime::MultiSigner,
+				sp_runtime::AccountId32,
+				sp_runtime::MultiSignature,
+			>>::signer()
+		}
+
+		fn sign(signer: &sp_runtime::MultiSigner, message: &[u8]) -> sp_runtime::MultiSignature {
+			<() as pallet_nfts::BenchmarkHelper<
+				u16,
+				u16,
+				sp_runtime::MultiSigner,
+				sp_runtime::AccountId32,
+				sp_runtime::MultiSignature,
+			>>::sign(signer, message)
+		}
 	}
 }

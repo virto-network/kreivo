@@ -1,6 +1,6 @@
 use super::*;
 
-use pallet_referenda::{impl_tracksinfo_get, Track};
+use pallet_referenda::Track;
 use sp_runtime::{str_array as s, FixedI64};
 use sp_std::borrow::Cow;
 
@@ -122,4 +122,3 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 		}
 	}
 }
-impl_tracksinfo_get!(TracksInfo, Balance, BlockNumber);

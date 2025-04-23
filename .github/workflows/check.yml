@@ -6,23 +6,27 @@ on:
   pull_request:
     types: [ opened, synchronize, reopened, ready_for_review ]
 
+env:
+  NIGHTLY_VERSION: 'nightly-2025-01-30'
+  EXTRA_ARGS: ''
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Use Nightly with `rustfmt`
+      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` + `rustfmt`
         uses: actions-rs/toolchain@v1
         with:
-            profile: minimal
-            toolchain: nightly
-            components: rustfmt
+          profile: minimal
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          components: rustfmt
 
       - uses: actions/checkout@v4
 
       - name: Check formatting
         uses: actions-rs/cargo@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.NIGHTLY_VERSION }}
           command: fmt
           args: --all -- --check
 
@@ -34,11 +38,11 @@ jobs:
         shell: bash
         run: sudo apt update && sudo apt install -y protobuf-compiler
 
-      - name: Use Nightly
+      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` (w/ `wasm32-unknown-unknown`)
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: ${{ env.NIGHTLY_VERSION }}
           target: wasm32-unknown-unknown
           components: rust-src
 
@@ -55,8 +59,8 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          toolchain: nightly
-          args: --release --locked --all-features --workspace
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
 
   clippy:
     needs: lint
@@ -70,11 +74,11 @@ jobs:
         shell: bash
         run: sudo apt update && sudo apt install -y protobuf-compiler
 
-      - name: Use Nightly with `clippy`
+      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` + `clippy`
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: ${{ env.NIGHTLY_VERSION }}
           components: clippy,rust-src
 
       - uses: actions/checkout@v4
@@ -90,8 +94,8 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          toolchain: nightly
-          args: --release --locked --all-features --workspace
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
 
   test:
     needs: lint
@@ -103,11 +107,12 @@ jobs:
         shell: bash
         run: sudo apt update && sudo apt install -y protobuf-compiler
 
-      - name: Use Nightly
+      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` (w/ `wasm32-unknown-unknown`)
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          target: wasm32-unknown-unknown
           components: rust-src
 
       - uses: actions/checkout@v4
@@ -123,5 +128,5 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          toolchain: nightly
-          args: --lib --release --locked --all-features --workspace
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          args: --lib --locked --all-features --workspace ${{ env.EXTRA_ARGS }}

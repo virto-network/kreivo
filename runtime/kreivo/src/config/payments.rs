@@ -60,7 +60,7 @@ impl pallet_payments::PaymentId<Runtime> for virto_common::PaymentId {
 impl pallet_payments::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Assets = Assets;
-	type AssetsHold = Assets;
+	type AssetsHold = AssetsHolder;
 	type OnPaymentStatusChanged = ();
 	type PaymentId = virto_common::PaymentId;
 	type FeeHandler = KreivoFeeHandler;

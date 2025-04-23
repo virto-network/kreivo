@@ -190,6 +190,8 @@ mod runtime {
 	pub type SkipFeeless = pallet_skip_feeless_payment;
 	#[runtime::pallet_index(17)]
 	pub type GasTxPayment = pallet_gas_transaction_payment;
+	#[runtime::pallet_index(18)]
+	pub type AssetsHolder = pallet_assets_holder<Instance1>;
 
 	// Collator support. The order of these 4 are important and shall not change.
 	#[runtime::pallet_index(20)]
