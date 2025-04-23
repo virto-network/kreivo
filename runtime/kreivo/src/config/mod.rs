@@ -13,7 +13,7 @@ pub mod communities;
 pub mod governance;
 // Virto toolchain
 pub mod contracts;
-mod listings;
+mod listings_orders;
 pub mod payments;
 
 pub use collator_support::{ConsensusHook, SLOT_DURATION};

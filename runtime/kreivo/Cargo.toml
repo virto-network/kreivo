@@ -27,7 +27,6 @@ kreivo-apis = { workspace = true, features = ["runtime"] }
 
 pallet-communities = { workspace = true, features = ["xcm"] }
 pallet-communities-manager.workspace = true
-pallet-payments.workspace = true
 
 # Local: Common
 runtime-common.workspace = true
@@ -44,10 +43,10 @@ frame-system.workspace = true
 frame-system-benchmarking = { workspace = true, optional = true }
 frame-system-rpc-runtime-api.workspace = true
 frame-try-runtime = { workspace = true, optional = true }
-pallet-assets-freezer.workspace = true
-pallet-assets-holder.workspace = true
 pallet-asset-tx-payment.workspace = true
 pallet-assets.workspace = true
+pallet-assets-freezer.workspace = true
+pallet-assets-holder.workspace = true
 pallet-aura.workspace = true
 pallet-authorship.workspace = true
 pallet-balances.workspace = true
@@ -115,7 +114,9 @@ fc-traits-gas-tank.workspace = true
 fc-traits-memberships.workspace = true
 pallet-gas-transaction-payment.workspace = true
 pallet-listings.workspace = true
+pallet-orders.workspace = true
 pallet-pass.workspace = true
+pallet-payments.workspace = true
 pallet-referenda-tracks.workspace = true
 pass-webauthn = { workspace = true, features = ["runtime"] }
 
@@ -208,7 +209,8 @@ std = [
 	"pallet-listings/std",
 	"pallet-vesting/std",
 	"serde_json/std",
-	"pallet-assets-holder/std"
+	"pallet-assets-holder/std",
+	"pallet-orders/std"
 ]
 
 runtime-benchmarks = [
@@ -263,7 +265,8 @@ runtime-benchmarks = [
 	"fc-traits-gas-tank/runtime-benchmarks",
 	"fc-traits-memberships/runtime-benchmarks",
 	"pallet-vesting/runtime-benchmarks",
-	"pallet-assets-holder/runtime-benchmarks"
+	"pallet-assets-holder/runtime-benchmarks",
+	"pallet-orders/runtime-benchmarks"
 ]
 
 try-runtime = [
@@ -312,5 +315,6 @@ try-runtime = [
 	"sp-runtime/try-runtime",
 	"pallet-listings/try-runtime",
 	"pallet-vesting/try-runtime",
-	"pallet-assets-holder/try-runtime"
+	"pallet-assets-holder/try-runtime",
+	"pallet-orders/try-runtime"
 ]

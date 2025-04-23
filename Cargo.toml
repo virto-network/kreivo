@@ -57,6 +57,7 @@ fc-traits-tracks = { git = "https://github.com/virto-network/frame-contrib", def
 
 pallet-gas-transaction-payment = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-gas-transaction-payment" }
 pallet-listings = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-listings" }
+pallet-orders = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-orders" }
 pallet-payments = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-payments" }
 pallet-pass = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-pass" }
 pallet-referenda-tracks = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-referenda-tracks" }
