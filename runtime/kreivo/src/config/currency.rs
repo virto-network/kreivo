@@ -97,7 +97,6 @@ impl pallet_assets::Config<KreivoAssetsInstance> for Runtime {
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type CreateOrigin = EnsureSigned<AccountId>;
-	type RuntimeHoldReason = RuntimeHoldReason;
 	type ForceOrigin = AssetsForceOrigin;
 	type AssetDeposit = AssetDeposit;
 	type AssetAccountDeposit = AssetAccountDeposit;
@@ -105,8 +104,8 @@ impl pallet_assets::Config<KreivoAssetsInstance> for Runtime {
 	type MetadataDepositPerByte = MetadataDepositPerByte;
 	type ApprovalDeposit = ApprovalDeposit;
 	type StringLimit = AssetsStringLimit;
-	type MaxHolds = frame_support::traits::ConstU32<50>;
 	type Freezer = AssetsFreezer;
+	type Holder = AssetsHolder;
 	type Extra = ();
 	type CallbackHandle = ();
 	type WeightInfo = weights::pallet_assets::WeightInfo<Self>;
@@ -172,4 +171,9 @@ pub type MembershipsGasTank =
 impl pallet_gas_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type GasBurner = MembershipsGasTank;
+}
+
+impl pallet_assets_holder::Config<KreivoAssetsInstance> for Runtime {
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type RuntimeEvent = RuntimeEvent;
 }

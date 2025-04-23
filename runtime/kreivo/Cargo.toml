@@ -45,6 +45,7 @@ frame-system-benchmarking = { workspace = true, optional = true }
 frame-system-rpc-runtime-api.workspace = true
 frame-try-runtime = { workspace = true, optional = true }
 pallet-assets-freezer.workspace = true
+pallet-assets-holder.workspace = true
 pallet-asset-tx-payment.workspace = true
 pallet-assets.workspace = true
 pallet-aura.workspace = true
@@ -206,7 +207,8 @@ std = [
 	"xcm/std",
 	"pallet-listings/std",
 	"pallet-vesting/std",
-	"serde_json/std"
+	"serde_json/std",
+	"pallet-assets-holder/std"
 ]
 
 runtime-benchmarks = [
@@ -260,7 +262,8 @@ runtime-benchmarks = [
 	"pallet-listings/runtime-benchmarks",
 	"fc-traits-gas-tank/runtime-benchmarks",
 	"fc-traits-memberships/runtime-benchmarks",
-	"pallet-vesting/runtime-benchmarks"
+	"pallet-vesting/runtime-benchmarks",
+	"pallet-assets-holder/runtime-benchmarks"
 ]
 
 try-runtime = [
@@ -308,5 +311,6 @@ try-runtime = [
 	"runtime-common/try-runtime",
 	"sp-runtime/try-runtime",
 	"pallet-listings/try-runtime",
-	"pallet-vesting/try-runtime"
+	"pallet-vesting/try-runtime",
+	"pallet-assets-holder/try-runtime"
 ]

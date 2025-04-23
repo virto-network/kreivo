@@ -3991,6 +3991,7 @@ dependencies = [
  "pallet-asset-tx-payment",
  "pallet-assets",
  "pallet-assets-freezer",
+ "pallet-assets-holder",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -5510,6 +5511,21 @@ dependencies = [
 [[package]]
 name = "pallet-assets-freezer"
 version = "0.5.0"
+source = "git+https://github.com/virto-network/polkadot-sdk?branch=release-virto-stable2409-6#d93cd013a45b96c9be233efc0aaaf75d020fe53f"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-assets",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+]
+
+[[package]]
+name = "pallet-assets-holder"
+version = "0.1.0"
 source = "git+https://github.com/virto-network/polkadot-sdk?branch=release-virto-stable2409-6#d93cd013a45b96c9be233efc0aaaf75d020fe53f"
 dependencies = [
  "frame-benchmarking",

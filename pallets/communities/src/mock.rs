@@ -115,7 +115,6 @@ impl pallet_assets::Config for Test {
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<Self::AccountId>>;
 	type ForceOrigin = EnsureRoot<Self::AccountId>;
 	type Freezer = AssetsFreezer;
-	type RuntimeHoldReason = RuntimeHoldReason;
 }
 
 impl pallet_assets_freezer::Config for Test {
