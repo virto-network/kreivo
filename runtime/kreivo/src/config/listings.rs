@@ -62,7 +62,7 @@ impl pallet_listings::Config<ListingsInstance> for Runtime {
 	type InventoryId = KreivoInventoryId;
 	type ItemSKU = ItemSKU;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = Self;
+	type BenchmarkHelper = benchmarks::ListingsBenchmarkHelper<Self, ListingsInstance>;
 }
 
 // #[runtime::pallet_index(62)]
@@ -98,38 +98,49 @@ impl pallet_nfts::Config<ListingsInstance> for Runtime {
 	type OffchainSignature = Signature;
 	type OffchainPublic = <Signature as Verify>::Signer;
 	#[cfg(feature = "runtime-benchmarks")]
-	type Helper = Self;
+	type Helper = benchmarks::ListingsCatalogBenchmarkHelper<Self, ListingsInstance>;
 	type WeightInfo = ();
 }
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks {
 	use super::*;
+	use core::marker::PhantomData;
 
-	#[cfg(feature = "runtime-benchmarks")]
-	impl pallet_listings::BenchmarkHelper<InventoryIdFor<Self, ListingsInstance>> for Runtime {
-		fn inventory_id() -> InventoryIdFor<Self, ListingsInstance> {
-			InventoryId(0, 1)
+	pub struct ListingsBenchmarkHelper<T, I>(PhantomData<(T, I)>);
+
+	impl<T, I: 'static> pallet_listings::BenchmarkHelper<InventoryIdFor<T, I>> for ListingsBenchmarkHelper<T, I>
+	where
+		T: pallet_listings::Config<I>,
+		<T as pallet_listings::Config<I>>::MerchantId: From<u16>,
+		<T as pallet_listings::Config<I>>::InventoryId: From<u16>,
+	{
+		fn inventory_id() -> InventoryIdFor<T, I> {
+			InventoryId(0.into(), 1.into())
 		}
 	}
 
-	#[cfg(feature = "runtime-benchmarks")]
+	pub struct ListingsCatalogBenchmarkHelper<T, I>(PhantomData<(T, I)>);
+
 	impl<T, I: 'static>
 		pallet_nfts::BenchmarkHelper<
-			InventoryIdFor<Self, ListingsInstance>,
-			ItemIdOf<Self, ListingsInstance>,
+			InventoryIdFor<T, I>,
+			ItemIdOf<T, I>,
 			sp_runtime::MultiSigner,
 			sp_runtime::AccountId32,
 			sp_runtime::MultiSignature,
-		> for Runtime
+		> for ListingsCatalogBenchmarkHelper<T, I>
 	where
-		T: pallet_nfts::Config<I>,
+		T: pallet_nfts::Config<I> + pallet_listings::Config<I>,
+		<T as pallet_listings::Config<I>>::MerchantId: From<u16>,
+		<T as pallet_listings::Config<I>>::InventoryId: From<u16>,
+		<T as pallet_listings::Config<I>>::ItemSKU: From<u16>,
 	{
-		fn collection(i: u16) -> InventoryIdFor<Self, ListingsInstance> {
-			InventoryId(i, 0)
+		fn collection(i: u16) -> InventoryIdFor<T, I> {
+			InventoryId(i.into(), 0.into())
 		}
 
-		fn item(i: u16) -> ItemIdOf<Self, ListingsInstance> {
+		fn item(i: u16) -> ItemIdOf<T, I> {
 			i.into()
 		}
 
