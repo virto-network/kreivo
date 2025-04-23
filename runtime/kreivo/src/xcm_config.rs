@@ -6,6 +6,7 @@ use super::{
 use virto_common::AsFungibleAssetLocation;
 
 use crate::constants::locations::ASSET_HUB_ID;
+use core::marker::PhantomData;
 use frame_support::{
 	parameter_types,
 	traits::{
@@ -18,7 +19,6 @@ use pallet_xcm::XcmPassthrough;
 use parachains_common::xcm_config::AssetFeeAsExistentialDepositMultiplier;
 use polkadot_parachain_primitives::primitives::Sibling;
 use sp_runtime::traits::ConvertInto;
-use sp_std::marker::PhantomData;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom, ConvertedConcreteId,

@@ -85,7 +85,6 @@ sp-transaction-pool = { default-features = false, git = "https://github.com/virt
 sp-genesis-builder = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
 sp-inherents = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
 sp-runtime = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
-sp-std = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
 sp-version = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
 sp-weights = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
 

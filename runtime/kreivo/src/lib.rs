@@ -7,6 +7,8 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+extern crate alloc;
+
 #[cfg(test)]
 mod tests;
 
@@ -24,8 +26,7 @@ mod xcm_config;
 use apis::*;
 use config::*;
 
-use sp_std::prelude::*;
-
+use alloc::{boxed::Box, string::String, vec, vec::Vec};
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use sp_core::crypto::KeyTypeId;
 

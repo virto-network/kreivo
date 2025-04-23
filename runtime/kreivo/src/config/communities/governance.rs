@@ -1,8 +1,8 @@
 use super::*;
 
+use core::marker::PhantomData;
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureRootWithSuccess};
 use pallet_communities::RuntimeOriginFor;
-use sp_std::marker::PhantomData;
 
 use pallet_referenda::{BalanceOf, PalletsOriginOf, TrackIdOf, TracksInfo};
 
