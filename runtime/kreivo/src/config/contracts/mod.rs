@@ -2,14 +2,16 @@ use super::*;
 
 use frame_support::{
 	parameter_types,
-	traits::{ConstBool, ConstU32, MapSuccess, Randomness},
+	traits::{nonfungibles_v2::InspectEnumerable, ConstBool, ConstU32, MapSuccess, Randomness},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use sp_runtime::morph_types;
 
+use frame_contrib_traits::listings::InspectItem;
 use kreivo_apis::KreivoChainExtensions;
 use pallet_balances::Call as BalancesCall;
 use pallet_communities::origin::EnsureCommunity;
+use pallet_listings::InventoryId;
 use virto_common::listings;
 
 #[cfg(not(feature = "runtime-benchmarks"))]
@@ -17,8 +19,7 @@ use frame_system::EnsureNever;
 #[cfg(feature = "runtime-benchmarks")]
 use frame_system::EnsureSigned;
 
-pub enum CallFilter {}
-
+pub struct CallFilter;
 impl Contains<RuntimeCall> for CallFilter {
 	fn contains(call: &RuntimeCall) -> bool {
 		matches!(
@@ -28,30 +29,16 @@ impl Contains<RuntimeCall> for CallFilter {
 	}
 }
 
-fn schedule<T: pallet_contracts::Config>() -> pallet_contracts::Schedule<T> {
-	const MB: u32 = 1024 * 1024;
-	pallet_contracts::Schedule {
-		limits: pallet_contracts::Limits {
-			validator_runtime_memory: 1024 * MB,
-			// Current `max_storage_size`: 138 MB
-			// Constraint: `runtime_memory <= validator_runtime_memory - 2 * max_storage_size`
-			runtime_memory: 748 * MB,
-			..Default::default()
-		},
-		..Default::default()
-	}
-}
-
 // randomness-collective-flip is insecure. Provide dummy randomness as
 // placeholder for the deprecated trait. https://github.com/paritytech/polkadot-sdk/blob/9bf1a5e23884921498b381728bfddaae93f83744/substrate/frame/contracts/mock-network/src/parachain/contracts_config.rs#L45
 pub struct DummyRandomness<T: pallet_contracts::Config>(core::marker::PhantomData<T>);
-
 impl<T: pallet_contracts::Config> Randomness<T::Hash, BlockNumberFor<T>> for DummyRandomness<T> {
 	fn random(_subject: &[u8]) -> (T::Hash, BlockNumberFor<T>) {
 		(Default::default(), Default::default())
 	}
 }
 
+// Use Kreivo APIs for Chain Extensions
 impl kreivo_apis::Config for Runtime {
 	type Balances = Balances;
 	type Assets = Assets;
@@ -62,15 +49,29 @@ impl kreivo_apis::Config for Runtime {
 impl kreivo_apis::MerchantIdInfo<AccountId> for Runtime {
 	type MerchantId = CommunityId;
 
-	fn maybe_merchant_id(_who: &AccountId) -> Option<Self::MerchantId> {
-		None
+	fn maybe_merchant_id(who: &AccountId) -> Option<Self::MerchantId> {
+		ListingsCatalog::owned(&who).find_map(|(InventoryId(m, app_id), license)| {
+			Listings::attribute(&(m, app_id), &license, &pallet_contracts_store::CONTRACT_MERCHANT_ID)
+		})
 	}
 }
 
 parameter_types! {
 	pub const DepositPerItem: Balance = deposit(1, 0);
 	pub const DepositPerByte: Balance = deposit(0, 1);
-	pub Schedule: pallet_contracts::Schedule<Runtime> = schedule::<Runtime>();
+	pub Schedule: pallet_contracts::Schedule<Runtime> = {
+		const MB: u32 = 1024 * 1024;
+		pallet_contracts::Schedule {
+			limits: pallet_contracts::Limits {
+				validator_runtime_memory: 1024 * MB,
+				// Current `max_storage_size`: 138 MB
+				// Constraint: `runtime_memory <= validator_runtime_memory - 2 * max_storage_size`
+				runtime_memory: 748 * MB,
+				..Default::default()
+			},
+			..Default::default()
+		}
+	};
 	pub const DefaultDepositLimit: Balance = deposit(1024, 1024 * 1024);
 	pub const CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(0);
 }
