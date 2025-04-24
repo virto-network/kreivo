@@ -7,6 +7,7 @@ use frame_contrib_traits::{gas_tank::MakeTank, tracks::MutateTracks};
 use frame_support::{
 	pallet_prelude::*,
 	traits::{
+		nonfungibles_v2::Inspect,
 		nonfungibles_v2::Mutate as ItemMutate,
 		nonfungibles_v2::{Create as CollectionCreate, Trading},
 		Incrementable, OriginTrait, RankedMembers,
@@ -17,7 +18,7 @@ use pallet_communities::{
 	AccountIdOf, AssetIdOf, CommunityIdOf, DecisionMethodFor, NativeBalanceOf, Origin as CommunityOrigin,
 	PalletsOriginOf, RuntimeOriginFor,
 };
-use pallet_nfts::CollectionConfig;
+use pallet_nfts::{CollectionConfig, MintSettings, MintType};
 use pallet_referenda::{TrackInfo, TracksInfo};
 use parity_scale_codec::Decode;
 use sp_runtime::{
@@ -103,7 +104,10 @@ pub mod pallet {
 
 		type MembershipsManagerOwner: Get<AccountIdOf<Self>>;
 
-		type CreateMemberships: ItemMutate<
+		type CreateMemberships: CollectionCreate<
+				AccountIdOf<Self>,
+				CollectionConfig<NativeBalanceOf<Self>, BlockNumberFor<Self>, CommunityIdOf<Self>>,
+			> + ItemMutate<
 				AccountIdOf<Self>,
 				Self::ItemConfig,
 				CollectionId = CommunityIdOf<Self>,
@@ -121,7 +125,7 @@ pub mod pallet {
 
 	/// A genesis community info.
 	pub type GenesisCommunityOf<T> = (
-		// community_id,im
+		// community_id
 		CommunityIdOf<T>,
 		// name
 		String,
@@ -326,6 +330,26 @@ impl<T: Config> Pallet<T> {
 		maybe_expiration: Option<BlockNumberFor<T>>,
 	) -> DispatchResult {
 		let collection_id = &T::MembershipsManagerCollectionId::get();
+
+		if T::CreateMemberships::collection_owner(collection_id).is_none() {
+			let owner = &T::MembershipsManagerOwner::get();
+			T::CreateMemberships::create_collection_with_id(
+				*collection_id,
+				owner,
+				owner,
+				&CollectionConfig {
+					settings: Default::default(),
+					max_supply: None,
+					mint_settings: MintSettings {
+						mint_type: MintType::Issuer,
+						price: None,
+						start_block: None,
+						end_block: None,
+						default_item_settings: Default::default(),
+					},
+				},
+			)?;
+		}
 
 		let mut id = starting_at.clone();
 		let mut minted = 0u32;
