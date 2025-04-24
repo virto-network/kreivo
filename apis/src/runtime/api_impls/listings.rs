@@ -148,12 +148,14 @@ where
 		let merchant_id = Self::merchant_id(ext).ok_or(ListingsApiError::NoMerchantId)?;
 
 		T::Listings::set_price(&(merchant_id, *inventory_id), id, price)
-			.map_err(|_| ListingsApiError::FailedToCreateInventory.into())
+			.map_err(|_| ListingsApiError::FailedToSetAttribute.into())
 	}
 
-	fn clear_price(_ext: &E, _inventory_id: &Self::InventoryId, _id: &Self::ItemId) -> Result<(), KreivoApisError> {
-		// TODO: Wait until this is defined in the Listings APIs.
-		Err(KreivoApisError::UnknownError)
+	fn clear_price(ext: &E, inventory_id: &Self::InventoryId, id: &Self::ItemId) -> Result<(), KreivoApisError> {
+		let merchant_id = Self::merchant_id(ext).ok_or(ListingsApiError::NoMerchantId)?;
+
+		T::Listings::clear_price(&(merchant_id, *inventory_id), id)
+			.map_err(|_| ListingsApiError::FailedToSetAttribute.into())
 	}
 
 	fn item_enable_resell(ext: &E, inventory_id: &Self::InventoryId, id: &Self::ItemId) -> Result<(), KreivoApisError> {
