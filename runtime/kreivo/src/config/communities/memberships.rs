@@ -1,6 +1,6 @@
 use super::*;
 
-use fc_traits_memberships::OnMembershipAssigned;
+use frame_contrib_traits::memberships::OnMembershipAssigned;
 use frame_system::EnsureRootWithSuccess;
 use sp_runtime::traits::Verify;
 
