@@ -1,20 +1,19 @@
 use super::*;
+use frame_support::traits::{Get, MapSuccess};
 use frame_support::{
 	parameter_types,
 	traits::{ConstBool, ConstU32, Randomness},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
+use frame_system::EnsureNever;
 use kreivo_apis::KreivoChainExtensions;
 use pallet_balances::Call as BalancesCall;
 
-#[cfg(not(feature = "runtime-benchmarks"))]
-use {
-	frame_support::traits::EitherOf, frame_system::EnsureRootWithSuccess,
-	pallet_communities::origin::AsSignedByStaticCommunity, sp_core::ConstU16,
-};
-
 #[cfg(feature = "runtime-benchmarks")]
 use frame_system::EnsureSigned;
+use pallet_communities::origin::EnsureCommunity;
+use sp_runtime::morph_types;
+use virto_common::listings;
 
 pub enum CallFilter {}
 
@@ -74,6 +73,12 @@ parameter_types! {
 	pub const CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(0);
 }
 
+morph_types! {
+	pub type ReplaceWithCommunityAccount = |c: CommunityId| -> AccountId {
+		Communities::community_account(&c)
+	};
+}
+
 impl pallet_contracts::Config for Runtime {
 	type Time = Timestamp;
 	type Randomness = DummyRandomness<Self>;
@@ -118,17 +123,11 @@ impl pallet_contracts::Config for Runtime {
 	type UnsafeUnstableInterface = ConstBool<true>;
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type UploadOrigin = EnsureRootWithSuccess<AccountId, TreasuryAccount>;
+	type UploadOrigin = MapSuccess<EnsureCommunity<Self>, ReplaceWithCommunityAccount>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type UploadOrigin = EnsureSigned<AccountId>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type InstantiateOrigin = EitherOf<
-		EnsureRootWithSuccess<AccountId, TreasuryAccount>,
-		EitherOf<
-			AsSignedByStaticCommunity<Runtime, ConstU16<1>>, // Virto
-			AsSignedByStaticCommunity<Runtime, ConstU16<2>>, // Kippu
-		>,
-	>;
+	type InstantiateOrigin = EnsureNever<AccountId>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type InstantiateOrigin = EnsureSigned<AccountId>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
@@ -143,4 +142,24 @@ impl pallet_contracts::Config for Runtime {
 	type Environment = ();
 	type ApiVersion = ();
 	type Xcm = pallet_xcm::Pallet<Self>;
+}
+
+parameter_types! {
+	pub ContractsStoreMerchantId: CommunityId = 0;
+}
+
+morph_types! {
+	pub type AppInstantiationParams: Morph = |id: CommunityId| -> (AccountId, CommunityId) {
+		(Communities::community_account(&id), id)
+	};
+}
+
+impl pallet_contracts_store::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	type InstantiateOrigin = MapSuccess<EnsureCommunity<Self>, AppInstantiationParams>;
+	type AppId = listings::InventoryId;
+	type LicenseId = listings::ItemId;
+	type Listings = Listings;
+	type ContractsStoreMerchantId = ContractsStoreMerchantId;
 }
