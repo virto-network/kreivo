@@ -15,9 +15,5 @@ kreivo-runtime = { workspace = true, default-features = true }
 sc-chain-spec.workspace = true
 
 [features]
-runtime-benchmarks = [
-  "kreivo-runtime/runtime-benchmarks"
-]
-paseo = [
-  "kreivo-runtime/paseo"
-]
+runtime-benchmarks = ["kreivo-runtime/runtime-benchmarks"]
+paseo = ["kreivo-runtime/paseo"]

@@ -23,13 +23,13 @@ xcm-builder.workspace = true
 default = ["std"]
 paseo = []
 std = [
-	"frame-support/std",
-	"polkadot-primitives/std",
-	"polkadot-runtime-common/std",
-	"sp-core/std",
-	"sp-runtime/std",
-	"sp-weights/std",
-	"xcm-builder/std",
-	"parachains-common/std",
-	"xcm/std"
+  "frame-support/std",
+  "polkadot-primitives/std",
+  "polkadot-runtime-common/std",
+  "sp-core/std",
+  "sp-runtime/std",
+  "sp-weights/std",
+  "xcm-builder/std",
+  "parachains-common/std",
+  "xcm/std",
 ]

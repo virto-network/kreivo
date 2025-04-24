@@ -50,10 +50,6 @@ runtime-common = { default-features = false, path = "runtime/common" }
 
 # Frame Contrib
 frame-contrib-traits = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
-fc-traits-authn = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
-fc-traits-gas-tank = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
-fc-traits-memberships = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
-fc-traits-tracks = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
 
 pallet-gas-transaction-payment = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-gas-transaction-payment" }
 pallet-listings = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-listings" }

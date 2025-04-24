@@ -13,23 +13,31 @@ max_candidate_depth = 3
 allowed_ancestry_len = 2
 
 [[relaychain.nodes]]
-extra_args = ["--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all"]
+extra_args = [
+  "--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all",
+]
 name = "alice"
 validator = true
 ws_port = 10000
 
 [[relaychain.nodes]]
-extra_args = ["--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all"]
+extra_args = [
+  "--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all",
+]
 name = "bob"
 validator = true
 
 [[relaychain.nodes]]
-extra_args = ["--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all"]
+extra_args = [
+  "--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all",
+]
 name = "charlie"
 validator = true
 
 [[relaychain.nodes]]
-extra_args = ["--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all"]
+extra_args = [
+  "--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all",
+]
 name = "dave"
 validator = true
 
