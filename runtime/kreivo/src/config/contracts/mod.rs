@@ -1,19 +1,21 @@
 use super::*;
-use frame_support::traits::{Get, MapSuccess};
+
 use frame_support::{
 	parameter_types,
-	traits::{ConstBool, ConstU32, Randomness},
+	traits::{ConstBool, ConstU32, MapSuccess, Randomness},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
-use frame_system::EnsureNever;
+use sp_runtime::morph_types;
+
 use kreivo_apis::KreivoChainExtensions;
 use pallet_balances::Call as BalancesCall;
+use pallet_communities::origin::EnsureCommunity;
+use virto_common::listings;
 
+#[cfg(not(feature = "runtime-benchmarks"))]
+use frame_system::EnsureNever;
 #[cfg(feature = "runtime-benchmarks")]
 use frame_system::EnsureSigned;
-use pallet_communities::origin::EnsureCommunity;
-use sp_runtime::morph_types;
-use virto_common::listings;
 
 pub enum CallFilter {}
 
