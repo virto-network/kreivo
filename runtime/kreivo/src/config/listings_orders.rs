@@ -8,6 +8,7 @@ use sp_runtime::traits::{AccountIdConversion, Verify};
 use frame_system::EnsureNever;
 use frame_system::EnsureSigned;
 use sp_runtime::morph_types;
+use virto_common::listings;
 
 parameter_types! {
 	pub KeyLimit: u32 = 64;
@@ -48,9 +49,6 @@ impl<Id> EnsureOriginWithArg<RuntimeOrigin, InventoryId<CommunityId, Id>> for En
 	}
 }
 
-pub type KreivoInventoryId = u32;
-pub type ItemSKU = u64;
-
 impl pallet_listings::Config<ListingsInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
@@ -62,8 +60,8 @@ impl pallet_listings::Config<ListingsInstance> for Runtime {
 	type CreateInventoryOrigin = EnsureCommunity;
 	type InventoryAdminOrigin = EnsureCommunity;
 	type MerchantId = CommunityId;
-	type InventoryId = KreivoInventoryId;
-	type ItemSKU = ItemSKU;
+	type InventoryId = listings::InventoryId;
+	type ItemSKU = listings::ItemId;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmarks::ListingsBenchmarkHelper;
 }

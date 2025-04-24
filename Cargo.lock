@@ -3966,6 +3966,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "ink",
+ "ink_env",
  "log",
  "pallet-contracts",
  "parity-scale-codec",

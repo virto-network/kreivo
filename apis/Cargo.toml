@@ -21,6 +21,7 @@ log = { workspace = true, optional = true }
 
 # Contract
 ink = { workspace = true, optional = true }
+ink_env = { workspace = true, optional = true }
 virto-common = { workspace = true, optional = true, features = ["scale"] }
 
 [features]
@@ -29,6 +30,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"ink?/std",
+	"ink_env?/std",
 	"log?/std",
 	"pallet-contracts?/std",
 	"parity-scale-codec/std",
@@ -43,5 +45,6 @@ runtime = [
 ]
 contract = [
     "dep:ink",
+    "dep:ink_env",
     "dep:virto-common"
 ]

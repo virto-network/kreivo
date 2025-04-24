@@ -18,7 +18,7 @@ use frame_system::EnsureSigned;
 
 pub enum CallFilter {}
 
-impl frame_support::traits::Contains<RuntimeCall> for CallFilter {
+impl Contains<RuntimeCall> for CallFilter {
 	fn contains(call: &RuntimeCall) -> bool {
 		matches!(
 			call,
@@ -51,6 +51,21 @@ impl<T: pallet_contracts::Config> Randomness<T::Hash, BlockNumberFor<T>> for Dum
 	}
 }
 
+impl kreivo_apis::Config for Runtime {
+	type Balances = Balances;
+	type Assets = Assets;
+	type MerchantIdInfo = Self;
+	type Listings = Listings;
+}
+
+impl kreivo_apis::MerchantIdInfo<AccountId> for Runtime {
+	type MerchantId = CommunityId;
+
+	fn maybe_merchant_id(_who: &AccountId) -> Option<Self::MerchantId> {
+		None
+	}
+}
+
 parameter_types! {
 	pub const DepositPerItem: Balance = deposit(1, 0);
 	pub const DepositPerByte: Balance = deposit(0, 1);
@@ -78,7 +93,7 @@ impl pallet_contracts::Config for Runtime {
 
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = weights::pallet_contracts::WeightInfo<Self>;
-	type ChainExtension = KreivoChainExtensions<Self, Assets>;
+	type ChainExtension = KreivoChainExtensions<Self>;
 	type Schedule = Schedule;
 	type CallStack = [pallet_contracts::Frame<Self>; 23];
 	type DepositPerByte = DepositPerByte;
