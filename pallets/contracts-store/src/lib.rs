@@ -33,6 +33,8 @@ pub mod pallet {
 	use pallet_contracts::{Code, CollectEvents, DebugInfo, InstantiateReturnValue};
 	use parity_scale_codec::HasCompact;
 
+	pub const CONTRACT_MERCHANT_ID: [u8; 20] = *b"CONTRACT_MERCHANT_ID";
+
 	#[pallet::config]
 	pub trait Config: pallet_contracts::Config + frame_system::Config {
 		// Primitives: Some overarching types that are aggregated in the system.
@@ -317,7 +319,7 @@ pub mod pallet {
 			T::Listings::transfer(&inventory_id, &license_id, &account_id)?;
 			// Also, we set the `merchant_id` derived from the origin, to ensure that the
 			// contract gets access to the Kreivo Merchants API.
-			T::Listings::set_attribute(&inventory_id, &license_id, &b"CONTRACT_MERCHANT_ID", merchant_id)?;
+			T::Listings::set_attribute(&inventory_id, &license_id, &CONTRACT_MERCHANT_ID, merchant_id)?;
 
 			Self::deposit_event(Event::<T>::AppInstantiated {
 				app_id,
