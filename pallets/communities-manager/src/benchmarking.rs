@@ -30,21 +30,6 @@ where
 	Ok(())
 }
 
-fn setup_collection<T: Config>() -> Result<(), BenchmarkError> {
-	T::CreateCollection::create_collection_with_id(
-		T::MembershipsManagerCollectionId::get(),
-		&T::MembershipsManagerOwner::get(),
-		&T::MembershipsManagerOwner::get(),
-		&pallet_nfts::CollectionConfig {
-			settings: Default::default(),
-			max_supply: None,
-			mint_settings: Default::default(),
-		},
-	)?;
-
-	Ok(())
-}
-
 #[benchmarks(
 where
 	RuntimeEventFor<T>: From<pallet_communities::Event<T>>,
@@ -82,9 +67,6 @@ mod benchmarks {
 
 	#[benchmark]
 	fn create_memberships(q: Linear<1, 1024>) -> Result<(), BenchmarkError> {
-		// setup code
-		setup_collection::<T>()?;
-
 		#[extrinsic_call]
 		_(
 			RawOrigin::Root,
@@ -112,7 +94,6 @@ mod benchmarks {
 	#[benchmark]
 	fn set_gas_tank() -> Result<(), BenchmarkError> {
 		// Setup code
-		setup_collection::<T>()?;
 		Pallet::<T>::create_memberships(
 			RawOrigin::Root.into(),
 			1,
