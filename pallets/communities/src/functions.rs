@@ -1,6 +1,6 @@
 use super::*;
 
-use fc_traits_memberships::{GenericRank, Inspect, Rank};
+use frame_contrib_traits::memberships::{GenericRank, Inspect, Rank};
 use frame_support::{
 	dispatch::PostDispatchInfo,
 	fail,

@@ -8,8 +8,8 @@ use self::{
 	},
 	CommunityDecisionMethod, DecisionMethod, Event, FreezeReason, Pallet as Communities,
 };
-use fc_traits_memberships::{Inspect, Rank};
 use frame_benchmarking::v2::*;
+use frame_contrib_traits::memberships::{Inspect, Rank};
 use frame_support::traits::{
 	fungible::{InspectFreeze, Mutate},
 	fungibles::Mutate as FunsMutate,

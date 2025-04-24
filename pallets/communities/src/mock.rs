@@ -1,4 +1,4 @@
-use fc_traits_memberships::NonFungiblesMemberships;
+use frame_contrib_traits::memberships::NonFungiblesMemberships;
 use frame_support::{
 	derive_impl,
 	dispatch::DispatchResult,

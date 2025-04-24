@@ -8,7 +8,7 @@ use pallet_communities::origin::{EnsureCommunity, EnsureSignedPays};
 use sp_runtime::{morph_types, traits::AccountIdConversion};
 use virto_common::{CommunityId, MembershipId};
 
-use fc_traits_memberships::{NonFungiblesMemberships, WithHooks};
+use frame_contrib_traits::memberships::{NonFungiblesMemberships, WithHooks};
 pub mod governance;
 pub mod memberships;
 

@@ -10,7 +10,7 @@ use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
 
-use fc_traits_authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
+use frame_contrib_traits::authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
 use pallet_communities::origin::AsSignedByCommunity;
 
 // #[runtime::pallet_index(0)]
@@ -144,8 +144,9 @@ parameter_types! {
 	pub NeverPays: Option<pallet_pass::DepositInformation<Runtime>> = None;
 }
 
-/// A [`Challenger`][`fc_traits_authn::Challenger`] which verifies the
-/// block hash of a block of a given block that's within the last `PAST_BLOCKS`.
+/// A [`Challenger`][`frame_contrib_traits::authn::Challenger`] which verifies
+/// the block hash of a block of a given block that's within the last
+/// `PAST_BLOCKS`.
 pub struct BlockHashChallenger<const PAST_BLOCKS: BlockNumber>;
 
 impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLOCKS> {
@@ -164,7 +165,7 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 pub type WebAuthn =
 	pass_webauthn::Authenticator<BlockHashChallenger<{ 30 * MINUTES }>, AuthorityFromPalletId<PassPalletId>>;
 #[cfg(feature = "runtime-benchmarks")]
-pub type Dummy = fc_traits_authn::util::dummy::Dummy<AuthorityFromPalletId<PassPalletId>>;
+pub type Dummy = frame_contrib_traits::authn::util::dummy::Dummy<AuthorityFromPalletId<PassPalletId>>;
 
 #[cfg(not(feature = "runtime-benchmarks"))]
 composite_authenticator!(
@@ -249,11 +250,11 @@ impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
 		RuntimeOrigin::root()
 	}
 
-	fn device_attestation(_: fc_traits_authn::DeviceId) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
-		PassDeviceAttestation::Dummy(fc_traits_authn::util::dummy::DummyAttestation::new(true))
+	fn device_attestation(_: frame_contrib_traits::authn::DeviceId) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
+		PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(true))
 	}
 
 	fn credential(_: HashedUserId) -> pallet_pass::CredentialOf<Runtime, ()> {
-		PassCredential::Dummy(fc_traits_authn::util::dummy::DummyCredential::new(true))
+		PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(true))
 	}
 }

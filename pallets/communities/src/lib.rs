@@ -116,7 +116,7 @@ extern crate alloc;
 
 use alloc::{boxed::Box, vec, vec::Vec};
 use core::num::NonZeroU8;
-use fc_traits_memberships::{self as membership, Inspect, Manager, Rank};
+use frame_contrib_traits::memberships::{self as membership, Inspect, Manager, Rank};
 use frame_support::{
 	dispatch::{DispatchResultWithPostInfo, GetDispatchInfo, PostDispatchInfo},
 	pallet_prelude::*,

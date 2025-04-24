@@ -15,7 +15,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 frame-benchmarking = { workspace = true, optional = true }
 frame-support.workspace = true
 frame-system.workspace = true
-fc-traits-memberships.workspace = true
+frame-contrib-traits.workspace = true
 
 log.workspace = true
 
@@ -42,15 +42,11 @@ virto-common = { workspace = true, default-features = false, features = [
 
 [features]
 default = ["std", "xcm", "serde"]
-serde = [
-  "dep:serde",
-  "scale-info/serde",
-]
+serde = ["dep:serde", "scale-info/serde"]
 std = [
   "frame-benchmarking?/std",
   "frame-support/std",
   "frame-system/std",
-  "fc-traits-memberships/std",
   "log/std",
   "pallet-assets/std",
   "pallet-assets-freezer/std",
@@ -82,7 +78,7 @@ runtime-benchmarks = [
   "pallet-referenda-tracks/runtime-benchmarks",
   "pallet-scheduler/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
-  "fc-traits-memberships/runtime-benchmarks",
+
 ]
 try-runtime = [
   "frame-support/try-runtime",

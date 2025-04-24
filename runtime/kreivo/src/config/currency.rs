@@ -8,7 +8,7 @@ use frame_support::{
 use polkadot_runtime_common::SlowAdjustingFeeUpdate;
 use runtime_common::impls::AssetsToBlockAuthor;
 
-use fc_traits_gas_tank::{NonFungibleGasTank, SelectNonFungibleItem};
+use frame_contrib_traits::gas_tank::{NonFungibleGasTank, SelectNonFungibleItem};
 use pallet_asset_tx_payment::FungiblesAdapter;
 use pallet_assets::BalanceToAssetBalance;
 use pallet_transaction_payment::FungibleAdapter;

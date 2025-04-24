@@ -66,7 +66,7 @@ where
 		o: RuntimeOriginFor<T>,
 		track_origin: &PalletsOriginOf<T>,
 	) -> Result<Self::Success, RuntimeOriginFor<T>> {
-		use fc_traits_memberships::Inspect;
+		use frame_contrib_traits::memberships::Inspect;
 		use frame_system::RawOrigin::Signed;
 		let community_id = T::Tracks::track_for(track_origin).map_err(|_| o.clone())?;
 

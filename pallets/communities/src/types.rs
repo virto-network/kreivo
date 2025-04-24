@@ -1,5 +1,5 @@
 use crate::{CommunityDecisionMethod, Config};
-use fc_traits_memberships::{Inspect, Rank};
+use frame_contrib_traits::memberships::{Inspect, Rank};
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{
 	fungible::{self, Inspect as FunInspect},

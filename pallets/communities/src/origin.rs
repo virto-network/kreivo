@@ -3,7 +3,7 @@ use crate::{
 	AccountIdOf, CommunityIdFor, Config, Info, Pallet,
 };
 use core::marker::PhantomData;
-use fc_traits_memberships::{GenericRank, Inspect};
+use frame_contrib_traits::memberships::{GenericRank, Inspect};
 use frame_support::{
 	pallet_prelude::*,
 	traits::{EnsureOriginWithArg, MapSuccess, OriginTrait},

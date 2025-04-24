@@ -319,7 +319,7 @@ mod vote {
 	}
 
 	mod membership {
-		use fc_traits_memberships::Inspect;
+		use frame_contrib_traits::memberships::Inspect;
 
 		use super::*;
 
