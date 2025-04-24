@@ -44,12 +44,14 @@ virto-common = { default-features = false, path = "common" }
 
 pallet-communities = { default-features = false, path = "pallets/communities" }
 pallet-communities-manager = { default-features = false, path = "pallets/communities-manager" }
+pallet-contracts-store = { default-features = false, path = "pallets/contracts-store" }
 
 runtime-constants = { default-features = false, path = "runtime/runtime-constants" }
 runtime-common = { default-features = false, path = "runtime/common" }
 
 # Frame Contrib
 frame-contrib-traits = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
+mock-helpers = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
 
 pallet-gas-transaction-payment = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-gas-transaction-payment" }
 pallet-listings = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-listings" }
@@ -104,6 +106,7 @@ pallet-aura = { default-features = false, git = "https://github.com/virto-networ
 pallet-authorship = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
 pallet-balances = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
 pallet-contracts = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
+pallet-contracts-fixtures = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
 pallet-multisig = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
 pallet-nfts = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
 pallet-preimage = { default-features = false, git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6" }
