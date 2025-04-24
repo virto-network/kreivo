@@ -1,57 +1,33 @@
-use frame_support::sp_runtime::DispatchError;
-use frame_support::traits::fungibles;
-use pallet_contracts::chain_extension::{BufInBufOutState, Environment, Ext};
+use super::*;
+use frame_support::pallet_prelude::DispatchError;
+use pallet_contracts::chain_extension::BufInBufOutState;
 
-pub enum ApiInfo<T, Assets>
+mod assets;
+pub use assets::*;
+mod listings;
+pub use listings::*;
+
+pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
+
+pub enum ApiInfo<T>
 where
-	T: frame_system::Config,
-	Assets: fungibles::Inspect<T::AccountId>,
+	T: Config,
 {
-	Assets(AssetsApiInfo<T, Assets>),
+	Assets(AssetsApiInfo<T>),
+	Listings(ListingsApiInfo<T>),
 }
 
-pub enum AssetsApiInfo<T: frame_system::Config, F: fungibles::Inspect<T::AccountId>> {
-	Balance {
-		asset: F::AssetId,
-		who: T::AccountId,
-	},
-	Deposit {
-		asset: F::AssetId,
-		amount: F::Balance,
-	},
-	Transfer {
-		asset: F::AssetId,
-		amount: F::Balance,
-		beneficiary: T::AccountId,
-	},
-}
-
-impl<T, Assets, E> TryFrom<&mut Environment<'_, '_, E, BufInBufOutState>> for ApiInfo<T, Assets>
+impl<T, E> TryFrom<&mut Environment<'_, '_, E, BufInBufOutState>> for ApiInfo<T>
 where
-	T: frame_system::Config,
-	Assets: fungibles::Inspect<T::AccountId>,
+	T: Config,
 	E: Ext<T = T>,
 {
 	type Error = DispatchError;
 
 	fn try_from(env: &mut Environment<'_, '_, E, BufInBufOutState>) -> Result<Self, Self::Error> {
 		match env.func_id() {
-			0x0000 => {
-				let (asset, who) = env.read_as()?;
-				Ok(Self::Assets(AssetsApiInfo::Balance { asset, who }))
-			}
-			0x0001 => {
-				let (asset, amount) = env.read_as()?;
-				Ok(Self::Assets(AssetsApiInfo::Deposit { asset, amount }))
-			}
-			0x0002 => {
-				let (asset, amount, beneficiary) = env.read_as()?;
-				Ok(Self::Assets(AssetsApiInfo::Transfer {
-					asset,
-					amount,
-					beneficiary,
-				}))
-			}
+			0x0000..0x0100 => env.try_into().map(|api_info| Self::Assets(api_info)),
+			0x0100..0x0200 => env.try_into().map(|api_info| Self::Listings(api_info)),
 			id => {
 				log::error!("Called an unregistered `func_id`: {id:}");
 				Err(DispatchError::Other("Unimplemented func_id"))
