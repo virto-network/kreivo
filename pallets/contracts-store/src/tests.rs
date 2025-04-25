@@ -379,10 +379,7 @@ mod instantiate {
 
 			let contract_address = SimpleAddressGenerator::contract_address(&BOB, &code_hash("call"), &[], &[]);
 
-			assert!(matches!(
-				Listings::item(&(0, APP_ID), &LICENSE_ID),
-				Some(item::Item { owner, .. }) if owner == contract_address
-			));
+			assert_eq!(ContractStore::maybe_merchant_id(&contract_address), Some(2));
 		})
 	}
 }
@@ -425,7 +422,7 @@ mod upgrade {
 	fn fails_if_app_is_up_to_date() {
 		new_test_ext().execute_with(|| {
 			assert_noop!(
-				ContractStore::upgrade(RuntimeOrigin::root(), APP_ID, LICENSE_ID),
+				ContractStore::upgrade(RuntimeOrigin::signed(BOB), APP_ID, LICENSE_ID),
 				Error::<Test>::AppInstanceUpToDate
 			);
 		})
@@ -440,7 +437,7 @@ mod upgrade {
 				contract("balance")
 			));
 
-			assert_ok!(ContractStore::upgrade(RuntimeOrigin::root(), APP_ID, LICENSE_ID));
+			assert_ok!(ContractStore::upgrade(RuntimeOrigin::signed(BOB), APP_ID, LICENSE_ID));
 		})
 	}
 }

@@ -103,6 +103,8 @@ pub mod pallet {
 		LicenseNotFound,
 		/// The address associated to an app license is not a valid instance.
 		AppInstanceNotFound,
+		/// The contract was not instantiated due to being reverted.
+		ContractReverted,
 		/// The application instance is up to date.
 		AppInstanceUpToDate,
 	}
@@ -148,6 +150,14 @@ pub mod pallet {
 	/// The information of registered apps.
 	#[pallet::storage]
 	pub type Apps<T: Config> = StorageMap<_, Blake2_128Concat, T::AppId, AppInfoFor<T>>;
+
+	/// The `MerchantId` associated to a contract account.
+	#[pallet::storage]
+	pub type ContractMerchantId<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, ListingsMerchantIdOf<T>>;
+
+	/// The contract account of an app instance.
+	#[pallet::storage]
+	pub type ContractAccount<T: Config> = StorageMap<_, Blake2_128Concat, (T::AppId, T::LicenseId), AccountIdOf<T>>;
 
 	#[pallet::call(weight(<T as Config>::WeightInfo))]
 	impl<T: Config> Pallet<T>
@@ -300,7 +310,7 @@ pub mod pallet {
 
 			ensure!(caller == owner, Error::<T>::NoPermission);
 
-			let InstantiateReturnValue { account_id, .. } = Contracts::<T>::bare_instantiate(
+			let InstantiateReturnValue { result, account_id } = Contracts::<T>::bare_instantiate(
 				caller.clone(),
 				value,
 				Weight::MAX, // TODO: Replace with something reasonable.
@@ -313,13 +323,12 @@ pub mod pallet {
 			)
 			.result?;
 
-			// Now that the contract is enacted, the new license owner is the app itself.
-			// That way, we can map the contract account with the actual license (and find
-			// the contract account via the app instance).
-			T::Listings::transfer(&inventory_id, &license_id, &account_id)?;
-			// Also, we set the `merchant_id` derived from the origin, to ensure that the
-			// contract gets access to the Kreivo Merchants API.
-			T::Listings::set_attribute(&inventory_id, &license_id, &CONTRACT_MERCHANT_ID, merchant_id)?;
+			if result.did_revert() {
+				Err(Error::<T>::ContractReverted)?
+			}
+
+			ContractAccount::<T>::insert((app_id.clone(), license_id.clone()), account_id.clone());
+			ContractMerchantId::<T>::insert(account_id, merchant_id);
 
 			Self::deposit_event(Event::<T>::AppInstantiated {
 				app_id,
@@ -332,14 +341,18 @@ pub mod pallet {
 
 		#[pallet::call_index(5)]
 		pub fn upgrade(origin: OriginFor<T>, app_id: T::AppId, license_id: T::LicenseId) -> DispatchResult {
-			ensure_signed_or_root(origin)?;
-			let AppInfo { code_hash, .. } = Apps::<T>::get(&app_id).ok_or(Error::<T>::AppNotFound)?;
+			let (who, _) = &<<T as Config>::InstantiateOrigin>::ensure_origin(origin)?;
 
+			let AppInfo { code_hash, .. } = Apps::<T>::get(&app_id).ok_or(Error::<T>::AppNotFound)?;
 			let inventory_id = (T::ContractsStoreMerchantId::get(), app_id.clone());
-			let Item {
-				owner: contract_account,
-				..
-			} = T::Listings::item(&inventory_id, &license_id).ok_or(Error::<T>::LicenseNotFound)?;
+			let Item { ref owner, .. } =
+				T::Listings::item(&inventory_id, &license_id).ok_or(Error::<T>::LicenseNotFound)?;
+
+			ensure!(who == owner, Error::<T>::NoPermission);
+
+			let contract_account =
+				ContractAccount::<T>::get(&(app_id, license_id)).ok_or(Error::<T>::AppInstanceNotFound)?;
+
 			let instance_hash = Contracts::<T>::code_hash(&contract_account).ok_or(Error::<T>::AppInstanceNotFound)?;
 
 			ensure!(code_hash != instance_hash, Error::<T>::AppInstanceUpToDate);
@@ -385,5 +398,11 @@ impl<T: Config> Pallet<T> {
 			Contracts::<T>::bare_upload_code(publisher.clone(), code, None, Determinism::Enforced)?;
 		app_info.bump_version(code_hash).ok_or(Error::<T>::CannotIncrement)?;
 		Ok(())
+	}
+}
+
+impl<T: Config> Pallet<T> {
+	pub fn maybe_merchant_id(who: &T::AccountId) -> Option<ListingsMerchantIdOf<T>> {
+		ContractMerchantId::<T>::get(who)
 	}
 }
