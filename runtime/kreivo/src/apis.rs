@@ -1,5 +1,6 @@
 use super::*;
-
+use frame_system::EventRecord;
+use pallet_contracts::{CollectEvents, DebugInfo, Determinism};
 use sp_api::impl_runtime_apis;
 use sp_core::OpaqueMetadata;
 use sp_runtime::{
@@ -8,6 +9,8 @@ use sp_runtime::{
 	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
 use sp_version::RuntimeVersion;
+
+type EvtRecord = EventRecord<RuntimeEvent, Hash>;
 
 impl_runtime_apis! {
 	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
@@ -116,6 +119,72 @@ impl_runtime_apis! {
 				)?,
 				// collect ... e.g. other tokens
 			].concat().into())
+		}
+	}
+
+	impl pallet_contracts::ContractsApi<Block, AccountId, Balance, BlockNumber, Hash, EvtRecord> for Runtime {
+		fn call(
+			origin: AccountId,
+			dest: AccountId,
+			value: Balance,
+			gas_limit: Option<Weight>,
+			storage_deposit_limit: Option<Balance>,
+			input_data: Vec<u8>,
+		) -> pallet_contracts::ContractExecResult<Balance, EvtRecord> {
+			Contracts::bare_call(
+				origin,
+				dest,
+				value,
+				gas_limit.unwrap_or_default(),
+				storage_deposit_limit,
+				input_data,
+				DebugInfo::UnsafeDebug,
+				CollectEvents::UnsafeCollect,
+				Determinism::Relaxed
+			)
+		}
+
+		fn instantiate(
+			origin: AccountId,
+			value: Balance,
+			gas_limit: Option<Weight>,
+			storage_deposit_limit: Option<Balance>,
+			code: pallet_contracts::Code<Hash>,
+			data: Vec<u8>,
+			salt: Vec<u8>,
+		) -> pallet_contracts::ContractInstantiateResult<AccountId, Balance, EvtRecord> {
+			Contracts::bare_instantiate(
+				origin,
+				value,
+				gas_limit.unwrap_or_default(),
+				storage_deposit_limit,
+				code,
+				data,
+				salt,
+				DebugInfo::UnsafeDebug,
+				CollectEvents::UnsafeCollect,
+			)
+		}
+
+		fn upload_code(
+			origin: AccountId,
+			code: Vec<u8>,
+			storage_deposit_limit: Option<Balance>,
+			determinism: Determinism,
+		) -> pallet_contracts::CodeUploadResult<Hash, Balance> {
+			Contracts::bare_upload_code(
+				origin,
+				code,
+				storage_deposit_limit,
+				determinism
+			)
+		}
+
+		fn get_storage(
+			address: AccountId,
+			key: Vec<u8>,
+		) -> pallet_contracts::GetStorageResult {
+			Contracts::get_storage(address, key )
 		}
 	}
 

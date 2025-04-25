@@ -2,16 +2,14 @@ use super::*;
 
 use frame_support::{
 	parameter_types,
-	traits::{nonfungibles_v2::InspectEnumerable, ConstBool, ConstU32, MapSuccess, Randomness},
+	traits::{ConstBool, ConstU32, MapSuccess, Randomness},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use sp_runtime::morph_types;
 
-use frame_contrib_traits::listings::InspectItem;
 use kreivo_apis::KreivoChainExtensions;
 use pallet_balances::Call as BalancesCall;
 use pallet_communities::origin::EnsureCommunity;
-use pallet_listings::InventoryId;
 use virto_common::listings;
 
 #[cfg(not(feature = "runtime-benchmarks"))]
@@ -50,9 +48,7 @@ impl kreivo_apis::MerchantIdInfo<AccountId> for Runtime {
 	type MerchantId = CommunityId;
 
 	fn maybe_merchant_id(who: &AccountId) -> Option<Self::MerchantId> {
-		ListingsCatalog::owned(&who).find_map(|(InventoryId(m, app_id), license)| {
-			Listings::attribute(&(m, app_id), &license, &pallet_contracts_store::CONTRACT_MERCHANT_ID)
-		})
+		ContractsStore::maybe_merchant_id(who)
 	}
 }
 
