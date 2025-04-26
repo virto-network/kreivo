@@ -4013,6 +4013,7 @@ dependencies = [
  "pallet-communities",
  "pallet-communities-manager",
  "pallet-contracts",
+ "pallet-contracts-store",
  "pallet-message-queue",
  "pallet-multisig",
  "pallet-nfts",
@@ -4913,6 +4914,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "mock-helpers"
+version = "0.1.0"
+source = "git+https://github.com/virto-network/frame-contrib#b6a1ac91c45b02f2a468e4f1c39b0386b9e47a16"
+dependencies = [
+ "fc-pallet-listings",
+ "frame-support",
+ "frame-system",
+ "pallet-assets",
+ "pallet-balances",
+ "sp-io",
+ "sp-runtime",
+]
+
+[[package]]
 name = "mockall"
 version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5757,6 +5772,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-contracts-fixtures"
+version = "1.0.0"
+source = "git+https://github.com/virto-network/polkadot-sdk?branch=release-virto-stable2409-6#d93cd013a45b96c9be233efc0aaaf75d020fe53f"
+dependencies = [
+ "anyhow",
+ "frame-system",
+ "parity-wasm",
+ "sp-runtime",
+ "tempfile",
+ "toml 0.8.20",
+ "twox-hash",
+]
+
+[[package]]
 name = "pallet-contracts-proc-macro"
 version = "23.0.1"
 source = "git+https://github.com/virto-network/polkadot-sdk?branch=release-virto-stable2409-6#d93cd013a45b96c9be233efc0aaaf75d020fe53f"
@@ -5764,6 +5793,26 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.100",
+]
+
+[[package]]
+name = "pallet-contracts-store"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-contrib-traits",
+ "frame-support",
+ "frame-system",
+ "mock-helpers",
+ "pallet-assets",
+ "pallet-balances",
+ "pallet-contracts",
+ "pallet-contracts-fixtures",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]

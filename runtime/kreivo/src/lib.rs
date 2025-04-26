@@ -263,6 +263,8 @@ mod runtime {
 	// Contracts
 	#[runtime::pallet_index(80)]
 	pub type Contracts = pallet_contracts;
+	#[runtime::pallet_index(81)]
+	pub type ContractsStore = pallet_contracts_store;
 }
 
 cumulus_pallet_parachain_system::register_validate_block! {

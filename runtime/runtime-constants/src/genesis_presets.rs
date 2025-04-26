@@ -20,6 +20,7 @@ use alloc::format;
 use alloc::vec::Vec;
 use parachains_common::AuraId;
 use polkadot_primitives::{AccountId, AccountPublic};
+use sp_core::crypto::Ss58Codec;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::IdentifyAccount;
 
@@ -56,6 +57,7 @@ pub fn testnet_accounts() -> Vec<AccountId> {
 		get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
 		get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
 		get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
+		AccountId::from_ss58check("F3opxRaMqPWKwA5yup6vZy2GLA28aJ3XSEX31Uf8qrhmaQt").expect("address is correct"),
 	])
 }
 
