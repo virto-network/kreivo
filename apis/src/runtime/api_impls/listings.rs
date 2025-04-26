@@ -222,4 +222,28 @@ where
 		T::Listings::clear_attribute(&(merchant_id, *inventory_id), id, key)
 			.map_err(|_| ListingsApiError::FailedToSetAttribute.into())
 	}
+
+	fn item_transfer(
+		ext: &E,
+		inventory_id: &Self::InventoryId,
+		id: &Self::ItemId,
+		beneficiary: &Self::AccountId,
+	) -> Result<(), KreivoApisError> {
+		let merchant_id = Self::merchant_id(ext).ok_or(ListingsApiError::NoMerchantId)?;
+
+		T::Listings::transfer(&(merchant_id, *inventory_id), id, beneficiary)
+			.map_err(|_| ListingsApiError::CannotTransfer.into())
+	}
+
+	fn item_creator_transfer(
+		ext: &E,
+		inventory_id: &Self::InventoryId,
+		id: &Self::ItemId,
+		beneficiary: &Self::AccountId,
+	) -> Result<(), KreivoApisError> {
+		let merchant_id = Self::merchant_id(ext).ok_or(ListingsApiError::NoMerchantId)?;
+
+		T::Listings::creator_transfer(&(merchant_id, *inventory_id), id, beneficiary)
+			.map_err(|_| ListingsApiError::CannotTransfer.into())
+	}
 }

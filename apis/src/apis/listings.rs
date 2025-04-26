@@ -145,4 +145,20 @@ pub trait ListingsItemsAPI<E> {
 		id: &Self::ItemId,
 		key: &K,
 	) -> Result<(), KreivoApisError>;
+
+	/// Transfers an item.
+	fn item_transfer(
+		ext: &E,
+		inventory_id: &Self::InventoryId,
+		id: &Self::ItemId,
+		beneficiary: &Self::AccountId,
+	) -> Result<(), KreivoApisError>;
+
+	/// Transfers an item, also marking the beneficiary as the item creator.
+	fn item_creator_transfer(
+		ext: &E,
+		inventory_id: &Self::InventoryId,
+		id: &Self::ItemId,
+		beneficiary: &Self::AccountId,
+	) -> Result<(), KreivoApisError>;
 }

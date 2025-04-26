@@ -26,6 +26,8 @@ pub enum ListingsApiError {
 	FailedToSetTransferable,
 	/// It was not possible to set some attribute.
 	FailedToSetAttribute,
+	/// Transferring an item is not possible.
+	CannotTransfer,
 }
 
 impl From<ListingsApiError> for KreivoApisError {
@@ -51,6 +53,7 @@ impl TryFrom<KreivoApisErrorCode> for ListingsApiError {
 			9 => Ok(ListingsApiError::FailedToSetNotForResale),
 			10 => Ok(ListingsApiError::FailedToSetTransferable),
 			11 => Ok(ListingsApiError::FailedToSetAttribute),
+			12 => Ok(ListingsApiError::CannotTransfer),
 			_ => Err(()),
 		}
 	}

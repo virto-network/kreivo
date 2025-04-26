@@ -145,6 +145,22 @@ pub trait ChainExtension {
 		id: ItemIdOf<Environment>,
 		key: Vec<u8>,
 	) -> CallResult;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x011d)]
+	fn listings__item_transfer(
+		inventory_id: InventoryIdOf<Environment>,
+		id: ItemIdOf<Environment>,
+		beneficiary: AccountIdOf<Environment>,
+	) -> CallResult;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x011e)]
+	fn listings__item_creator_transfer(
+		inventory_id: InventoryIdOf<Environment>,
+		id: ItemIdOf<Environment>,
+		beneficiary: AccountIdOf<Environment>,
+	) -> CallResult;
 }
 
 impl ink::env::chain_extension::FromStatusCode for KreivoApisErrorCode {

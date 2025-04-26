@@ -72,6 +72,16 @@ where
 			ListingsApiInfo::ItemClearAttribute { inventory_id, id, key } => {
 				ListingsAPIOf::<T, E>::item_clear_attribute(ext, inventory_id, id, key).map(|v| v.encode())
 			}
+			ListingsApiInfo::Transfer {
+				inventory_id,
+				id,
+				beneficiary,
+			} => ListingsAPIOf::<T, E>::item_transfer(ext, inventory_id, id, beneficiary).map(|v| v.encode()),
+			ListingsApiInfo::CreatorTransfer {
+				inventory_id,
+				id,
+				beneficiary,
+			} => ListingsAPIOf::<T, E>::item_creator_transfer(ext, inventory_id, id, beneficiary).map(|v| v.encode()),
 		}
 	}
 }

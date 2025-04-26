@@ -269,4 +269,28 @@ where
 			.listings__item_clear_attribute(*inventory_id, *id, key.encode())
 			.map_err(|code| code.into())
 	}
+
+	fn item_transfer(
+		env: &EnvAccess<'_, E>,
+		inventory_id: &Self::InventoryId,
+		id: &Self::ItemId,
+		beneficiary: &Self::AccountId,
+	) -> Result<(), KreivoApisError> {
+		env.clone()
+			.extension()
+			.listings__item_transfer(*inventory_id, *id, *beneficiary)
+			.map_err(|code| code.into())
+	}
+
+	fn item_creator_transfer(
+		env: &EnvAccess<'_, E>,
+		inventory_id: &Self::InventoryId,
+		id: &Self::ItemId,
+		beneficiary: &Self::AccountId,
+	) -> Result<(), KreivoApisError> {
+		env.clone()
+			.extension()
+			.listings__item_creator_transfer(*inventory_id, *id, *beneficiary)
+			.map_err(|code| code.into())
+	}
 }

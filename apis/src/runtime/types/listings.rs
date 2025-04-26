@@ -93,6 +93,16 @@ pub enum ListingsApiInfo<T: Config> {
 		id: ItemIdOf<T>,
 		key: BoundedVec<u8, ConstU32<256>>,
 	},
+	Transfer {
+		inventory_id: InventoryIdOf<T>,
+		id: ItemIdOf<T>,
+		beneficiary: AccountIdOf<T>,
+	},
+	CreatorTransfer {
+		inventory_id: InventoryIdOf<T>,
+		id: ItemIdOf<T>,
+		beneficiary: AccountIdOf<T>,
+	},
 }
 
 impl<T, E> TryFrom<&mut Environment<'_, '_, E, BufInBufOutState>> for ListingsApiInfo<T>
@@ -199,6 +209,22 @@ where
 			0x011c => {
 				let (inventory_id, id, key) = env.read_as()?;
 				Ok(ListingsApiInfo::ItemClearAttribute { inventory_id, id, key })
+			}
+			0x011d => {
+				let (inventory_id, id, beneficiary) = env.read_as()?;
+				Ok(ListingsApiInfo::Transfer {
+					inventory_id,
+					id,
+					beneficiary,
+				})
+			}
+			0x011e => {
+				let (inventory_id, id, beneficiary) = env.read_as()?;
+				Ok(ListingsApiInfo::CreatorTransfer {
+					inventory_id,
+					id,
+					beneficiary,
+				})
 			}
 			id => {
 				log::error!("Called an unregistered `func_id`: {id:}");

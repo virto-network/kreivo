@@ -23,7 +23,7 @@ repository = 'https://github.com/virto-network/virto-node'
 [workspace.dependencies]
 # common
 clap = { version = "4.5.3" }
-hex-literal = { version = "0.4.1" }
+hex-literal = { version = "1.0.0" }
 log = { version = "0.4.22" }
 parity-scale-codec = { version = "3.6.4", default-features = false, features = [
   "derive",
