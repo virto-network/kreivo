@@ -1,5 +1,6 @@
 use super::*;
 use frame_support::pallet_prelude::DispatchError;
+use frame_support::{CloneNoBound, DebugNoBound};
 use pallet_contracts::chain_extension::BufInBufOutState;
 
 mod assets;
@@ -9,6 +10,7 @@ pub use listings::*;
 
 pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 
+#[derive(CloneNoBound, DebugNoBound)]
 pub enum ApiInfo<T>
 where
 	T: Config,

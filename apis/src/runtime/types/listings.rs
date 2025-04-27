@@ -8,6 +8,7 @@ use frame_support::BoundedVec;
 type InventoryIdOf<T> = <<T as Config>::Listings as InspectItem<AccountIdOf<T>>>::InventoryId;
 type ItemIdOf<T> = <<T as Config>::Listings as InspectItem<AccountIdOf<T>>>::ItemId;
 
+#[derive(Encode, Decode, Clone, DebugNoBound)]
 pub enum ListingsApiInfo<T: Config> {
 	InventoryExists {
 		id: InventoryIdOf<T>,

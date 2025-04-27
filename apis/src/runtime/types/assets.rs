@@ -7,6 +7,7 @@ use pallet_contracts::chain_extension::{BufInBufOutState, Environment, Ext};
 pub type AssetIdOf<T> = <<T as Config>::Assets as fungibles::Inspect<AccountIdOf<T>>>::AssetId;
 pub type AssetBalanceOf<T> = <<T as Config>::Assets as fungibles::Inspect<AccountIdOf<T>>>::Balance;
 
+#[derive(Encode, Decode, Clone, DebugNoBound)]
 pub enum AssetsApiInfo<T: Config> {
 	Balance {
 		asset: AssetIdOf<T>,

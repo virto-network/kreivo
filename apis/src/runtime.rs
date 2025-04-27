@@ -51,10 +51,17 @@ where
 	) -> pallet_contracts::chain_extension::Result<RetVal> {
 		let mut env = env.buf_in_buf_out();
 
-		let result = match ApiInfo::<T>::try_from(&mut env)? {
+		let request: ApiInfo<_> = ApiInfo::<T>::try_from(&mut env)?;
+
+		let result = match request.clone() {
 			ApiInfo::Assets(ref api_info) => api_info.call(env.ext()),
 			ApiInfo::Listings(ref api_info) => api_info.call(env.ext()),
 		};
+
+		log::trace!(
+			target: "chainx",
+			"call({request:#?}) -> {result:#?}",
+		);
 
 		match result {
 			Ok(result) => {
