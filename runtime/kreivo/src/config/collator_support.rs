@@ -2,6 +2,7 @@ use super::*;
 
 use frame_support::traits::EitherOfDiverse;
 use pallet_xcm::IsVoiceOfBody;
+use runtime_constants::time::MILLISECS_PER_BLOCK;
 
 // #[runtime::pallet_index(20)]
 // pub type Authorship
@@ -70,8 +71,7 @@ impl pallet_session::Config for Runtime {
 /// up by `pallet_aura` to implement `fn slot_duration()`.
 ///
 /// Change this to adjust the block time.
-pub const MILLISECONDS_PER_BLOCK: u64 = 6_000;
-pub const SLOT_DURATION: u64 = MILLISECONDS_PER_BLOCK;
+pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
 
 impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;

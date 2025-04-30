@@ -33,17 +33,25 @@ use xcm_executor::XcmExecutor;
 mod communities;
 use communities::*;
 
+#[cfg(not(feature = "paseo"))]
+parameter_types! {
+	pub const RelayNetwork: Option<NetworkId> = Some(Kusama);
+}
+#[cfg(feature = "paseo")]
+parameter_types! {
+	pub const RelayNetwork: Option<NetworkId> = Some(Polkadot);
+}
+
 parameter_types! {
 	pub const RelayLocation: Location = Location::parent();
-	pub const RelayNetwork: Option<NetworkId> = Some(NetworkId::Kusama);
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub CheckAccount: (AccountId, MintLocation) = (PolkadotXcm::check_account(), MintLocation::Local);
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub AssetsPalletLocation: Location =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
 	pub UniversalLocation: InteriorLocation = [
-		GlobalConsensus(NetworkId::Polkadot),
-		GlobalConsensus(NetworkId::Kusama),
+		GlobalConsensus(Polkadot),
+		GlobalConsensus(Kusama),
 		Parachain(ParachainInfo::parachain_id().into()),
 	].into();
 
