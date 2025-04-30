@@ -41,8 +41,8 @@ impl From<KreivoApisError> for KreivoApisErrorCode {
 		match error {
 			KreivoApisError::UnknownError => Self(1),
 			KreivoApisError::ExtQueryError => Self(2),
-			KreivoApisError::Assets(e) => Self(1u32 << 16 | e as u16 as u32),
-			KreivoApisError::Listings(e) => Self(2u32 << 16 | e as u16 as u32),
+			KreivoApisError::Assets(e) => Self((1u32 << 16) | e as u16 as u32),
+			KreivoApisError::Listings(e) => Self((2u32 << 16) | e as u16 as u32),
 		}
 	}
 }

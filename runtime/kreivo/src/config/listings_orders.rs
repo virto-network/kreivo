@@ -45,7 +45,7 @@ impl<Id> EnsureOriginWithArg<RuntimeOrigin, InventoryId<CommunityId, Id>> for En
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn try_successful_origin(InventoryId(community_id, _): &InventoryId<CommunityId, Id>) -> Result<RuntimeOrigin, ()> {
-		Ok(RuntimeOrigin::signed(Communities::community_account(&community_id)))
+		Ok(RuntimeOrigin::signed(Communities::community_account(community_id)))
 	}
 }
 
@@ -158,7 +158,7 @@ mod benchmarks {
 		> for ListingsCatalogBenchmarkHelper
 	{
 		fn collection(i: u16) -> InventoryIdFor<Runtime, ListingsInstance> {
-			InventoryId(i.into(), 0)
+			InventoryId(i, 0)
 		}
 
 		fn item(i: u16) -> ItemIdOf<Runtime, ListingsInstance> {

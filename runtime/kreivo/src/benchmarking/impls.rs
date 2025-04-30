@@ -71,7 +71,7 @@ impl pallet_xcm_benchmarks::Config for Runtime {
 parameter_types! {
 	pub const TrustedTeleporter: Option<(Location, Asset)> = Some((
 		RelayLocation::get(),
-		Asset { fun: Fungible(1 * UNITS), id: AssetId(RelayLocation::get()) },
+		Asset { fun: Fungible(UNITS), id: AssetId(RelayLocation::get()) },
 	));
 	pub const TrustedReserve: Option<(Location, Asset)> = None;
 	pub const CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;

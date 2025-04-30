@@ -32,7 +32,7 @@ impl EnsureOriginWithArg<RuntimeOrigin, TrackIdOf<Runtime, CommunityTracksInstan
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn try_successful_origin(id: &TrackIdOf<Runtime, CommunityTracksInstance>) -> Result<RuntimeOrigin, ()> {
-		Ok(pallet_communities::Origin::<Runtime>::new(id.clone()).into())
+		Ok(pallet_communities::Origin::<Runtime>::new(*id).into())
 	}
 }
 

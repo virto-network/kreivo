@@ -81,7 +81,7 @@ impl pallet_nfts::BenchmarkHelper<CommunityId, MembershipId, <Signature as Verif
 	for NftsBenchmarksHelper
 {
 	fn collection(id: u16) -> CommunityId {
-		id.into()
+		id
 	}
 	fn item(i: u16) -> MembershipId {
 		i.into()
