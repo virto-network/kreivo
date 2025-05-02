@@ -26,6 +26,7 @@ impl pallet_referenda::Config<CollectiveReferendaInstance> for Test {
 	type AlarmInterval = AlarmInterval;
 	type Tracks = TracksInfo;
 	type Preimages = ();
+	type BlockNumberProvider = System;
 }
 
 pub type CollectiveInstance = pallet_ranked_collective::Instance1;

@@ -41,7 +41,7 @@ pub use weights::*;
 
 type TrackInfoOf<T> = TrackInfo<NativeBalanceOf<T>, BlockNumberFor<T>>;
 
-#[derive(Default, Encode, Decode, Clone, PartialEq, Eq, Debug, TypeInfo)]
+#[derive(Default, Encode, Decode, DecodeWithMemTracking, Clone, PartialEq, Eq, Debug, TypeInfo)]
 pub struct TankConfig<Weight, BlockNumber> {
 	capacity: Option<Weight>,
 	periodicity: Option<BlockNumber>,
