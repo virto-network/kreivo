@@ -22,6 +22,11 @@ repository = 'https://github.com/virto-network/virto-node'
 
 [workspace.dependencies]
 # common
+anyhow = { version = "1.0.98", default-features = false }
+tempfile = { version = "3.19.1" }
+toml = { version = "0.8.22" }
+twox-hash = { version = "2.1.0", default-features = false }
+
 clap = { version = "4.5.3" }
 hex-literal = { version = "1.0.0" }
 log = { version = "0.4.22" }
@@ -88,6 +93,7 @@ sp-weights = { version = "31.1.0", default-features = false }
 
 # Build Dependencies
 substrate-wasm-builder = { version = "26.0.0" }
+parity-wasm = { version = "0.45.0" }
 
 ## Substrate FRAME Dependencies
 frame-executive = { version = "40.0.0", default-features = false }
@@ -106,7 +112,7 @@ pallet-aura = { version = "39.0.0", default-features = false }
 pallet-authorship = { version = "40.0.0", default-features = false }
 pallet-balances = { version = "41.1.0", default-features = false }
 pallet-contracts = { version = "40.1.0", default-features = false }
-pallet-contracts-fixtures = { git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2503", default-features = false }
+pallet-contracts-fixtures = { path = "pallets/contracts-store/fixtures", default-features = false }
 pallet-multisig = { version = "40.1.0", default-features = false }
 pallet-nfts = { version = "34.1.0", default-features = false }
 pallet-preimage = { version = "40.0.0", default-features = false }
@@ -158,3 +164,6 @@ xcm-executor = { version = "19.1.0", package = "staging-xcm-executor", default-f
 # ink!
 ink = { version = "5.1.1", default-features = false }
 ink_env = { version = "5.1.1", default-features = false }
+
+[workspace.lints.clippy]
+all = { level = "allow", priority = 0 }
