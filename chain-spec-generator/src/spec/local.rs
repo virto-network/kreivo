@@ -54,7 +54,7 @@ pub fn chain_spec() -> Result<Box<dyn ChainSpec>, String> {
 		.with_name(CHAIN_NAME_STRING)
 		.with_chain_type(ChainType::Local)
 		.with_properties(properties())
-		.with_genesis_config_preset_name("local")
+		.with_genesis_config_preset_name("local_testnet")
 		.build(),
 	))
 }
