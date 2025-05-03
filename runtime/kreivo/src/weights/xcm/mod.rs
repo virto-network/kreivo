@@ -20,8 +20,10 @@ mod pallet_xcm_benchmarks_generic;
 use crate::{xcm_config::MaxAssetsIntoHolding, Runtime};
 use alloc::vec::Vec;
 use frame_support::weights::Weight;
+use frame_support::BoundedVec;
 use pallet_xcm_benchmarks_fungible::WeightInfo as XcmFungibleWeight;
 use pallet_xcm_benchmarks_generic::WeightInfo as XcmGeneric;
+use xcm::latest::AssetTransferFilter;
 use xcm::{latest::prelude::*, DoubleEncoded};
 
 trait WeighAssets {
@@ -80,7 +82,11 @@ impl<Call> XcmWeightInfo<Call> for KreivoXcmWeight<Call> {
 	fn transfer_reserve_asset(assets: &Assets, _dest: &Location, _xcm: &Xcm<()>) -> Weight {
 		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::transfer_reserve_asset())
 	}
-	fn transact(_origin_type: &OriginKind, _require_weight_at_most: &Weight, _call: &DoubleEncoded<Call>) -> Weight {
+	fn transact(
+		_origin_type: &OriginKind,
+		_require_weight_at_most: &Option<Weight>,
+		_call: &DoubleEncoded<Call>,
+	) -> Weight {
 		XcmGeneric::<Runtime>::transact()
 	}
 	fn hrmp_new_channel_open_request(_sender: &u32, _max_message_size: &u32, _max_capacity: &u32) -> Weight {
@@ -219,5 +225,48 @@ impl<Call> XcmWeightInfo<Call> for KreivoXcmWeight<Call> {
 	}
 	fn unpaid_execution(_: &WeightLimit, _: &Option<Location>) -> Weight {
 		XcmGeneric::<Runtime>::unpaid_execution()
+	}
+
+	fn pay_fees(_asset: &Asset) -> Weight {
+		XcmGeneric::<Runtime>::pay_fees()
+	}
+
+	fn initiate_transfer(
+		_destination: &Location,
+		remote_fees: &Option<AssetTransferFilter>,
+		_preserve_origin: &bool,
+		assets: &BoundedVec<AssetTransferFilter, MaxAssetTransferFilters>,
+		_remote_xcm: &Xcm<()>,
+	) -> Weight {
+		let base_weight = XcmFungibleWeight::<Runtime>::initiate_transfer();
+		let mut weight = if let Some(remote_fees) = remote_fees {
+			let fees = remote_fees.inner();
+			fees.weigh_multi_assets(base_weight)
+		} else {
+			base_weight
+		};
+
+		for asset_filter in assets {
+			let assets = asset_filter.inner();
+			let extra = assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::initiate_transfer());
+			weight = weight.saturating_add(extra);
+		}
+		weight
+	}
+
+	fn execute_with_origin(_descendant_origin: &Option<InteriorLocation>, _xcm: &Xcm<Call>) -> Weight {
+		XcmGeneric::<Runtime>::execute_with_origin()
+	}
+
+	fn set_hints(hints: &BoundedVec<Hint, HintNumVariants>) -> Weight {
+		let mut weight = Weight::zero();
+		for hint in hints {
+			match hint {
+				AssetClaimer { .. } => {
+					weight = weight.saturating_add(XcmGeneric::<Runtime>::asset_claimer());
+				}
+			}
+		}
+		weight
 	}
 }

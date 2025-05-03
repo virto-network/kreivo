@@ -6,7 +6,7 @@ use frame_support::{derive_impl, dispatch::DispatchClass, traits::EnsureOrigin, 
 use frame_system::{limits::BlockLength, EnsureRootWithSuccess};
 use sp_runtime::traits::{LookupError, StaticLookup};
 
-use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+use cumulus_pallet_parachain_system::{DefaultCoreSelector, RelayNumberMonotonicallyIncreases};
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
 
@@ -117,6 +117,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Self>;
 	type ConsensusHook = ConsensusHook;
+	type SelectCore = DefaultCoreSelector<Self>;
 }
 
 // #[runtime::pallet_index(2)]
@@ -204,7 +205,7 @@ where
 	#[cfg(feature = "runtime-benchmarks")]
 	fn try_successful_origin(_: &HashedUserId) -> Result<OuterOrigin, ()> {
 		use pallet_communities::BenchmarkHelper;
-		let community_id = crate::communities::CommunityBenchmarkHelper::community_id();
+		let community_id = communities::CommunityBenchmarkHelper::community_id();
 		Ok(
 			frame_system::RawOrigin::Signed(pallet_communities::Pallet::<Runtime>::community_account(&community_id))
 				.into(),
@@ -250,7 +251,7 @@ impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
 		RuntimeOrigin::root()
 	}
 
-	fn device_attestation(_: frame_contrib_traits::authn::DeviceId) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
+	fn device_attestation(_: DeviceId) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
 		PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(true))
 	}
 

@@ -53,4 +53,5 @@ impl pallet_treasury::Config for Runtime {
 	/// empty implementation. type BenchmarkHelper =
 	/// polkadot_runtime_common::impls::benchmarks::TreasuryArguments;
 	type BenchmarkHelper = ();
+	type BlockNumberProvider = System;
 }

@@ -207,4 +207,18 @@ impl<T: frame_system::Config> pallet_proxy::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
+	// Storage: `Proxy::Proxies` (r:1 w:1)
+	/// Proof: `Proxy::Proxies` (`max_values`: None, `max_size`: Some(1241), added: 3716, mode: `MaxEncodedLen`)
+	/// The range of component `p` is `[0, 30]`.
+	fn poke_deposit() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `164 + p * (37 ±0)`
+		//  Estimated: `4706`
+		// Minimum execution time: 51_983_000 picoseconds.
+		Weight::from_parts(87_051_598, 0)
+			.saturating_add(Weight::from_parts(0, 4706))
+			// Standard Error: 44_747
+			.saturating_add(T::DbWeight::get().reads(1))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
 }

@@ -101,6 +101,7 @@ impl pallet_nfts::Config<ListingsInstance> for Runtime {
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = benchmarks::ListingsCatalogBenchmarkHelper;
 	type WeightInfo = ();
+	type BlockNumberProvider = System;
 }
 
 morph_types! {

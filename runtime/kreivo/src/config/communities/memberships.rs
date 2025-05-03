@@ -68,6 +68,7 @@ impl pallet_nfts::Config<CommunityMembershipsInstance> for Runtime {
 	type Helper = NftsBenchmarksHelper;
 
 	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
+	type BlockNumberProvider = System;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

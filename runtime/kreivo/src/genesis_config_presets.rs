@@ -24,6 +24,7 @@ fn local_genesis(
 				.cloned()
 				.map(|k| (k, EXISTENTIAL_DEPOSIT * 4096 * 4096))
 				.collect(),
+			dev_accounts: None,
 		},
 		"parachainInfo": ParachainInfoConfig {
 			parachain_id: id,
@@ -62,9 +63,9 @@ pub fn preset_names() -> Vec<PresetId> {
 }
 
 pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
-	let patch = match id.try_into() {
-		Ok("development") => local_testnet_genesis(2281.into()),
-		Ok("local") => local_testnet_genesis(2281.into()),
+	let patch = match id.as_ref() {
+		sp_genesis_builder::DEV_RUNTIME_PRESET => local_testnet_genesis(2281.into()),
+		sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET => local_testnet_genesis(2281.into()),
 		_ => return None,
 	};
 

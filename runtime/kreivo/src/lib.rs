@@ -26,12 +26,12 @@ mod xcm_config;
 use apis::*;
 use config::*;
 
-use alloc::{boxed::Box, string::String, vec, vec::Vec};
+use alloc::{borrow::Cow::Borrowed, boxed::Box, string::String, vec, vec::Vec};
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use sp_core::crypto::KeyTypeId;
 
 pub use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	generic, impl_opaque_keys,
 	traits::{Block as BlockT, ConvertInto},
 	MultiAddress, Perbill, Percent,
 };
@@ -124,14 +124,14 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("kreivo-parachain"),
-	impl_name: create_runtime_str!("kreivo-parachain"),
+	spec_name: Borrowed("kreivo-parachain"),
+	impl_name: Borrowed("kreivo-parachain"),
 	authoring_version: 1,
 	spec_version: 117,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 11,
-	state_version: 1,
+	system_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled

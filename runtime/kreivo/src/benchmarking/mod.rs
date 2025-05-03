@@ -1,11 +1,9 @@
 mod impls;
 
 use super::*;
-use frame_benchmarking::{BenchmarkBatch, BenchmarkConfig, BenchmarkList, Benchmarking};
+use frame_benchmarking::{BenchmarkBatch, BenchmarkConfig, BenchmarkList};
 use frame_support::traits::{StorageInfo, StorageInfoTrait};
 use impls::{SessionBench, SystemBench};
-
-use sp_runtime::RuntimeString;
 
 type XcmBalances = pallet_xcm_benchmarks::fungible::Pallet<Runtime>;
 type XcmGeneric = pallet_xcm_benchmarks::generic::Pallet<Runtime>;
@@ -70,7 +68,7 @@ pub(crate) fn benchmark_metadata(extra: bool) -> (Vec<BenchmarkList>, Vec<Storag
 	(list, storage_info)
 }
 
-pub(crate) fn dispatch_benchmark(config: BenchmarkConfig) -> Result<Vec<BenchmarkBatch>, RuntimeString> {
+pub(crate) fn dispatch_benchmark(config: BenchmarkConfig) -> Result<Vec<BenchmarkBatch>, String> {
 	use frame_support::traits::WhitelistedStorageKeys;
 	let whitelist = AllPalletsWithSystem::whitelisted_storage_keys();
 
