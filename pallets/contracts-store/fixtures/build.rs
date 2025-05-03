@@ -99,7 +99,7 @@ fn collect_entries(contracts_dir: &Path, out_dir: &Path) -> Vec<Entry> {
 		.filter_map(|file| {
 			let path = file.expect("file exists; qed").path();
 			if path.extension().map_or(true, |ext| ext != "rs") {
-				return None
+				return None;
 			}
 
 			let entry = Entry::new(path);
@@ -121,9 +121,8 @@ fn create_cargo_toml<'a>(
 ) -> Result<()> {
 	let mut cargo_toml: toml::Value = toml::from_str(include_str!("build/Cargo.toml"))?;
 	let mut set_dep = |name, path| -> Result<()> {
-		cargo_toml["dependencies"][name]["path"] = toml::Value::String(
-			fixtures_dir.join(path).canonicalize()?.to_str().unwrap().to_string(),
-		);
+		cargo_toml["dependencies"][name]["path"] =
+			toml::Value::String(fixtures_dir.join(path).canonicalize()?.to_str().unwrap().to_string());
 		Ok(())
 	};
 	set_dep("common", "./contracts/common")?;
@@ -146,18 +145,14 @@ fn create_cargo_toml<'a>(
 }
 
 /// Invoke `cargo fmt` to check that fixtures files are formatted.
-fn invoke_cargo_fmt<'a>(
-	config_path: &Path,
-	files: impl Iterator<Item = &'a Path>,
-	contract_dir: &Path,
-) -> Result<()> {
+fn invoke_cargo_fmt<'a>(config_path: &Path, files: impl Iterator<Item = &'a Path>, contract_dir: &Path) -> Result<()> {
 	// If rustfmt is not installed, skip the check.
 	if !Command::new("rustup")
 		.args(["nightly-2025-01-30", "run", "rustfmt", "--version"])
 		.output()
 		.map_or(false, |o| o.status.success())
 	{
-		return Ok(())
+		return Ok(());
 	}
 
 	let fmt_res = Command::new("rustup")
@@ -168,7 +163,7 @@ fn invoke_cargo_fmt<'a>(
 		.expect("failed to execute process");
 
 	if fmt_res.status.success() {
-		return Ok(())
+		return Ok(());
 	}
 
 	let stdout = String::from_utf8_lossy(&fmt_res.stdout);
@@ -204,7 +199,7 @@ fn invoke_wasm_build(current_dir: &Path) -> Result<()> {
 		.expect("failed to execute process");
 
 	if build_res.status.success() {
-		return Ok(())
+		return Ok(());
 	}
 
 	let stderr = String::from_utf8_lossy(&build_res.stderr);
@@ -214,12 +209,10 @@ fn invoke_wasm_build(current_dir: &Path) -> Result<()> {
 
 /// Post-process the compiled wasm contracts.
 fn post_process_wasm(input_path: &Path, output_path: &Path) -> Result<()> {
-	let mut module =
-		deserialize_file(input_path).with_context(|| format!("Failed to read {:?}", input_path))?;
+	let mut module = deserialize_file(input_path).with_context(|| format!("Failed to read {:?}", input_path))?;
 	if let Some(section) = module.export_section_mut() {
 		section.entries_mut().retain(|entry| {
-			matches!(entry.internal(), Internal::Function(_)) &&
-				(entry.field() == "call" || entry.field() == "deploy")
+			matches!(entry.internal(), Internal::Function(_)) && (entry.field() == "call" || entry.field() == "deploy")
 		});
 	}
 
@@ -231,7 +224,9 @@ fn write_output(build_dir: &Path, out_dir: &Path, entries: Vec<Entry>) -> Result
 	for entry in entries {
 		let wasm_output = entry.out_wasm_filename();
 		post_process_wasm(
-			&build_dir.join("target/wasm32-unknown-unknown/release").join(&wasm_output),
+			&build_dir
+				.join("target/wasm32-unknown-unknown/release")
+				.join(&wasm_output),
 			&out_dir.join(&wasm_output),
 		)?;
 
@@ -247,8 +242,7 @@ fn find_workspace_root(current_dir: &Path) -> Option<PathBuf> {
 
 	while current_dir.parent().is_some() {
 		if current_dir.join("Cargo.toml").exists() {
-			let cargo_toml_contents =
-				fs::read_to_string(current_dir.join("Cargo.toml")).ok()?;
+			let cargo_toml_contents = fs::read_to_string(current_dir.join("Cargo.toml")).ok()?;
 			if cargo_toml_contents.contains("[workspace]") {
 				return Some(current_dir);
 			}
@@ -269,7 +263,7 @@ fn main() -> Result<()> {
 
 	let entries = collect_entries(&contracts_dir, &out_dir);
 	if entries.is_empty() {
-		return Ok(())
+		return Ok(());
 	}
 
 	let tmp_dir = tempfile::tempdir()?;

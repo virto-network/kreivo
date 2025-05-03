@@ -18,11 +18,10 @@
 use sp_runtime::traits::Hash;
 use std::{fs, path::PathBuf};
 
-/// Load a given wasm module and returns a wasm binary contents along with it's hash.
-/// Use the legacy compile_module as fallback, if the rust fixture does not exist yet.
-pub fn compile_module<T>(
-	fixture_name: &str,
-) -> anyhow::Result<(Vec<u8>, <T::Hashing as Hash>::Output)>
+/// Load a given wasm module and returns a wasm binary contents along with it's
+/// hash. Use the legacy compile_module as fallback, if the rust fixture does
+/// not exist yet.
+pub fn compile_module<T>(fixture_name: &str) -> anyhow::Result<(Vec<u8>, <T::Hashing as Hash>::Output)>
 where
 	T: frame_system::Config,
 {
