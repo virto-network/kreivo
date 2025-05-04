@@ -74,11 +74,12 @@ jobs:
         shell: bash
         run: sudo apt update && sudo apt install -y protobuf-compiler
 
-      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` + `clippy`
+      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` + `clippy` (w/ `wasm32-unknown-unknown`)
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: ${{ env.NIGHTLY_VERSION }}
+          target: wasm32-unknown-unknown
           components: clippy,rust-src
 
       - uses: actions/checkout@v4
