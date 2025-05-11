@@ -15,7 +15,7 @@ jobs:
         run: sudo apt update && sudo apt install -y protobuf-compiler
 
       - name: Use Stable
-        uses: https://github.com/actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
@@ -25,14 +25,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Rust Cache
-        uses: https://github.com/swatinem/rust-cache@v2
+        uses: swatinem/rust-cache@v2
         with:
           cache-on-failure: true
           cache-all-crates: true
           key: build
 
       - name: Release build with try-runtime
-        uses: https://github.com/actions-rs/cargo@v1
+        uses: actions-rs/cargo@v1
         with:
           command: build
           args: --profile production --features ${{ github.ref_name == 'dev' && 'paseo,try-runtime' || 'try-runtime' }} --locked -p kreivo-runtime
