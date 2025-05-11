@@ -3,7 +3,6 @@ on:
   workflow_run:
     workflows: ["Lint, check, clippy and test"]
     types:
-      - requested
       - completed
 
 jobs:
