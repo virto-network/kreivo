@@ -13,7 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SDK_VERSION: polkadot-stable2503-2
   RUNTIME_NAME: kreivo_runtime.compact.compressed.wasm
 
 jobs:
@@ -62,14 +61,11 @@ jobs:
         with:
           name: ${{ github.run_number }}-runtime
 
-      - name: Download CLI
+      - name: Install CLI
         run: |
-          curl -sL https://github.com/paritytech/polkadot-sdk/releases/download/${{ env.SDK_VERSION }}/polkadot-parachain -o polkadot-parachain
-          chmod +x ./polkadot-parachain
-          echo "Using polkadot-parachain version:"
-          ./polkadot-parachain --version
+          cargo install frame-omni-bencher --profile=production --locked
 
       - name: script
         id: required
         run: |
-          ./polkadot-parachain benchmark pallet --runtime ${{ env.RUNTIME_NAME }} --all --steps 2 --repeat 1 --quiet
+          frame-omni-bencher v1 benchmark pallet --runtime ${{ env.RUNTIME_NAME }} --all --steps 2 --repeat 1 --quiet
