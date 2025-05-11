@@ -53,19 +53,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create `target/production` folder
-        run: |
-          mkdir -p target/production
-
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.run_number }}-runtime
-          path: ./target/production
-
-      - name: List `target` directory
-        run: |
-          ls -laR ./target/production
 
       - name: Download CLI
         run: |
@@ -94,6 +85,6 @@ jobs:
           ./try-runtime create-snapshot --uri wss://kreivo.io snapshot.raw
 
       - run: |
-          ./try-runtime --runtime target/production/kreivo_runtime.compact.compressed.wasm \
+          ./try-runtime --runtime kreivo_runtime.compact.compressed.wasm \
             on-runtime-upgrade --disable-spec-version-check --checks=all --blocktime 6000 \
             snap -p snapshot.raw
