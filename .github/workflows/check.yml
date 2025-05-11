@@ -1,10 +1,14 @@
-name: Lint, check, clippy and test
+name: Checks
 
 on:
   push:
     branches: [ main ]
   pull_request:
     types: [ opened, synchronize, reopened, ready_for_review ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   NIGHTLY_VERSION: 'nightly-2025-01-30'
