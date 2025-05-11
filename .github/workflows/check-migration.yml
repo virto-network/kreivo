@@ -83,9 +83,9 @@ jobs:
         if: ${{ hashFiles('snapshot.raw') == '' }}
         run: |
           echo "Creating new snapshot for today (${{ steps.get-date.outputs.today }})"
-          ./try-runtime create-snapshot --uri ${{ matrix.uri }} snapshot.raw
+          ./try-runtime create-snapshot --uri wss://kreivo.io snapshot.raw
 
       - run: |
           ./try-runtime --runtime target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm \
             on-runtime-upgrade --disable-spec-version-check --checks=all --blocktime 6000 \
-            live --uri wss://kreivo.io
+            snap -p snapshot.raw
