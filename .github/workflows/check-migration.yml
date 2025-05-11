@@ -6,41 +6,41 @@ on:
     types: [ opened, synchronize, reopened, ready_for_review ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup Ubuntu dependencies
-        shell: bash
-        run: sudo apt update && sudo apt install -y protobuf-compiler
-
-      - name: Use Stable
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          components: rust-src
-
-      - uses: actions/checkout@v4
-
-      - name: Rust Cache
-        uses: swatinem/rust-cache@v2
-        with:
-          cache-on-failure: true
-          cache-all-crates: true
-          key: build
-
-      - name: Release build with try-runtime
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --profile production --features ${{ github.ref_name == 'dev' && 'paseo,try-runtime' || 'try-runtime' }} --locked -p kreivo-runtime
-
-      - name: Upload runtime to artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.run_number }}-runtime
-          path: ./target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
+#  build:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Setup Ubuntu dependencies
+#        shell: bash
+#        run: sudo apt update && sudo apt install -y protobuf-compiler
+#
+#      - name: Use Stable
+#        uses: actions-rs/toolchain@v1
+#        with:
+#          profile: minimal
+#          toolchain: stable
+#          target: wasm32-unknown-unknown
+#          components: rust-src
+#
+#      - uses: actions/checkout@v4
+#
+#      - name: Rust Cache
+#        uses: swatinem/rust-cache@v2
+#        with:
+#          cache-on-failure: true
+#          cache-all-crates: true
+#          key: build
+#
+#      - name: Release build with try-runtime
+#        uses: actions-rs/cargo@v1
+#        with:
+#          command: build
+#          args: --profile production --features ${{ github.ref_name == 'dev' && 'paseo,try-runtime' || 'try-runtime' }} --locked -p kreivo-runtime
+#
+#      - name: Upload runtime to artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ github.run_number }}-runtime
+#          path: ./target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
 
   check_migrations:
     name: Check Migrations
@@ -56,8 +56,12 @@ jobs:
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.run_number }}-runtime
+          name: 32-runtime
           path: ./target/production
+
+      - name: List `target` directory
+        run: |
+          ls -laR ./target/production
 
       - name: Download CLI
         run: |
@@ -86,6 +90,6 @@ jobs:
           ./try-runtime create-snapshot --uri wss://kreivo.io snapshot.raw
 
       - run: |
-          ./try-runtime --runtime target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm \
+          ./try-runtime --runtime target/production/kreivo_runtime.compact.compressed.wasm \
             on-runtime-upgrade --disable-spec-version-check --checks=all --blocktime 6000 \
             snap -p snapshot.raw
