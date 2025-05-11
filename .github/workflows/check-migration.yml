@@ -43,49 +43,50 @@ jobs:
           name: ${{ github.run_number }}-runtime
           path: ./target/release/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
 
-    check_migrations:
-      name: Check Migrations
-      needs: build
-      steps:
-        - uses: actions/checkout@v4
+  check_migrations:
+    name: Check Migrations
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: Create `target/release` folder
-          run: |
-            mkdir -p target/release
+      - name: Create `target/release` folder
+        run: |
+          mkdir -p target/release
 
-        - name: Get artifacts
-          uses: actions/download-artifact@v4
-          with:
-            name: ${{ github.ref }}-runtime
-            path: ./target/release
+      - name: Get artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.ref }}-runtime
+          path: ./target/release
 
-        - name: Download CLI
-          run: |
-            curl -sL https://github.com/paritytech/try-runtime-cli/releases/download/v0.8.0/try-runtime-x86_64-unknown-linux-musl -o try-runtime
-            chmod +x ./try-runtime
-            echo "Using try-runtime-cli version:"
-            ./try-runtime --version
+      - name: Download CLI
+        run: |
+          curl -sL https://github.com/paritytech/try-runtime-cli/releases/download/v0.8.0/try-runtime-x86_64-unknown-linux-musl -o try-runtime
+          chmod +x ./try-runtime
+          echo "Using try-runtime-cli version:"
+          ./try-runtime --version
 
-        - name: Get Date
-          id: get-date
-          run: |
-            echo "today=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
-          shell: bash
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "today=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
+        shell: bash
 
-        - name: Download Snapshot
-          uses: actions/cache@v4
-          with:
-            path: snapshot.raw
-            key: try-runtime-snapshot-${{ matrix.network }}-${{ steps.get-date.outputs.today }}
-            save-always: true
+      - name: Download Snapshot
+        uses: actions/cache@v4
+        with:
+          path: snapshot.raw
+          key: try-runtime-snapshot-${{ matrix.network }}-${{ steps.get-date.outputs.today }}
+          save-always: true
 
-        - name: Create Snapshot If Stale
-          if: ${{ hashFiles('snapshot.raw') == '' }}
-          run: |
-            echo "Creating new snapshot for today (${{ steps.get-date.outputs.today }})"
-            ./try-runtime create-snapshot --uri ${{ matrix.uri }} snapshot.raw
+      - name: Create Snapshot If Stale
+        if: ${{ hashFiles('snapshot.raw') == '' }}
+        run: |
+          echo "Creating new snapshot for today (${{ steps.get-date.outputs.today }})"
+          ./try-runtime create-snapshot --uri ${{ matrix.uri }} snapshot.raw
 
-        - run: |
-            ./try-runtime --runtime target/release/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm \
-              on-runtime-upgrade --disable-spec-version-check --checks=all --blocktime 6000 \
-              live --uri wss://kreivo.io
+      - run: |
+          ./try-runtime --runtime target/release/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm \
+            on-runtime-upgrade --disable-spec-version-check --checks=all --blocktime 6000 \
+            live --uri wss://kreivo.io
