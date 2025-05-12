@@ -8,6 +8,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 extern crate alloc;
+extern crate core;
 
 #[cfg(test)]
 mod tests;

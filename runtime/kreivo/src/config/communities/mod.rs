@@ -92,7 +92,7 @@ mod benchmarks {
 
 	use frame_benchmarking::BenchmarkError;
 	use frame_support::traits::{
-		nonfungible_v2::{InspectEnumerable, ItemOf, Mutate, Transfer},
+		nonfungible_v2::{ItemOf, Mutate},
 		nonfungibles_v2::Create,
 		schedule::DispatchTime,
 	};
@@ -112,7 +112,7 @@ mod benchmarks {
 
 	impl BenchmarkHelper<Runtime> for CommunityBenchmarkHelper {
 		fn community_id() -> CommunityIdOf<Runtime> {
-			2
+			1
 		}
 		fn community_asset_id() -> AssetIdOf<Runtime> {
 			1u32.into()
@@ -120,14 +120,25 @@ mod benchmarks {
 		fn community_desired_size() -> u32 {
 			u8::MAX.into()
 		}
+
 		fn initialize_memberships_collection() -> Result<(), BenchmarkError> {
-			// Membership Manager collection is provided via GenesisBuilder; qed.
+			let community_id = Self::community_id();
+			let community_account = pallet_communities::Pallet::<Runtime>::community_account(&community_id);
+
 			CommunityMemberships::create_collection_with_id(
-				Self::community_id(),
-				&Communities::community_account(&Self::community_id()),
-				&Communities::community_account(&Self::community_id()),
+				MembershipsCollectionId::get(),
+				&community_account,
+				&community_account,
 				&Default::default(),
 			)?;
+
+			CommunityMemberships::create_collection_with_id(
+				Self::community_id(),
+				&community_account,
+				&community_account,
+				&Default::default(),
+			)?;
+
 			Ok(())
 		}
 
@@ -137,17 +148,7 @@ mod benchmarks {
 		) -> Result<(), BenchmarkError> {
 			let community_account = Communities::community_account(&community_id);
 
-			// TODO: Consider memberships might already exist or be provided.
-			if !MembershipsManagementCollection::items().any(|x| x == membership_id) {
-				MembershipsManagementCollection::mint_into(
-					&membership_id,
-					&community_account,
-					&Default::default(),
-					true,
-				)?;
-			} else {
-				MembershipsManagementCollection::transfer(&membership_id, &community_account)?;
-			}
+			MembershipsManagementCollection::mint_into(&membership_id, &community_account, &Default::default(), true)?;
 
 			Ok(())
 		}
