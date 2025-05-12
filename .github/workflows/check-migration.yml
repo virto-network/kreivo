@@ -82,7 +82,7 @@ jobs:
         if: ${{ hashFiles('snapshot.raw') == '' }}
         run: |
           echo "Creating new snapshot for today (${{ steps.get-date.outputs.today }})"
-          ./try-runtime create-snapshot --uri wss://kreivo.io snapshot.raw
+          ./try-runtime create-snapshot --uri wss://kreivo.kippu.rocks snapshot.raw
 
       - run: |
           ./try-runtime --runtime kreivo_runtime.compact.compressed.wasm \
