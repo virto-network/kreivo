@@ -56,6 +56,10 @@ jobs:
       RUST_LOG: "frame_omni_bencher=info"
     timeout-minutes: 30
     steps:
+      - name: Setup Ubuntu dependencies
+        shell: bash
+        run: sudo apt update && sudo apt install -y protobuf-compiler
+
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
@@ -63,7 +67,7 @@ jobs:
 
       - name: Install CLI
         run: |
-          cargo install frame-omni-bencher --profile=production --locked
+          cargo install frame-omni-bencher --profile release --locked
 
       - name: script
         id: required
