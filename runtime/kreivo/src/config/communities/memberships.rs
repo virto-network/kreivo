@@ -5,6 +5,7 @@ use frame_system::EnsureRootWithSuccess;
 use sp_runtime::traits::Verify;
 
 use pallet_nfts::PalletFeatures;
+use sp_core::ConstU128;
 use virto_common::MembershipId;
 
 parameter_types! {
@@ -47,7 +48,12 @@ impl pallet_nfts::Config<CommunityMembershipsInstance> for Runtime {
 	type Locker = ();
 
 	type CollectionDeposit = ();
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type ItemDeposit = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	/// When benchmarking, items must have a deposit cost, in order for
+	/// `redeposit` to work.
+	type ItemDeposit = ConstU128<CENTS>;
 	type MetadataDepositBase = MetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
