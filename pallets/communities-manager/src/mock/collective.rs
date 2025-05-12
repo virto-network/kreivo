@@ -1,16 +1,16 @@
 use super::*;
 
 use alloc::borrow::Cow;
-use pallet_referenda::Track;
+use pallet_referenda::{Curve, Track};
 use sp_runtime::{str_array as s, Perbill};
 
 pub type TrackId = u16;
 
 pub type CollectiveReferendaInstance = pallet_referenda::Instance1;
 impl pallet_referenda::Config<CollectiveReferendaInstance> for Test {
-	type WeightInfo = pallet_referenda::weights::SubstrateWeight<Self>;
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_referenda::weights::SubstrateWeight<Self>;
 	type Scheduler = Scheduler;
 	type Currency = Balances;
 	// Communities can submit proposals.
@@ -24,7 +24,7 @@ impl pallet_referenda::Config<CollectiveReferendaInstance> for Test {
 	type MaxQueued = ConstU32<3>;
 	type UndecidingTimeout = ConstU64<20>;
 	type AlarmInterval = AlarmInterval;
-	type Tracks = TracksInfo;
+	type Tracks = Tracks;
 	type Preimages = ();
 	type BlockNumberProvider = System;
 }
@@ -35,26 +35,26 @@ impl pallet_ranked_collective::Config<CollectiveInstance> for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type AddOrigin = EnsureNever<()>;
 	type RemoveOrigin = Self::DemoteOrigin;
-	type ExchangeOrigin = EnsureNever<()>;
-	type MemberSwappedHandler = ();
 	type PromoteOrigin = EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>;
 	type DemoteOrigin = EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>;
+	type ExchangeOrigin = EnsureNever<()>;
 	type Polls = CollectiveReferenda;
 	type MinRankOfClass = ();
+	type MemberSwappedHandler = ();
 	type VoteWeight = pallet_ranked_collective::Linear;
 	type MaxMemberCount = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkSetup = ();
 }
-pub struct TracksInfo;
-impl pallet_referenda::TracksInfo<Balance, BlockNumberFor<Test>> for TracksInfo {
+pub struct Tracks;
+impl TracksInfo<Balance, BlockNumberFor<Test>> for Tracks {
 	type Id = TrackId;
-	type RuntimeOrigin = <RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin;
+	type RuntimeOrigin = <RuntimeOrigin as OriginTrait>::PalletsOrigin;
 
 	fn tracks() -> impl Iterator<Item = Cow<'static, Track<TrackId, Balance, BlockNumberFor<Test>>>> {
-		const DATA: [pallet_referenda::Track<TrackId, Balance, BlockNumberFor<Test>>; 1] = [Track {
+		const DATA: [Track<TrackId, Balance, BlockNumberFor<Test>>; 1] = [Track {
 			id: 0,
-			info: pallet_referenda::TrackInfo {
+			info: TrackInfo {
 				name: s("Root"),
 				max_deciding: 1,
 				decision_deposit: 0,
@@ -62,12 +62,12 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumberFor<Test>> for TracksInfo 
 				decision_period: 4,
 				confirm_period: 1,
 				min_enactment_period: 1,
-				min_approval: pallet_referenda::Curve::LinearDecreasing {
+				min_approval: Curve::LinearDecreasing {
 					length: Perbill::from_percent(100),
 					floor: Perbill::from_percent(90),
 					ceil: Perbill::from_percent(100),
 				},
-				min_support: pallet_referenda::Curve::LinearDecreasing {
+				min_support: Curve::LinearDecreasing {
 					length: Perbill::from_percent(100),
 					floor: Perbill::from_percent(0),
 					ceil: Perbill::from_percent(100),

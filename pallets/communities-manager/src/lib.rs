@@ -322,13 +322,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	pub(crate) fn try_create_memberships(
-		starting_at: <T as Config>::MembershipId,
-		amount: u16,
-		price: NativeBalanceOf<T>,
-		tank_config: TankConfig<Weight, BlockNumberFor<T>>,
-		maybe_expiration: Option<BlockNumberFor<T>>,
-	) -> DispatchResult {
+	pub(crate) fn prepare_memberships_collection() -> Result<CommunityIdOf<T>, DispatchError> {
 		let collection_id = &T::MembershipsManagerCollectionId::get();
 
 		if T::CreateMemberships::collection_owner(collection_id).is_none() {
@@ -350,6 +344,18 @@ impl<T: Config> Pallet<T> {
 				},
 			)?;
 		}
+
+		Ok(collection_id.clone())
+	}
+
+	pub(crate) fn try_create_memberships(
+		starting_at: <T as Config>::MembershipId,
+		amount: u16,
+		price: NativeBalanceOf<T>,
+		tank_config: TankConfig<Weight, BlockNumberFor<T>>,
+		maybe_expiration: Option<BlockNumberFor<T>>,
+	) -> DispatchResult {
+		let collection_id = &Self::prepare_memberships_collection()?;
 
 		let mut id = starting_at.clone();
 		let mut minted = 0u32;
