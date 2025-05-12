@@ -226,7 +226,7 @@ impl pallet_pass::Config for Runtime {
 		// Root never pays
 		EnsureRootWithSuccess<Self::AccountId, NeverPays>,
 		EitherOf<
-			// 	// Communities never pay
+			// Communities never pay
 			CommunitiesDontDeposit,
 			// Signed users must deposit ED for creating a pass account
 			pallet_pass::EnsureSignedPays<
@@ -239,23 +239,25 @@ impl pallet_pass::Config for Runtime {
 	type Scheduler = Scheduler;
 
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = PassBenchmarkHelper;
+	type BenchmarkHelper = benchmarks::PassBenchmarkHelper;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-pub struct PassBenchmarkHelper;
+mod benchmarks {
+	use super::*;
+	pub struct PassBenchmarkHelper;
 
-#[cfg(feature = "runtime-benchmarks")]
-impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
-	fn register_origin() -> frame_system::pallet_prelude::OriginFor<Runtime> {
-		RuntimeOrigin::root()
-	}
+	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
+		fn register_origin() -> frame_system::pallet_prelude::OriginFor<Runtime> {
+			RuntimeOrigin::root()
+		}
 
-	fn device_attestation(_: DeviceId) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
-		PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(true))
-	}
+		fn device_attestation(_: DeviceId) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
+			PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(true))
+		}
 
-	fn credential(_: HashedUserId) -> pallet_pass::CredentialOf<Runtime, ()> {
-		PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(true))
+		fn credential(_: HashedUserId) -> pallet_pass::CredentialOf<Runtime, ()> {
+			PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(true))
+		}
 	}
 }
