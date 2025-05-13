@@ -48,28 +48,21 @@ jobs:
   quick-benchmarks-omni:
     needs: build
     runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-C debug-assertions"
-      RUST_BACKTRACE: "full"
-      WASM_BUILD_NO_COLOR: 1
-      WASM_BUILD_RUSTFLAGS: "-C debug-assertions"
-      RUST_LOG: "frame_omni_bencher=info"
     timeout-minutes: 30
     steps:
-      - name: Setup Ubuntu dependencies
-        shell: bash
-        run: sudo apt update && sudo apt install -y protobuf-compiler
-
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.run_number }}-runtime
 
-      - name: Install CLI
+      - name: Download CLI
         run: |
-          cargo install frame-omni-bencher --profile release --locked
+          curl -sL https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2503/frame-omni-bencher -o frame-omni-bencher
+          chmod +x ./frame-omni-bencher
+          echo "Using frame-omni-bencher version:"
+          ./frame-omni-bencher --version
 
       - name: script
         id: required
         run: |
-          frame-omni-bencher v1 benchmark pallet --runtime ${{ env.RUNTIME_NAME }} --all --steps 2 --repeat 1 --quiet
+          ./frame-omni-bencher v1 benchmark pallet --runtime ${{ env.RUNTIME_NAME }} --all --steps 2 --repeat 1 --quiet
