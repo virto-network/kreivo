@@ -1,7 +1,7 @@
 use super::{
-	vec, AccountId, AllPalletsWithSystem, Assets, Balance, Balances, FungibleAssetLocation, KreivoAssetsInstance,
+	AccountId, AllPalletsWithSystem, Assets, Balance, Balances, FungibleAssetLocation, KreivoAssetsInstance,
 	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeHoldReason, RuntimeOrigin,
-	Treasury, TreasuryAccount, Vec, WeightToFee, XcmpQueue,
+	Treasury, TreasuryAccount, WeightToFee, XcmpQueue,
 };
 use virto_common::AsFungibleAssetLocation;
 
@@ -346,7 +346,7 @@ mod benchmarks {
 
 	use crate::{
 		config::{ExistentialDeposit, PriceForParentDelivery},
-		UNITS,
+		vec, Vec, UNITS,
 	};
 	use frame_benchmarking::BenchmarkError;
 	use pallet_xcm_benchmarks::asset_instance_from;
