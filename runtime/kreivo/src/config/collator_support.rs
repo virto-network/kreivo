@@ -104,3 +104,6 @@ pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
 	{ async_backing_params::BLOCK_PROCESSING_VELOCITY },
 	{ async_backing_params::UNINCLUDED_SEGMENT_CAPACITY },
 >;
+
+#[cfg(feature = "runtime-benchmarks")]
+impl cumulus_pallet_session_benchmarking::Config for Runtime {}

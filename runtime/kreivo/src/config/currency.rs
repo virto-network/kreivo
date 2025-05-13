@@ -189,6 +189,16 @@ impl pallet_assets_holder::Config<KreivoAssetsInstance> for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks {
 	use super::*;
+	use crate::config::communities::{CommunityBenchmarkHelper, MembershipsCollectionId};
+	use frame_contrib_traits::gas_tank::MakeTank;
+	use frame_support::dispatch::DispatchResult;
+	use frame_support::traits::{
+		fungible::Mutate as FnMutate,
+		fungibles::{Create, Inspect, Mutate},
+		nonfungibles_v2::Mutate as NonTunsMutate,
+	};
+	use pallet_communities::BenchmarkHelper;
+	use sp_runtime::DispatchError;
 
 	pub struct AssetsTxPaymentBenchmarkHelper;
 
@@ -196,11 +206,17 @@ mod benchmarks {
 		for AssetsTxPaymentBenchmarkHelper
 	{
 		fn create_asset_id_parameter(id: u32) -> (FungibleAssetLocation, FungibleAssetLocation) {
-			(FungibleAssetLocation::Here(id), FungibleAssetLocation::Here(id))
+			let id = id.into();
+			if !Assets::asset_exists(id) {
+				<Assets as Create<_>>::create(id, TreasuryAccount::get(), true, EXISTENTIAL_DEPOSIT)
+					.expect("create an asset class is expected to succeed; qed");
+			}
+			(id, id)
 		}
 
-		fn setup_balances_and_pool(_asset_id: FungibleAssetLocation, _account: AccountId) {
-			todo!()
+		fn setup_balances_and_pool(asset_id: FungibleAssetLocation, account: AccountId) {
+			Balances::mint_into(&account, UNITS).expect("minting is expected to succeed; qed");
+			Assets::set_balance(asset_id, &account, UNITS);
 		}
 	}
 
@@ -211,6 +227,18 @@ mod benchmarks {
 
 		fn ext() -> ChargeGasTxPayment<Runtime, Self::Ext> {
 			ChargeGasTxPayment::new(ChargeAssetTxPayment::<Runtime>::from(0, None))
+		}
+
+		fn setup_account(who: &AccountId, gas: Weight) -> DispatchResult {
+			CommunityBenchmarkHelper::initialize_memberships_collection().map_err(|_| DispatchError::Exhausted)?;
+			<CommunityMemberships as NonTunsMutate<_, _>>::mint_into(
+				&MembershipsCollectionId::get(),
+				&0,
+				who,
+				&Default::default(),
+				true,
+			)?;
+			MembershipsGasTank::make_tank(&(MembershipsCollectionId::get(), 0), Some(gas), None)
 		}
 	}
 }

@@ -262,7 +262,9 @@ runtime-benchmarks = [
 	"pallet-assets-holder/runtime-benchmarks",
 	"pallet-orders/runtime-benchmarks",
 	"frame-contrib-traits/runtime-benchmarks",
-	"pallet-contracts-store/runtime-benchmarks"
+	"pallet-contracts-store/runtime-benchmarks",
+	"pallet-transaction-payment/runtime-benchmarks",
+	"xcm/runtime-benchmarks"
 ]
 
 try-runtime = [

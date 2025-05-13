@@ -66,7 +66,7 @@ impl StaticLookup for CommunityLookup {
 	}
 }
 
-#[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig as frame_system::DefaultConfig)]
+#[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig)]
 impl frame_system::Config for Runtime {
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
@@ -93,7 +93,7 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 	/// The action to take on a Runtime Upgrade
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
-	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type MaxConsumers = ConstU32<16>;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Self>;
 }
 
@@ -165,21 +165,10 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 
 pub type WebAuthn =
 	pass_webauthn::Authenticator<BlockHashChallenger<{ 30 * MINUTES }>, AuthorityFromPalletId<PassPalletId>>;
-#[cfg(feature = "runtime-benchmarks")]
-pub type Dummy = frame_contrib_traits::authn::util::dummy::Dummy<AuthorityFromPalletId<PassPalletId>>;
 
-#[cfg(not(feature = "runtime-benchmarks"))]
 composite_authenticator!(
 	pub Pass<AuthorityFromPalletId<PassPalletId>> {
 		WebAuthn,
-	}
-);
-
-#[cfg(feature = "runtime-benchmarks")]
-composite_authenticator!(
-	pub Pass<AuthorityFromPalletId<PassPalletId>> {
-		WebAuthn,
-		Dummy,
 	}
 );
 
@@ -218,7 +207,10 @@ impl pallet_pass::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type WeightInfo = weights::pallet_pass::WeightInfo<Self>;
-	type Authenticator = PassAuthenticator; // WebAuthn;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Authenticator = PassAuthenticator;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Authenticator = benchmarks::PassAuthenticator;
 	type PalletsOrigin = OriginCaller;
 	type PalletId = PassPalletId;
 	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
@@ -245,6 +237,29 @@ impl pallet_pass::Config for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks {
 	use super::*;
+	use frame_benchmarking::BenchmarkError;
+
+	impl frame_system_benchmarking::Config for Runtime {
+		fn setup_set_code_requirements(code: &Vec<u8>) -> Result<(), BenchmarkError> {
+			ParachainSystem::initialize_for_set_code_benchmark(code.len() as u32);
+			Ok(())
+		}
+
+		fn verify_set_code() {
+			System::assert_last_event(
+				cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into(),
+			);
+		}
+	}
+
+	pub type Dummy = frame_contrib_traits::authn::util::dummy::Dummy<AuthorityFromPalletId<PassPalletId>>;
+	composite_authenticator!(
+	pub Pass<AuthorityFromPalletId<PassPalletId>> {
+			WebAuthn,
+			Dummy,
+		}
+	);
+
 	pub struct PassBenchmarkHelper;
 
 	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {

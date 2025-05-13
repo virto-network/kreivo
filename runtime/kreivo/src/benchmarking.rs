@@ -1,9 +1,9 @@
-mod impls;
-
 use super::*;
 use frame_benchmarking::{BenchmarkBatch, BenchmarkConfig, BenchmarkList};
 use frame_support::traits::{StorageInfo, StorageInfoTrait};
-use impls::{SessionBench, SystemBench};
+
+use cumulus_pallet_session_benchmarking::Pallet as SessionBench;
+use frame_system_benchmarking::Pallet as SystemBench;
 
 type XcmBalances = pallet_xcm_benchmarks::fungible::Pallet<Runtime>;
 type XcmGeneric = pallet_xcm_benchmarks::generic::Pallet<Runtime>;
@@ -19,6 +19,9 @@ frame_benchmarking::define_benchmarks!(
 	[pallet_balances, Balances]
 	[pallet_assets, Assets]
 	[pallet_vesting, Vesting]
+	[pallet_transaction_payment, TransactionPayment]
+	[pallet_asset_tx_payment, AssetsTxPayment]
+	[pallet_gas_transaction_payment, GasTxPayment]
 
 	// Collator support
 	[pallet_collator_selection, CollatorSelection]
