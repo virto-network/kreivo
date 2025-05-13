@@ -66,6 +66,8 @@ parameter_types! {
 pub type LocationToAccountId = (
 	// The parent (Relay-chain) origin converts to the parent `AccountId`.
 	ParentIsPreset<AccountId>,
+	// Here (Parachain) origin converts to a given `AccountId`.
+	HereConvertsTo<TreasuryAccount>,
 	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	// Plurality origins convert to community AccountId via the `Communities::community_account`.
@@ -84,6 +86,20 @@ pub type LocationConvertedConcreteId = xcm_builder::MatchedConvertedConcreteId<
 	JustTry,
 >;
 
+/// Means for transacting the native currency on this chain.
+pub type FungibleTransactor = FungibleAdapter<
+	// Use this currency:
+	Balances,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	IsConcrete<RelayLocation>,
+	// Convert an XCM Location into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We don't track any teleports of `Balances`.
+	CheckAccount,
+>;
+
 /// Means for transacting assets besides the native currency on this chain.
 pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
@@ -100,20 +116,6 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	LocalMint<parachains_common::impls::NonZeroIssuance<AccountId, Assets>>,
 	// The account to use for tracking teleports.
 	CheckingAccount,
->;
-
-/// Means for transacting the native currency on this chain.
-pub type FungibleTransactor = FungibleAdapter<
-	// Use this currency:
-	Balances,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<RelayLocation>,
-	// Convert an XCM Location into a local account id:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We don't track any teleports of `Balances`.
-	CheckAccount,
 >;
 
 /// This is the type we use to convert an (incoming) XCM origin into a local
