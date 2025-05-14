@@ -61,6 +61,7 @@ impl pallet_session::Config for Runtime {
 	// Essentially just Aura, but let's be pedantic.
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
+	type DisablingStrategy = ();
 	type WeightInfo = weights::pallet_session::WeightInfo<Self>;
 }
 
@@ -103,3 +104,6 @@ pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
 	{ async_backing_params::BLOCK_PROCESSING_VELOCITY },
 	{ async_backing_params::UNINCLUDED_SEGMENT_CAPACITY },
 >;
+
+#[cfg(feature = "runtime-benchmarks")]
+impl cumulus_pallet_session_benchmarking::Config for Runtime {}

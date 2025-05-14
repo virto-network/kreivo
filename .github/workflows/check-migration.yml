@@ -1,9 +1,13 @@
 name: Run Check Migrations
 on:
-  workflow_run:
-    workflows: ["Lint, check, clippy and test"]
-    types:
-      - completed
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -40,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.run_number }}-runtime
-          path: ./target/release/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
+          path: ./target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
 
   check_migrations:
     name: Check Migrations
@@ -49,15 +53,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create `target/release` folder
-        run: |
-          mkdir -p target/release
-
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.ref }}-runtime
-          path: ./target/release
+          name: ${{ github.run_number }}-runtime
 
       - name: Download CLI
         run: |
@@ -83,9 +82,9 @@ jobs:
         if: ${{ hashFiles('snapshot.raw') == '' }}
         run: |
           echo "Creating new snapshot for today (${{ steps.get-date.outputs.today }})"
-          ./try-runtime create-snapshot --uri ${{ matrix.uri }} snapshot.raw
+          ./try-runtime create-snapshot --uri wss://kreivo.kippu.rocks snapshot.raw
 
       - run: |
-          ./try-runtime --runtime target/release/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm \
+          ./try-runtime --runtime kreivo_runtime.compact.compressed.wasm \
             on-runtime-upgrade --disable-spec-version-check --checks=all --blocktime 6000 \
-            live --uri wss://kreivo.io
+            snap -p snapshot.raw

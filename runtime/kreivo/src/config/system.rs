@@ -6,7 +6,7 @@ use frame_support::{derive_impl, dispatch::DispatchClass, traits::EnsureOrigin, 
 use frame_system::{limits::BlockLength, EnsureRootWithSuccess};
 use sp_runtime::traits::{LookupError, StaticLookup};
 
-use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+use cumulus_pallet_parachain_system::{DefaultCoreSelector, RelayNumberMonotonicallyIncreases};
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
 
@@ -66,7 +66,7 @@ impl StaticLookup for CommunityLookup {
 	}
 }
 
-#[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig as frame_system::DefaultConfig)]
+#[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig)]
 impl frame_system::Config for Runtime {
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
@@ -93,7 +93,7 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 	/// The action to take on a Runtime Upgrade
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
-	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type MaxConsumers = ConstU32<16>;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Self>;
 }
 
@@ -117,6 +117,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Self>;
 	type ConsensusHook = ConsensusHook;
+	type SelectCore = DefaultCoreSelector<Self>;
 }
 
 // #[runtime::pallet_index(2)]
@@ -164,21 +165,10 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 
 pub type WebAuthn =
 	pass_webauthn::Authenticator<BlockHashChallenger<{ 30 * MINUTES }>, AuthorityFromPalletId<PassPalletId>>;
-#[cfg(feature = "runtime-benchmarks")]
-pub type Dummy = frame_contrib_traits::authn::util::dummy::Dummy<AuthorityFromPalletId<PassPalletId>>;
 
-#[cfg(not(feature = "runtime-benchmarks"))]
 composite_authenticator!(
 	pub Pass<AuthorityFromPalletId<PassPalletId>> {
 		WebAuthn,
-	}
-);
-
-#[cfg(feature = "runtime-benchmarks")]
-composite_authenticator!(
-	pub Pass<AuthorityFromPalletId<PassPalletId>> {
-		WebAuthn,
-		Dummy,
 	}
 );
 
@@ -204,7 +194,7 @@ where
 	#[cfg(feature = "runtime-benchmarks")]
 	fn try_successful_origin(_: &HashedUserId) -> Result<OuterOrigin, ()> {
 		use pallet_communities::BenchmarkHelper;
-		let community_id = crate::communities::CommunityBenchmarkHelper::community_id();
+		let community_id = communities::CommunityBenchmarkHelper::community_id();
 		Ok(
 			frame_system::RawOrigin::Signed(pallet_communities::Pallet::<Runtime>::community_account(&community_id))
 				.into(),
@@ -217,7 +207,10 @@ impl pallet_pass::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type WeightInfo = weights::pallet_pass::WeightInfo<Self>;
-	type Authenticator = PassAuthenticator; // WebAuthn;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Authenticator = PassAuthenticator;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Authenticator = benchmarks::PassAuthenticator;
 	type PalletsOrigin = OriginCaller;
 	type PalletId = PassPalletId;
 	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
@@ -225,7 +218,7 @@ impl pallet_pass::Config for Runtime {
 		// Root never pays
 		EnsureRootWithSuccess<Self::AccountId, NeverPays>,
 		EitherOf<
-			// 	// Communities never pay
+			// Communities never pay
 			CommunitiesDontDeposit,
 			// Signed users must deposit ED for creating a pass account
 			pallet_pass::EnsureSignedPays<
@@ -238,23 +231,48 @@ impl pallet_pass::Config for Runtime {
 	type Scheduler = Scheduler;
 
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = PassBenchmarkHelper;
+	type BenchmarkHelper = benchmarks::PassBenchmarkHelper;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-pub struct PassBenchmarkHelper;
+mod benchmarks {
+	use super::*;
+	use frame_benchmarking::BenchmarkError;
 
-#[cfg(feature = "runtime-benchmarks")]
-impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
-	fn register_origin() -> frame_system::pallet_prelude::OriginFor<Runtime> {
-		RuntimeOrigin::root()
+	impl frame_system_benchmarking::Config for Runtime {
+		fn setup_set_code_requirements(code: &Vec<u8>) -> Result<(), BenchmarkError> {
+			ParachainSystem::initialize_for_set_code_benchmark(code.len() as u32);
+			Ok(())
+		}
+
+		fn verify_set_code() {
+			System::assert_last_event(
+				cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into(),
+			);
+		}
 	}
 
-	fn device_attestation(_: frame_contrib_traits::authn::DeviceId) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
-		PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(true))
-	}
+	pub type Dummy = frame_contrib_traits::authn::util::dummy::Dummy<AuthorityFromPalletId<PassPalletId>>;
+	composite_authenticator!(
+	pub Pass<AuthorityFromPalletId<PassPalletId>> {
+			WebAuthn,
+			Dummy,
+		}
+	);
 
-	fn credential(_: HashedUserId) -> pallet_pass::CredentialOf<Runtime, ()> {
-		PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(true))
+	pub struct PassBenchmarkHelper;
+
+	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
+		fn register_origin() -> frame_system::pallet_prelude::OriginFor<Runtime> {
+			RuntimeOrigin::root()
+		}
+
+		fn device_attestation(_: DeviceId) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
+			PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(true))
+		}
+
+		fn credential(_: HashedUserId) -> pallet_pass::CredentialOf<Runtime, ()> {
+			PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(true))
+		}
 	}
 }

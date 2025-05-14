@@ -59,24 +59,24 @@ impl pallet_payments::PaymentId<Runtime> for virto_common::PaymentId {
 
 impl pallet_payments::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	type PalletsOrigin = OriginCaller;
+	type RuntimeCall = RuntimeCall;
 	type Assets = Assets;
 	type AssetsHold = AssetsHolder;
-	type OnPaymentStatusChanged = ();
-	type PaymentId = virto_common::PaymentId;
 	type FeeHandler = KreivoFeeHandler;
-	type IncentivePercentage = IncentivePercentage;
-	type MaxRemarkLength = MaxRemarkLength;
 	type SenderOrigin = EitherOf<AsSignedByCommunity<Self>, EnsureSigned<AccountId>>;
 	type BeneficiaryOrigin = EnsureSigned<AccountId>;
 	type DisputeResolver = frame_system::EnsureRootWithSuccess<AccountId, TreasuryAccount>;
-	type PalletId = PaymentPalletId;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type MaxDiscounts = ConstU32<10>;
-	type MaxFees = ConstU32<50>;
-	type RuntimeCall = RuntimeCall;
+	type PaymentId = virto_common::PaymentId;
 	type Scheduler = Scheduler;
 	type Preimages = Preimage;
-	type CancelBufferBlockLength = ConstU32<{ 2 * DAYS }>;
-	type PalletsOrigin = OriginCaller;
+	type RuntimeHoldReason = RuntimeHoldReason;
 	type WeightInfo = weights::pallet_payments::WeightInfo<Self>;
+	type OnPaymentStatusChanged = ();
+	type PalletId = PaymentPalletId;
+	type IncentivePercentage = IncentivePercentage;
+	type MaxRemarkLength = MaxRemarkLength;
+	type MaxFees = ConstU32<50>;
+	type MaxDiscounts = ConstU32<10>;
+	type CancelBufferBlockLength = ConstU32<{ 2 * DAYS }>;
 }

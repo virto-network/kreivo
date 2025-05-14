@@ -34,7 +34,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --profile production --features ${{ contains(github.ref, '-pre') && 'paseo' || 'try-runtime' }} --locked -p kreivo-runtime
+          args: --profile production --features ${{ contains(github.ref, '-pre') && 'paseo,try-runtime' || 'try-runtime' }} --locked -p kreivo-runtime
 
       - name: Upload runtime to artifacts
         uses: actions/upload-artifact@v4

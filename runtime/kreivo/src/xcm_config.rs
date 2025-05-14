@@ -1,12 +1,14 @@
 use super::{
 	AccountId, AllPalletsWithSystem, Assets, Balance, Balances, FungibleAssetLocation, KreivoAssetsInstance,
-	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury,
-	TreasuryAccount, WeightToFee, XcmpQueue,
+	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeHoldReason, RuntimeOrigin,
+	Treasury, TreasuryAccount, WeightToFee, XcmpQueue,
 };
 use virto_common::AsFungibleAssetLocation;
 
 use crate::constants::locations::ASSET_HUB_ID;
 use core::marker::PhantomData;
+use frame_support::traits::fungible::HoldConsideration;
+use frame_support::traits::LinearStoragePrice;
 use frame_support::{
 	parameter_types,
 	traits::{
@@ -64,6 +66,8 @@ parameter_types! {
 pub type LocationToAccountId = (
 	// The parent (Relay-chain) origin converts to the parent `AccountId`.
 	ParentIsPreset<AccountId>,
+	// Here (Parachain) origin converts to a given `AccountId`.
+	HereConvertsTo<TreasuryAccount>,
 	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	// Plurality origins convert to community AccountId via the `Communities::community_account`.
@@ -82,6 +86,20 @@ pub type LocationConvertedConcreteId = xcm_builder::MatchedConvertedConcreteId<
 	JustTry,
 >;
 
+/// Means for transacting the native currency on this chain.
+pub type FungibleTransactor = FungibleAdapter<
+	// Use this currency:
+	Balances,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	IsConcrete<RelayLocation>,
+	// Convert an XCM Location into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We don't track any teleports of `Balances`.
+	CheckAccount,
+>;
+
 /// Means for transacting assets besides the native currency on this chain.
 pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
@@ -98,20 +116,6 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	LocalMint<parachains_common::impls::NonZeroIssuance<AccountId, Assets>>,
 	// The account to use for tracking teleports.
 	CheckingAccount,
->;
-
-/// Means for transacting the native currency on this chain.
-pub type FungibleTransactor = FungibleAdapter<
-	// Use this currency:
-	Balances,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<RelayLocation>,
-	// Convert an XCM Location into a local account id:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We don't track any teleports of `Balances`.
-	CheckAccount,
 >;
 
 /// This is the type we use to convert an (incoming) XCM origin into a local
@@ -237,30 +241,31 @@ pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
+	type XcmEventEmitter = PolkadotXcm;
 	// How to withdraw and deposit an asset.
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = Reserves;
 	// Teleporting is disabled.
 	type IsTeleporter = ();
+	type Aliasers = Nothing;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
 	type Weigher = WeightInfoBounds<crate::weights::xcm::KreivoXcmWeight<RuntimeCall>, RuntimeCall, MaxInstructions>;
 	type Trader = Traders;
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
+	type AssetLocker = ();
+	type AssetExchanger = ();
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type PalletInstancesInfo = AllPalletsWithSystem;
 	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;
-	type AssetLocker = ();
-	type AssetExchanger = ();
 	type FeeManager = ();
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type CallDispatcher = RuntimeCall;
 	type SafeCallFilter = Everything;
-	type Aliasers = Nothing;
 	type TransactionalProcessor = FrameTransactionalProcessor;
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
@@ -289,36 +294,184 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
+parameter_types! {
+	pub const DepositPerItem: Balance = crate::deposit(1, 0);
+	pub const DepositPerByte: Balance = crate::deposit(0, 1);
+	pub const AuthorizeAliasHoldReason: RuntimeHoldReason = RuntimeHoldReason::PolkadotXcm(pallet_xcm::HoldReason::AuthorizeAlias);
+}
+
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type CurrencyMatcher = ();
+	type AuthorizedAliasConsideration = HoldConsideration<
+		AccountId,
+		Balances,
+		AuthorizeAliasHoldReason,
+		LinearStoragePrice<DepositPerItem, DepositPerByte, Balance>,
+	>;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, CanSendXcmMessages>;
-	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, CanExecuteXcmTransactions>;
 	type XcmRouter = XcmRouter;
+	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, CanExecuteXcmTransactions>;
 	type XcmExecuteFilter = Nothing;
 	// ^ Disable dispatchable execute on the XCM pallet.
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = WeightInfoBounds<crate::weights::xcm::KreivoXcmWeight<RuntimeCall>, RuntimeCall, MaxInstructions>;
+
 	type UniversalLocation = UniversalLocation;
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
 	// ^ Override for AdvertisedXcmVersion default
 	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
-	type Currency = Balances;
-	type CurrencyMatcher = ();
+	type AdminOrigin = EnsureRoot<AccountId>;
 	type TrustedLockers = ();
 	type SovereignAccountOf = LocationToAccountId;
 	type MaxLockers = ConstU32<8>;
-	type WeightInfo = pallet_xcm::TestWeightInfo;
-	type AdminOrigin = EnsureRoot<AccountId>;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
+	type WeightInfo = pallet_xcm::TestWeightInfo;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarks {
+	use super::*;
+
+	use crate::{
+		config::{ExistentialDeposit, PriceForParentDelivery},
+		vec, Vec, UNITS,
+	};
+	use frame_benchmarking::BenchmarkError;
+	use pallet_xcm_benchmarks::asset_instance_from;
+	use xcm::prelude::Assets as XcmAssets;
+
+	parameter_types! {
+		pub ExistentialDepositAsset: Option<Asset> = Some((
+			RelayLocation::get(),
+			ExistentialDeposit::get()
+		).into());
+	}
+
+	impl pallet_xcm_benchmarks::Config for Runtime {
+		type XcmConfig = XcmConfig;
+		type AccountIdConverter = LocationToAccountId;
+		type DeliveryHelper = cumulus_primitives_utility::ToParentDeliveryHelper<
+			XcmConfig,
+			ExistentialDepositAsset,
+			PriceForParentDelivery,
+		>;
+
+		fn valid_destination() -> Result<Location, BenchmarkError> {
+			Ok(RelayLocation::get())
+		}
+
+		fn worst_case_holding(depositable_count: u32) -> XcmAssets {
+			// A mix of fungible, non-fungible, and concrete assets.
+			let holding_non_fungibles = MaxAssetsIntoHolding::get() / 2 - depositable_count;
+			let holding_fungibles = holding_non_fungibles.saturating_sub(1);
+			let fungibles_amount: u128 = 100;
+
+			(0..holding_fungibles)
+				.map(|i| {
+					Asset {
+						id: AssetId(GeneralIndex(i as u128).into()),
+						fun: Fungible(fungibles_amount * (i + 1) as u128), // non-zero amount
+					}
+				})
+				.chain(core::iter::once(Asset {
+					id: AssetId(Here.into()),
+					fun: Fungible(u128::MAX),
+				}))
+				.chain(core::iter::once(Asset {
+					id: AssetId(RelayLocation::get()),
+					fun: Fungible(1_000_000 * UNITS),
+				}))
+				.chain((0..holding_non_fungibles).map(|i| Asset {
+					id: AssetId(GeneralIndex(i as u128).into()),
+					fun: NonFungible(asset_instance_from(i)),
+				}))
+				.collect::<Vec<_>>()
+				.into()
+		}
+	}
+
+	parameter_types! {
+		pub const TrustedTeleporter: Option<(Location, Asset)> = Some((
+			RelayLocation::get(),
+			Asset { fun: Fungible(UNITS), id: AssetId(RelayLocation::get()) },
+		));
+		pub const CheckedAccount: Option<(AccountId, MintLocation)> = None;
+		pub const TrustedReserve: Option<(Location, Asset)> = None;
+
+	}
+
+	impl pallet_xcm_benchmarks::fungible::Config for Runtime {
+		type TransactAsset = Balances;
+
+		type CheckedAccount = CheckedAccount;
+		type TrustedTeleporter = TrustedTeleporter;
+		type TrustedReserve = TrustedReserve;
+
+		fn get_asset() -> Asset {
+			(RelayLocation::get(), UNITS).into()
+		}
+	}
+
+	impl pallet_xcm_benchmarks::generic::Config for Runtime {
+		type RuntimeCall = RuntimeCall;
+		type TransactAsset = Balances;
+
+		fn worst_case_response() -> (u64, Response) {
+			(0u64, Response::Version(Default::default()))
+		}
+
+		fn worst_case_asset_exchange() -> Result<(XcmAssets, XcmAssets), BenchmarkError> {
+			Err(BenchmarkError::Skip)
+		}
+
+		fn universal_alias() -> Result<(Location, Junction), BenchmarkError> {
+			Err(BenchmarkError::Skip)
+		}
+
+		fn transact_origin_and_runtime_call() -> Result<(Location, RuntimeCall), BenchmarkError> {
+			Ok((
+				RelayLocation::get(),
+				frame_system::Call::remark_with_event { remark: vec![] }.into(),
+			))
+		}
+
+		fn subscribe_origin() -> Result<Location, BenchmarkError> {
+			Ok(RelayLocation::get())
+		}
+
+		fn claimable_asset() -> Result<(Location, Location, XcmAssets), BenchmarkError> {
+			let origin = RelayLocation::get();
+			let assets: XcmAssets = (AssetId(RelayLocation::get()), 1_000 * UNITS).into();
+			let ticket = Here.into();
+			Ok((origin, ticket, assets))
+		}
+
+		fn fee_asset() -> Result<Asset, BenchmarkError> {
+			Ok((RelayLocation::get(), 1_000_000 * UNITS).into())
+		}
+
+		fn unlockable_asset() -> Result<(Location, Location, Asset), BenchmarkError> {
+			Err(BenchmarkError::Skip)
+		}
+
+		fn export_message_origin_and_destination() -> Result<(Location, NetworkId, InteriorLocation), BenchmarkError> {
+			Err(BenchmarkError::Skip)
+		}
+
+		fn alias_origin() -> Result<(Location, Location), BenchmarkError> {
+			Err(BenchmarkError::Skip)
+		}
+	}
 }

@@ -81,17 +81,15 @@ parameter_types! {
 	pub const RootAccount: AccountId = AccountId::new([0xff; 32]);
 }
 
-#[derive_impl(frame_system::config_preludes::TestDefaultConfig as frame_system::DefaultConfig)]
+#[derive_impl(frame_system::config_preludes::TestDefaultConfig)]
 impl frame_system::Config for Test {
 	type Block = Block;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type AccountData = pallet_balances::AccountData<Balance>;
-	type RuntimeEvent = RuntimeEvent;
 }
 
-#[derive_impl(pallet_balances::config_preludes::TestDefaultConfig as pallet_balances::DefaultConfig
-)]
+#[derive_impl(pallet_balances::config_preludes::TestDefaultConfig)]
 impl pallet_balances::Config for Test {
 	type AccountStore = System;
 	type FreezeIdentifier = RuntimeFreezeReason;
@@ -99,7 +97,7 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = VariantCountOf<RuntimeFreezeReason>;
 }
 
-#[derive_impl(pallet_assets::config_preludes::TestDefaultConfig as pallet_assets::DefaultConfig)]
+#[derive_impl(pallet_assets::config_preludes::TestDefaultConfig)]
 impl pallet_assets::Config for Test {
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<Self::AccountId>>;
@@ -108,8 +106,8 @@ impl pallet_assets::Config for Test {
 }
 
 impl pallet_assets_freezer::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type RuntimeEvent = RuntimeEvent;
 }
 
 impl pallet_scheduler::Config for Test {
@@ -123,6 +121,7 @@ impl pallet_scheduler::Config for Test {
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Self>;
 	type Preimages = ();
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -131,9 +130,9 @@ parameter_types! {
 }
 
 impl pallet_referenda::Config for Test {
-	type WeightInfo = ();
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
 	type Scheduler = Scheduler;
 	type Currency = Balances;
 	type SubmitOrigin = EnsureSigned<AccountId>;
@@ -148,6 +147,7 @@ impl pallet_referenda::Config for Test {
 	type AlarmInterval = AlarmInterval;
 	type Tracks = Tracks;
 	type Preimages = ();
+	type BlockNumberProvider = System;
 }
 
 impl pallet_referenda_tracks::Config for Test {
@@ -198,6 +198,7 @@ impl pallet_nfts::Config for Test {
 	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
+	type BlockNumberProvider = System;
 }
 
 impl pallet_communities::Config for Test {

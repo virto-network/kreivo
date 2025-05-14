@@ -42,6 +42,7 @@ impl pallet_balances::Config for Runtime {
 	type MaxLocks = ConstU32<50>;
 	type MaxReserves = ConstU32<50>;
 	type MaxFreezes = ConstU32<256>;
+	type DoneSlashHandler = ();
 }
 
 // #[runtime::pallet_index(11)]
@@ -58,6 +59,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = ConstU8<5>;
+	type WeightInfo = pallet_transaction_payment::weights::SubstrateWeight<Self>;
 }
 
 // #[runtime::pallet_index(12)]
@@ -122,6 +124,9 @@ impl pallet_asset_tx_payment::Config for Runtime {
 		BalanceToAssetBalance<Balances, Runtime, ConvertInto, KreivoAssetsInstance>,
 		AssetsToBlockAuthor<Runtime, KreivoAssetsInstance>,
 	>;
+	type WeightInfo = pallet_asset_tx_payment::weights::SubstrateWeight<Self>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = benchmarks::AssetsTxPaymentBenchmarkHelper;
 }
 
 // #[runtime::pallet_index(15)]
@@ -170,10 +175,70 @@ pub type MembershipsGasTank =
 
 impl pallet_gas_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type GasBurner = MembershipsGasTank;
+	type WeightInfo = ();
+	type GasTank = MembershipsGasTank;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = benchmarks::GasTransactionPaymentBenchmarkHelper;
 }
 
 impl pallet_assets_holder::Config<KreivoAssetsInstance> for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeEvent = RuntimeEvent;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarks {
+	use super::*;
+	use crate::config::communities::{CommunityBenchmarkHelper, MembershipsCollectionId};
+	use frame_contrib_traits::gas_tank::MakeTank;
+	use frame_support::dispatch::DispatchResult;
+	use frame_support::traits::{
+		fungible::Mutate as FnMutate,
+		fungibles::{Create, Inspect, Mutate},
+		nonfungibles_v2::Mutate as NonTunsMutate,
+	};
+	use pallet_communities::BenchmarkHelper;
+	use sp_runtime::DispatchError;
+
+	pub struct AssetsTxPaymentBenchmarkHelper;
+
+	impl pallet_asset_tx_payment::BenchmarkHelperTrait<AccountId, FungibleAssetLocation, FungibleAssetLocation>
+		for AssetsTxPaymentBenchmarkHelper
+	{
+		fn create_asset_id_parameter(id: u32) -> (FungibleAssetLocation, FungibleAssetLocation) {
+			let id = id.into();
+			if !Assets::asset_exists(id) {
+				<Assets as Create<_>>::create(id, TreasuryAccount::get(), true, EXISTENTIAL_DEPOSIT)
+					.expect("create an asset class is expected to succeed; qed");
+			}
+			(id, id)
+		}
+
+		fn setup_balances_and_pool(asset_id: FungibleAssetLocation, account: AccountId) {
+			Balances::mint_into(&account, UNITS).expect("minting is expected to succeed; qed");
+			Assets::set_balance(asset_id, &account, UNITS);
+		}
+	}
+
+	pub struct GasTransactionPaymentBenchmarkHelper;
+
+	impl pallet_gas_transaction_payment::BenchmarkHelper<Runtime> for GasTransactionPaymentBenchmarkHelper {
+		type Ext = ChargeAssetTxPayment<Runtime>;
+
+		fn ext() -> ChargeGasTxPayment<Runtime, Self::Ext> {
+			ChargeGasTxPayment::new(ChargeAssetTxPayment::<Runtime>::from(0, None))
+		}
+
+		fn setup_account(who: &AccountId, gas: Weight) -> DispatchResult {
+			CommunityBenchmarkHelper::initialize_memberships_collection().map_err(|_| DispatchError::Exhausted)?;
+			<CommunityMemberships as NonTunsMutate<_, _>>::mint_into(
+				&MembershipsCollectionId::get(),
+				&0,
+				who,
+				&Default::default(),
+				true,
+			)?;
+			MembershipsGasTank::make_tank(&(MembershipsCollectionId::get(), 0), Some(gas), None)
+		}
+	}
 }

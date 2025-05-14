@@ -8,6 +8,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 extern crate alloc;
+extern crate core;
 
 #[cfg(test)]
 mod tests;
@@ -26,12 +27,12 @@ mod xcm_config;
 use apis::*;
 use config::*;
 
-use alloc::{boxed::Box, string::String, vec, vec::Vec};
+use alloc::{borrow::Cow::Borrowed, boxed::Box, string::String, vec, vec::Vec};
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use sp_core::crypto::KeyTypeId;
 
 pub use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	generic, impl_opaque_keys,
 	traits::{Block as BlockT, ConvertInto},
 	MultiAddress, Perbill, Percent,
 };
@@ -112,9 +113,34 @@ pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 
+/// A list of migrations that need to undergo.
+pub type Migrations = (
+	// Unreleased
+	pallet_collator_selection::migration::v2::MigrationToV2<Runtime>,
+	pallet_session::migrations::v1::MigrateV0ToV1<
+		Runtime,
+		pallet_session::migrations::v1::InitOffenceSeverity<Runtime>,
+	>,
+	cumulus_pallet_aura_ext::migration::MigrateV0ToV1<Runtime>,
+	cumulus_pallet_xcmp_queue::migration::v4::MigrationToV4<Runtime>,
+	cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,
+	// Permanent
+	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,
+);
+
+impl cumulus_pallet_xcmp_queue::migration::v5::V5Config for Runtime {
+	type ChannelList = ParachainSystem;
+}
+
 /// Executive: handles dispatch to the various modules.
-pub type Executive =
-	frame_executive::Executive<Runtime, Block, frame_system::ChainContext<Runtime>, Runtime, AllPalletsWithSystem>;
+pub type Executive = frame_executive::Executive<
+	Runtime,
+	Block,
+	frame_system::ChainContext<Runtime>,
+	Runtime,
+	AllPalletsWithSystem,
+	Migrations,
+>;
 
 impl_opaque_keys! {
 	pub struct SessionKeys {
@@ -124,14 +150,14 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("kreivo-parachain"),
-	impl_name: create_runtime_str!("kreivo-parachain"),
+	spec_name: Borrowed("kreivo-parachain"),
+	impl_name: Borrowed("kreivo-parachain"),
 	authoring_version: 1,
-	spec_version: 117,
+	spec_version: 118,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 11,
-	state_version: 1,
+	transaction_version: 12,
+	system_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled
