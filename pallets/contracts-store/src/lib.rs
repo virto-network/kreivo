@@ -2,7 +2,39 @@
 
 //! # Contracts Store Pallet
 //!
-//! This pallet handles the publishing
+//! ## Overview
+//!
+//! This pallet provides a way to publish and instantiate smart contracts.
+//!
+//! ## Interface
+//!
+//! ### Dispatchable Functions
+//!
+//! - [publish][Pallet::publish] publishes new applications, given an authorized
+//!   origin.
+//! - [set_parameters][Pallet::set_parameters] sets the parameters of an
+//!   existing application.
+//! - [publish_upgrade][Pallet::publish_upgrade] publishes the code version of
+//!   an existing application.
+//! - [request_license][Pallet::request_license] requests a license for
+//!   instantiating an application.
+//! - [instantiate][Pallet::instantiate] instantiates an application.
+//! - [upgrade][Pallet::upgrade] upgrades an application.
+//! - [transfer_license][Pallet::transfer_license] transfers a license to
+//!   another account.
+//! - [transfer_ownership][Pallet::transfer_ownership] transfers the ownership
+//!   of an application.
+//! - [set_price][Pallet::set_price] sets the price for an application.
+//! - [set_max_instances][Pallet::set_max_instances] sets the maximum number of
+//!   instances for an application.
+//! - [set_determinism][Pallet::set_determinism] sets the determinism for an
+//!   application.
+//!
+//! ## Contract Fixtures
+//!
+//! This crate uses a copy of
+//! [pallet-contract-fixtures](https://github.com/paritytech/polkadot-sdk/tree/master/substrate/frame/contract-fixtures)
+//! to provide a set of contracts that can be used for testing.
 
 extern crate alloc;
 extern crate core;
