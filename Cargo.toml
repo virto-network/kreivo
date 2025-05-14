@@ -166,4 +166,3 @@ ink = { version = "5.1.1", default-features = false }
 ink_env = { version = "5.1.1", default-features = false }
 
 [workspace.lints.clippy]
-all = { level = "allow", priority = 0 }
