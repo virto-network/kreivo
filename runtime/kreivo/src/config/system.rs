@@ -16,7 +16,7 @@ use pallet_communities::origin::AsSignedByCommunity;
 use pallet_pass::FirstItemIsFree;
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
-use sp_core::ConstU128;
+use sp_core::{blake2_256, ConstU128};
 use sp_runtime::{
 	traits::{AccountIdConversion, LookupError, StaticLookup},
 	DispatchError,
@@ -162,13 +162,13 @@ pub struct BlockHashChallenger<const PAST_BLOCKS: BlockNumber>;
 impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLOCKS> {
 	type Context = BlockNumber;
 
-	fn generate(cx: &Self::Context) -> Challenge {
-		System::block_hash(cx).0
+	fn generate(cx: &Self::Context, xtc: &impl ExtrinsicContext) -> Challenge {
+		(System::block_hash(cx).0, xtc.as_ref()).using_encoded(blake2_256)
 	}
 
-	fn check_challenge(cx: &Self::Context, challenge: &[u8]) -> Option<()> {
+	fn check_challenge(cx: &Self::Context, xtc: &impl ExtrinsicContext, challenge: &[u8]) -> Option<()> {
 		(*cx >= System::block_number().saturating_sub(PAST_BLOCKS)).then_some(())?;
-		Self::generate(cx).eq(challenge).then_some(())
+		Self::generate(cx, xtc).eq(challenge).then_some(())
 	}
 }
 
@@ -310,15 +310,11 @@ mod benchmarks {
 	pub struct PassBenchmarkHelper;
 
 	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
-		fn register_origin() -> frame_system::pallet_prelude::OriginFor<Runtime> {
-			RuntimeOrigin::root()
-		}
-
-		fn device_attestation(_: DeviceId) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
+		fn device_attestation(_: DeviceId, _: &impl ExtrinsicContext) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
 			PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(true))
 		}
 
-		fn credential(_: HashedUserId) -> pallet_pass::CredentialOf<Runtime, ()> {
+		fn credential(_: HashedUserId, _: &impl ExtrinsicContext) -> pallet_pass::CredentialOf<Runtime, ()> {
 			PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(true))
 		}
 	}
