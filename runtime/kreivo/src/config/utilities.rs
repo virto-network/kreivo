@@ -1,8 +1,8 @@
 use super::*;
 
-use frame_support::traits::{fungible::HoldConsideration, LinearStoragePrice};
+use frame_support::traits::{fungible::HoldConsideration, LinearStoragePrice, MapSuccess};
 use pallet_communities::origin::AsSignedByCommunity;
-use sp_runtime::traits::BlakeTwo256;
+use sp_runtime::traits::{BlakeTwo256, ReplaceWithDefault};
 
 // #[runtime::pallet_index(42)]
 // pub type Multisig
@@ -85,7 +85,8 @@ impl pallet_scheduler::Config for Runtime {
 	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
 	type MaximumWeight = MaximumSchedulerWeight;
-	type ScheduleOrigin = EitherOf<EnsureRoot<AccountId>, AsSignedByCommunity<Runtime>>;
+	type ScheduleOrigin =
+		EitherOf<EnsureRoot<AccountId>, MapSuccess<AsSignedByCommunity<Runtime>, ReplaceWithDefault<()>>>;
 	type OriginPrivilegeCmp = EqualOrGreatestRootCmp;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = weights::pallet_scheduler::WeightInfo<Self>;
