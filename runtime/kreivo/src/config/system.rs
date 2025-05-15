@@ -310,12 +310,19 @@ mod benchmarks {
 	pub struct PassBenchmarkHelper;
 
 	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
-		fn device_attestation(_: DeviceId, _: &impl ExtrinsicContext) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
-			PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(true))
+		fn device_attestation(
+			device_id: DeviceId,
+			_: &impl ExtrinsicContext,
+		) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
+			PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(
+				true, device_id,
+			))
 		}
 
-		fn credential(_: HashedUserId, _: &impl ExtrinsicContext) -> pallet_pass::CredentialOf<Runtime, ()> {
-			PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(true))
+		fn credential(user_id: HashedUserId, _: &impl ExtrinsicContext) -> pallet_pass::CredentialOf<Runtime, ()> {
+			PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(
+				true, user_id,
+			))
 		}
 	}
 }
