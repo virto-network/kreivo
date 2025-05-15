@@ -51,20 +51,6 @@ impl<T: frame_system::Config> pallet_pass::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
 
-	fn claim() -> Weight {
-		Weight::from_parts(53_969_000, 0)
-			.saturating_add(Weight::from_parts(0, 3593))
-			.saturating_add(T::DbWeight::get().reads(1))
-			.saturating_add(T::DbWeight::get().writes(2))
-	}
-
-	fn unreserve_uninitialized_account() -> Weight {
-		Weight::from_parts(53_969_000, 0)
-			.saturating_add(Weight::from_parts(0, 3593))
-			.saturating_add(T::DbWeight::get().reads(1))
-			.saturating_add(T::DbWeight::get().writes(2))
-	}
-
 	fn authenticate() -> Weight {
 		Weight::from_parts(53_969_000, 0)
 			.saturating_add(Weight::from_parts(0, 3593))
@@ -79,7 +65,14 @@ impl<T: frame_system::Config> pallet_pass::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
 
-	fn dispatch() -> Weight {
+	fn remove_device() -> Weight {
+		Weight::from_parts(53_969_000, 0)
+			.saturating_add(Weight::from_parts(0, 3593))
+			.saturating_add(T::DbWeight::get().reads(1))
+			.saturating_add(T::DbWeight::get().writes(2))
+	}
+
+	fn add_session_key() -> Weight {
 		Weight::from_parts(53_969_000, 0)
 			.saturating_add(Weight::from_parts(0, 3593))
 			.saturating_add(T::DbWeight::get().reads(1))

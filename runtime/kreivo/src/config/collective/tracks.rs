@@ -1,8 +1,8 @@
 use super::*;
 
-use pallet_referenda::{impl_tracksinfo_get, Track};
+use alloc::borrow::Cow;
+use pallet_referenda::Track;
 use sp_runtime::{str_array as s, FixedI64};
-use sp_std::borrow::Cow;
 
 pub type TrackId = u16;
 
@@ -102,7 +102,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				},
 			},
 		];
-		DATA.iter().map(Cow::Borrowed)
+		DATA.iter().map(Borrowed)
 	}
 
 	fn track_for(id: &Self::RuntimeOrigin) -> Result<Self::Id, ()> {
@@ -113,13 +113,12 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 			}
 		} else if let Ok(custom_origin) = pallet_custom_origins::Origin::try_from(id.clone()) {
 			match custom_origin {
-				pallet_custom_origins::Origin::ReferendumCanceller => Ok(1),
-				pallet_custom_origins::Origin::ReferendumKiller => Ok(2),
-				pallet_custom_origins::Origin::CreateMemberships => Ok(3),
+				Origin::ReferendumCanceller => Ok(1),
+				Origin::ReferendumKiller => Ok(2),
+				Origin::CreateMemberships => Ok(3),
 			}
 		} else {
 			Err(())
 		}
 	}
 }
-impl_tracksinfo_get!(TracksInfo, Balance, BlockNumber);

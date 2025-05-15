@@ -5,16 +5,16 @@ macro_rules! assert_call_size {
 		println!(
 			"size_of<{}::Call>: {}",
 			stringify!($pallet),
-			&sp_std::mem::size_of::<$pallet::Call<Runtime>>(),
+			&core::mem::size_of::<$pallet::Call<Runtime>>(),
 		);
-		assert!(sp_std::mem::size_of::<$pallet::Call<Runtime>>() as u32 <= 1024);
+		assert!(core::mem::size_of::<$pallet::Call<Runtime>>() as u32 <= 1024);
 	};
 	($pallet: ident, $instance: path) => {
 		println!(
 			"size_of<$pallet::Call>: {}",
-			&sp_std::mem::size_of::<$pallet::Call<Runtime, $instance>>(),
+			&core::mem::size_of::<$pallet::Call<Runtime, $instance>>(),
 		);
-		assert!(sp_std::mem::size_of::<$pallet::Call<Runtime, $instance>>() as u32 <= 1024);
+		assert!(core::mem::size_of::<$pallet::Call<Runtime, $instance>>() as u32 <= 1024);
 	};
 }
 
