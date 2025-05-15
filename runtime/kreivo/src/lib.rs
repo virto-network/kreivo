@@ -67,7 +67,7 @@ pub use weights::{BlockExecutionWeight, ExtrinsicBaseWeight};
 
 use pallet_asset_tx_payment::ChargeAssetTxPayment;
 use pallet_gas_transaction_payment::ChargeTransactionPayment as ChargeGasTxPayment;
-use pallet_pass::ChargeTransactionToPassAccount as ChargeTxToPassAccount;
+use pallet_pass::PassAuthenticate;
 use pallet_skip_feeless_payment::SkipCheckIfFeeless;
 
 // XCM Imports
@@ -93,25 +93,26 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 
 pub type ChargeTransaction = ChargeGasTxPayment<Runtime, ChargeAssetTxPayment<Runtime>>;
 
-/// The SignedExtension to the basic transaction logic.
-pub type SignedExtra = (
+/// The TransactionExtensions to the basic transaction logic.
+pub type TransactionExtensions = (
+	PassAuthenticate<Runtime>,
 	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
 	frame_system::CheckGenesis<Runtime>,
 	frame_system::CheckEra<Runtime>,
-	SkipCheckIfFeeless<Runtime, frame_system::CheckNonce<Runtime>>,
+	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
-	SkipCheckIfFeeless<Runtime, ChargeTxToPassAccount<ChargeTransaction, Runtime, ()>>,
+	SkipCheckIfFeeless<Runtime, ChargeTransaction>,
 );
 
 /// Unchecked extrinsic type as expected by this runtime.
-pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, TransactionExtensions>;
 
-pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
+pub type SignedPayload = generic::SignedPayload<RuntimeCall, TransactionExtensions>;
 
 /// Extrinsic type that has already been checked.
-pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
+pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, TransactionExtensions>;
 
 /// A list of migrations that need to undergo.
 pub type Migrations = (

@@ -2,16 +2,25 @@
 
 use super::*;
 
-use frame_support::{derive_impl, dispatch::DispatchClass, traits::EnsureOrigin, PalletId};
-use frame_system::{limits::BlockLength, EnsureRootWithSuccess};
-use sp_runtime::traits::{LookupError, StaticLookup};
-
 use cumulus_pallet_parachain_system::{DefaultCoreSelector, RelayNumberMonotonicallyIncreases};
+use frame_contrib_traits::authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
+use frame_support::traits::{AsEnsureOriginWithArg, LinearStoragePrice};
+use frame_support::{
+	derive_impl,
+	dispatch::DispatchClass,
+	traits::{fungible::HoldConsideration, Consideration, Footprint},
+	PalletId,
+};
+use frame_system::{limits::BlockLength, EnsureRootWithSuccess, EnsureSigned};
+use pallet_communities::origin::AsSignedByCommunity;
+use pallet_pass::FirstItemIsFree;
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
-
-use frame_contrib_traits::authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
-use pallet_communities::origin::AsSignedByCommunity;
+use sp_core::ConstU128;
+use sp_runtime::{
+	traits::{AccountIdConversion, LookupError, StaticLookup},
+	DispatchError,
+};
 
 // #[runtime::pallet_index(0)]
 // pub type System
@@ -172,64 +181,102 @@ composite_authenticator!(
 	}
 );
 
-/// Communities don't need to pay deposit fees to create a `pass` account
-pub struct CommunitiesDontDeposit;
+#[derive(Debug, Eq, PartialEq, Clone, Encode, Decode, DecodeWithMemTracking, MaxEncodedLen, TypeInfo)]
+pub struct SkipConsideration<C>(Option<C>);
 
-impl<OuterOrigin> EnsureOriginWithArg<OuterOrigin, HashedUserId> for CommunitiesDontDeposit
+const ACCOUNT_IS_ROOT: fn(&AccountId) -> bool = |acct| acct == &TreasuryAccount::get();
+const ACCOUNT_IS_COMMUNITY: fn(&AccountId) -> bool = |acct| {
+	PalletId::try_from_sub_account::<CommunityId>(acct)
+		.is_some_and(|(id, _)| id == communities::CommunityPalletId::get())
+};
+
+impl<C> Consideration<AccountId, Footprint> for SkipConsideration<C>
 where
-	OuterOrigin: frame_support::traits::OriginTrait
-		+ From<frame_system::RawOrigin<AccountId>>
-		+ From<pallet_communities::Origin<Runtime>>
-		+ Clone
-		+ Into<Result<frame_system::RawOrigin<AccountId>, OuterOrigin>>
-		+ Into<Result<pallet_communities::Origin<Runtime>, OuterOrigin>>,
+	C: Consideration<AccountId, Footprint>,
 {
-	type Success = Option<pallet_pass::DepositInformation<Runtime>>;
+	fn new(who: &AccountId, new: Footprint) -> Result<Self, DispatchError> {
+		if ACCOUNT_IS_ROOT(who) || ACCOUNT_IS_COMMUNITY(who) {
+			Ok(Self(None))
+		} else {
+			C::new(who, new).map(Some).map(Self)
+		}
+	}
 
-	fn try_origin(o: OuterOrigin, _: &HashedUserId) -> Result<Self::Success, OuterOrigin> {
-		AsSignedByCommunity::<Runtime>::try_origin(o)?;
-		Ok(None)
+	fn update(self, who: &AccountId, new: Footprint) -> Result<Self, DispatchError> {
+		if let Some(c) = self.0 {
+			c.update(who, new).map(Some).map(Self)
+		} else {
+			Ok(self)
+		}
+	}
+
+	fn drop(self, who: &AccountId) -> Result<(), DispatchError> {
+		if let Some(c) = self.0 {
+			c.drop(who)
+		} else {
+			Ok(())
+		}
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	fn try_successful_origin(_: &HashedUserId) -> Result<OuterOrigin, ()> {
-		use pallet_communities::BenchmarkHelper;
-		let community_id = communities::CommunityBenchmarkHelper::community_id();
-		Ok(
-			frame_system::RawOrigin::Signed(pallet_communities::Pallet::<Runtime>::community_account(&community_id))
-				.into(),
-		)
+	fn ensure_successful(who: &AccountId, new: Footprint) {
+		C::ensure_successful(who, new);
 	}
+}
+parameter_types! {
+	pub AccountRegistrationReason: RuntimeHoldReason = RuntimeHoldReason::Pass(pallet_pass::HoldReason::AccountRegistration);
+	pub AccountDevicesReason: RuntimeHoldReason = RuntimeHoldReason::Pass(pallet_pass::HoldReason::AccountDevices);
+	pub SessionKeysReason: RuntimeHoldReason = RuntimeHoldReason::Pass(pallet_pass::HoldReason::SessionKeys);
 }
 
 impl pallet_pass::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
 	type WeightInfo = weights::pallet_pass::WeightInfo<Self>;
+	type RegisterOrigin = EitherOf<
+		// Root can create pass accounts.
+		EnsureRootWithSuccess<Self::AccountId, TreasuryAccount>,
+		EitherOf<
+			// Communities can create pass accounts.
+			AsEnsureOriginWithArg<AsSignedByCommunity<Runtime>>,
+			// Anyone can create pass accounts.
+			AsEnsureOriginWithArg<EnsureSigned<Self::AccountId>>,
+		>,
+	>;
+	type AddressGenerator = ();
+	type Balances = Balances;
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Authenticator = PassAuthenticator;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Authenticator = benchmarks::PassAuthenticator;
-	type PalletsOrigin = OriginCaller;
-	type PalletId = PassPalletId;
-	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
-	type RegisterOrigin = EitherOf<
-		// Root never pays
-		EnsureRootWithSuccess<Self::AccountId, NeverPays>,
-		EitherOf<
-			// Communities never pay
-			CommunitiesDontDeposit,
-			// Signed users must deposit ED for creating a pass account
-			pallet_pass::EnsureSignedPays<
-				Runtime,
-				<Runtime as pallet_balances::Config>::ExistentialDeposit,
-				TreasuryAccount,
-			>,
+	type Scheduler = Scheduler;
+	type RegistrarConsideration = SkipConsideration<
+		HoldConsideration<
+			AccountId,
+			Balances,
+			AccountRegistrationReason,
+			LinearStoragePrice<ConstU128<EXISTENTIAL_DEPOSIT>, ConstU128<MILLICENTS>, Balance>,
 		>,
 	>;
-	type Scheduler = Scheduler;
-
+	type DeviceConsideration = FirstItemIsFree<
+		HoldConsideration<
+			AccountId,
+			Balances,
+			AccountDevicesReason,
+			LinearStoragePrice<ConstU128<MILLICENTS>, ConstU128<{ MILLICENTS / 10 }>, Balance>,
+		>,
+	>;
+	type SessionKeyConsideration = FirstItemIsFree<
+		HoldConsideration<
+			AccountId,
+			Balances,
+			SessionKeysReason,
+			LinearStoragePrice<ConstU128<MILLICENTS>, ConstU128<{ MILLICENTS / 10 }>, Balance>,
+		>,
+	>;
+	type PalletId = PassPalletId;
+	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmarks::PassBenchmarkHelper;
 }

@@ -802,9 +802,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitflags"
-version = "2.9.0"
+version = "2.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
+checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
 
 [[package]]
 name = "bitvec"
@@ -2369,7 +2369,7 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 [[package]]
 name = "fc-pallet-communities"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2386,7 +2386,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-gas-transaction-payment"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "frame-contrib-traits",
  "parity-scale-codec",
@@ -2397,7 +2397,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-listings"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "fc-traits-listings",
  "frame-benchmarking",
@@ -2415,7 +2415,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-orders"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2431,7 +2431,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-pass"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -2447,7 +2447,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "fc-traits-payments",
  "frame-benchmarking",
@@ -2464,7 +2464,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-referenda-tracks"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "fc-traits-tracks",
  "frame-benchmarking",
@@ -2482,7 +2482,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -2494,7 +2494,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn-proc"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "proc-macro-crate 3.3.0",
  "quote",
@@ -2504,7 +2504,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-gas-tank"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "fc-traits-nonfungibles-helpers",
  "frame-support",
@@ -2516,7 +2516,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-listings"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2527,7 +2527,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-memberships"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2537,12 +2537,12 @@ dependencies = [
 [[package]]
 name = "fc-traits-nonfungibles-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 
 [[package]]
 name = "fc-traits-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -2553,7 +2553,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-tracks"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "frame-support",
  "pallet-referenda",
@@ -2706,7 +2706,7 @@ dependencies = [
 [[package]]
 name = "frame-contrib-traits"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "fc-traits-authn",
  "fc-traits-gas-tank",
@@ -4750,7 +4750,7 @@ dependencies = [
  "thiserror 1.0.69",
  "tracing",
  "yamux 0.12.1",
- "yamux 0.13.4",
+ "yamux 0.13.5",
 ]
 
 [[package]]
@@ -4759,7 +4759,7 @@ version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0ff37bd590ca25063e35af745c343cb7a0271906fb7b37e4813e8f79f00268d"
 dependencies = [
- "bitflags 2.9.0",
+ "bitflags 2.9.1",
  "libc",
  "redox_syscall 0.5.12",
 ]
@@ -4931,7 +4931,7 @@ dependencies = [
  "url 2.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "x25519-dalek",
  "x509-parser 0.17.0",
- "yamux 0.13.4",
+ "yamux 0.13.5",
  "yasna",
  "zeroize",
 ]
@@ -5135,7 +5135,7 @@ dependencies = [
 [[package]]
 name = "mock-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#2e4ecbee97236e24175632381e9260ce66064d55"
+source = "git+https://github.com/virto-network/frame-contrib#a5249d5abcb69e9103a233a1773be6b670a881ee"
 dependencies = [
  "fc-pallet-listings",
  "frame-support",
@@ -6520,7 +6520,7 @@ checksum = "7924d1d0ad836f665c9065e26d016c673ece3993f30d340068b16f282afc1156"
 [[package]]
 name = "pass-webauthn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/webauthn#0032805222dc77c23bfca1f2344d13b7b0f00ab8"
+source = "git+https://github.com/virto-network/webauthn#de7c78c48b188741e396b2e2a12718416ba1305c"
 dependencies = [
  "fc-traits-authn",
  "log",
@@ -7501,7 +7501,7 @@ version = "0.5.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "928fca9cf2aa042393a8325b9ead81d2f0df4cb12e1e24cef072922ccd99c5af"
 dependencies = [
- "bitflags 2.9.0",
+ "bitflags 2.9.1",
 ]
 
 [[package]]
@@ -7606,9 +7606,9 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "resolv-conf"
-version = "0.7.3"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc7c8f7f733062b66dc1c63f9db168ac0b97a9210e247fa90fdc9ad08f51b302"
+checksum = "95325155c684b1c89f7765e30bc1c42e4a6da51ca513615660cb8a62ef9a88e3"
 
 [[package]]
 name = "rfc6979"
@@ -7807,7 +7807,7 @@ version = "0.38.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fdb5bc1ae2baa591800df16c9ca78619bf65c0488b41b96ccec5d11220d8c154"
 dependencies = [
- "bitflags 2.9.0",
+ "bitflags 2.9.1",
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
@@ -7820,7 +7820,7 @@ version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c71e83d6afe7ff64890ec6b71d6a69bb8a610ab78ce364b3352876bb4c801266"
 dependencies = [
- "bitflags 2.9.0",
+ "bitflags 2.9.1",
  "errno",
  "libc",
  "linux-raw-sys 0.9.4",
@@ -8426,7 +8426,7 @@ version = "3.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "271720403f46ca04f7ba6f55d438f8bd878d6b8ca0a1046e8228c4145bcbb316"
 dependencies = [
- "bitflags 2.9.0",
+ "bitflags 2.9.1",
  "core-foundation 0.10.0",
  "core-foundation-sys",
  "libc",
@@ -8633,7 +8633,7 @@ version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dee851d0e5e7af3721faea1843e8015e820a234f81fda3dea9247e15bac9a86a"
 dependencies = [
- "bitflags 2.9.0",
+ "bitflags 2.9.1",
 ]
 
 [[package]]
@@ -9735,7 +9735,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c879d448e9d986b661742763247d3693ed13609438cf3d006f51f5368a5ba6b"
 dependencies = [
- "bitflags 2.9.0",
+ "bitflags 2.9.1",
  "core-foundation 0.9.4",
  "system-configuration-sys",
 ]
@@ -10332,7 +10332,7 @@ checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 [[package]]
 name = "verifier"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/webauthn#0032805222dc77c23bfca1f2344d13b7b0f00ab8"
+source = "git+https://github.com/virto-network/webauthn#de7c78c48b188741e396b2e2a12718416ba1305c"
 dependencies = [
  "log",
  "p256",
@@ -11258,7 +11258,7 @@ version = "0.39.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6f42320e61fe2cfd34354ecb597f86f413484a798ba44a8ca1165c58d42da6c1"
 dependencies = [
- "bitflags 2.9.0",
+ "bitflags 2.9.1",
 ]
 
 [[package]]
@@ -11399,16 +11399,16 @@ dependencies = [
 
 [[package]]
 name = "yamux"
-version = "0.13.4"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17610762a1207ee816c6fadc29220904753648aba0a9ed61c7b8336e80a559c4"
+checksum = "3da1acad1c2dc53f0dde419115a38bd8221d8c3e47ae9aeceaf453266d29307e"
 dependencies = [
  "futures",
  "log",
  "nohash-hasher",
  "parking_lot 0.12.3",
  "pin-project",
- "rand 0.8.5",
+ "rand 0.9.1",
  "static_assertions",
  "web-time",
 ]
