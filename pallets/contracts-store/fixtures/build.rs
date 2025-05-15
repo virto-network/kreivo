@@ -98,7 +98,7 @@ fn collect_entries(contracts_dir: &Path, out_dir: &Path) -> Vec<Entry> {
 		.expect("src dir exists; qed")
 		.filter_map(|file| {
 			let path = file.expect("file exists; qed").path();
-			if path.extension().map_or(true, |ext| ext != "rs") {
+			if path.extension().is_none_or(|ext| ext != "rs") {
 				return None;
 			}
 
@@ -150,7 +150,7 @@ fn invoke_cargo_fmt<'a>(config_path: &Path, files: impl Iterator<Item = &'a Path
 	if !Command::new("rustup")
 		.args(["nightly-2025-01-30", "run", "rustfmt", "--version"])
 		.output()
-		.map_or(false, |o| o.status.success())
+		.is_ok_and(|o| o.status.success())
 	{
 		return Ok(());
 	}

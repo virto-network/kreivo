@@ -30,7 +30,7 @@ pub struct HereConvertsTo<Account>(PhantomData<Account>);
 impl<Account: Get<AccountId>, AccountId: From<[u8; 32]>> ConvertLocation<AccountId> for HereConvertsTo<Account> {
 	fn convert_location(location: &Location) -> Option<AccountId> {
 		if location.is_here() {
-			Some(Account::get().into())
+			Some(Account::get())
 		} else {
 			None
 		}
@@ -43,8 +43,8 @@ impl<Network: Get<Option<NetworkId>>, AccountId: From<[u8; 32]> + Into<[u8; 32]>
 {
 	fn convert_location(location: &Location) -> Option<AccountId> {
 		let id = match location.unpack() {
-			(1, [AccountId32 { id, network: None }]) => id,
 			(1, [AccountId32 { id, network }]) if *network == Network::get() => id,
+			(1, [AccountId32 { id, .. }]) => id,
 			_ => return None,
 		};
 

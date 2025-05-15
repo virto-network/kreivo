@@ -345,7 +345,7 @@ impl<T: Config> Pallet<T> {
 			)?;
 		}
 
-		Ok(collection_id.clone())
+		Ok(*collection_id)
 	}
 
 	pub(crate) fn try_create_memberships(
