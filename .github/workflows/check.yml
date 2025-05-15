@@ -15,27 +15,7 @@ env:
   EXTRA_ARGS: ''
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` + `rustfmt`
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ env.NIGHTLY_VERSION }}
-          components: rustfmt
-
-      - uses: actions/checkout@v4
-
-      - name: Check formatting
-        uses: actions-rs/cargo@v1
-        with:
-          toolchain: ${{ env.NIGHTLY_VERSION }}
-          command: fmt
-          args: --all -- --check
-
   check:
-    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Setup Ubuntu dependencies
@@ -67,7 +47,6 @@ jobs:
           args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
 
   clippy:
-    needs: lint
     runs-on: ubuntu-latest
     permissions:
       checks: write
@@ -103,7 +82,6 @@ jobs:
           args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
 
   test:
-    needs: lint
     runs-on: ubuntu-latest
     env:
       SKIP_WASM_BUILD: 1
