@@ -988,9 +988,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.22"
+version = "1.2.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32db95edf998450acc7881c932f94cd9b05c87b4b2599e8bab064753da4acfd1"
+checksum = "5f4ac86a9e5bc1e2b3449ab9d7d3a6a405e3d1bb28d7b9be8614f55846ae3766"
 dependencies = [
  "jobserver",
  "libc",
@@ -2369,7 +2369,7 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 [[package]]
 name = "fc-pallet-communities"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2386,7 +2386,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-gas-transaction-payment"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "frame-contrib-traits",
  "parity-scale-codec",
@@ -2397,7 +2397,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-listings"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "fc-traits-listings",
  "frame-benchmarking",
@@ -2415,7 +2415,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-orders"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2431,7 +2431,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-pass"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -2447,7 +2447,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "fc-traits-payments",
  "frame-benchmarking",
@@ -2464,7 +2464,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-referenda-tracks"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "fc-traits-tracks",
  "frame-benchmarking",
@@ -2482,7 +2482,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -2494,7 +2494,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn-proc"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "proc-macro-crate 3.3.0",
  "quote",
@@ -2504,7 +2504,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-gas-tank"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "fc-traits-nonfungibles-helpers",
  "frame-support",
@@ -2516,7 +2516,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-listings"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2527,7 +2527,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-memberships"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2537,12 +2537,12 @@ dependencies = [
 [[package]]
 name = "fc-traits-nonfungibles-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 
 [[package]]
 name = "fc-traits-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -2553,7 +2553,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-tracks"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "frame-support",
  "pallet-referenda",
@@ -2706,7 +2706,7 @@ dependencies = [
 [[package]]
 name = "frame-contrib-traits"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "fc-traits-authn",
  "fc-traits-gas-tank",
@@ -3535,7 +3535,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.61.0",
+ "windows-core 0.61.1",
 ]
 
 [[package]]
@@ -4838,18 +4838,18 @@ dependencies = [
 
 [[package]]
 name = "linkme"
-version = "0.3.32"
+version = "0.3.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22d227772b5999ddc0690e733f734f95ca05387e329c4084fe65678c51198ffe"
+checksum = "a1b1703c00b2a6a70738920544aa51652532cacddfec2e162d2e29eae01e665c"
 dependencies = [
  "linkme-impl",
 ]
 
 [[package]]
 name = "linkme-impl"
-version = "0.3.32"
+version = "0.3.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71a98813fa0073a317ed6a8055dcd4722a49d9b862af828ee68449adb799b6be"
+checksum = "04d55ca5d5a14363da83bf3c33874b8feaa34653e760d5216d7ef9829c88001a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5135,7 +5135,7 @@ dependencies = [
 [[package]]
 name = "mock-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#81eb11a2ec06994a9f7465c8bae0d292d6fe2777"
+source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
 dependencies = [
  "fc-pallet-listings",
  "frame-support",
@@ -6154,9 +6154,9 @@ dependencies = [
 
 [[package]]
 name = "pallet-session"
-version = "40.0.0"
+version = "40.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "957973f62a34695f5b6e17b33ad67a11c8310fe9e16c898769c047add6b34c22"
+checksum = "35361f753986d6fe6654b3e5d283700c4f0bb082221c6aaf299912a29679c880"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6520,7 +6520,7 @@ checksum = "7924d1d0ad836f665c9065e26d016c673ece3993f30d340068b16f282afc1156"
 [[package]]
 name = "pass-webauthn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/webauthn#601d3944d37323232c99ef1f8d65302a7e90410f"
+source = "git+https://github.com/virto-network/webauthn#4104584cfa462b58cc44ef10e5a332443161f1fd"
 dependencies = [
  "fc-traits-authn",
  "log",
@@ -9539,9 +9539,9 @@ dependencies = [
 
 [[package]]
 name = "staging-xcm-executor"
-version = "19.1.0"
+version = "19.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad6d7cc19f02e4c088c2719fe11f22216041909d6a6ab130c71e8d25818d7768"
+checksum = "6700a9c09afc7371898dab94f7c6d06ccda7629aab04e0776f6e7b296fde521d"
 dependencies = [
  "environmental",
  "frame-benchmarking",
@@ -10332,7 +10332,7 @@ checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 [[package]]
 name = "verifier"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/webauthn#601d3944d37323232c99ef1f8d65302a7e90410f"
+source = "git+https://github.com/virto-network/webauthn#4104584cfa462b58cc44ef10e5a332443161f1fd"
 dependencies = [
  "log",
  "p256",
@@ -10953,14 +10953,14 @@ dependencies = [
 
 [[package]]
 name = "windows-core"
-version = "0.61.0"
+version = "0.61.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4763c1de310c86d75a878046489e2e5ba02c649d185f21c67d4cf8a56d098980"
+checksum = "46ec44dc15085cea82cf9c78f85a9114c463a369786585ad2882d1ff0b0acf40"
 dependencies = [
  "windows-implement",
  "windows-interface",
  "windows-link",
- "windows-result 0.3.2",
+ "windows-result 0.3.3",
  "windows-strings",
 ]
 
@@ -11003,18 +11003,18 @@ dependencies = [
 
 [[package]]
 name = "windows-result"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c64fd11a4fd95df68efcfee5f44a294fe71b8bc6a91993e2791938abcc712252"
+checksum = "4b895b5356fc36103d0f64dd1e94dfa7ac5633f1c9dd6e80fe9ec4adef69e09d"
 dependencies = [
  "windows-link",
 ]
 
 [[package]]
 name = "windows-strings"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a2ba9642430ee452d5a7aa78d72907ebe8cfda358e8cb7918a2050581322f97"
+checksum = "2a7ab927b2637c19b3dbe0965e75d8f2d30bdd697a1516191cad2ec4df8fb28a"
 dependencies = [
  "windows-link",
 ]
