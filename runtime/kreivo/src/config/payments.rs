@@ -60,18 +60,19 @@ impl pallet_payments::PaymentId<Runtime> for virto_common::PaymentId {
 impl pallet_payments::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type PalletsOrigin = OriginCaller;
+	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeCall = RuntimeCall;
-	type Assets = Assets;
-	type AssetsHold = AssetsHolder;
-	type FeeHandler = KreivoFeeHandler;
+	type WeightInfo = weights::pallet_payments::WeightInfo<Self>;
 	type SenderOrigin = EitherOf<AsSignedByCommunity<Self>, EnsureSigned<AccountId>>;
 	type BeneficiaryOrigin = EnsureSigned<AccountId>;
 	type DisputeResolver = frame_system::EnsureRootWithSuccess<AccountId, TreasuryAccount>;
 	type PaymentId = virto_common::PaymentId;
+	type Assets = Assets;
+	type AssetsHold = AssetsHolder;
+	type BlockNumberProvider = RelaychainData;
+	type FeeHandler = KreivoFeeHandler;
 	type Scheduler = Scheduler;
 	type Preimages = Preimage;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type WeightInfo = weights::pallet_payments::WeightInfo<Self>;
 	type OnPaymentStatusChanged = ();
 	type PalletId = PaymentPalletId;
 	type IncentivePercentage = IncentivePercentage;

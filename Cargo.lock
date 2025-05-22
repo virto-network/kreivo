@@ -155,12 +155,12 @@ dependencies = [
 
 [[package]]
 name = "anstyle-wincon"
-version = "3.0.7"
+version = "3.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca3534e77181a9cc07539ad51f2141fe32f6c3ffd4df76db8ad92346b003ae4e"
+checksum = "6680de5231bd6ee4c6191b8a1325daa282b415391ec9d3a37bd34f2060dc73fa"
 dependencies = [
  "anstyle",
- "once_cell",
+ "once_cell_polyfill",
  "windows-sys 0.59.0",
 ]
 
@@ -606,7 +606,7 @@ dependencies = [
  "scale-info",
  "sp-api",
  "sp-runtime",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
  "staging-xcm-executor",
  "tracing",
@@ -903,7 +903,7 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-runtime",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
 ]
 
 [[package]]
@@ -1547,7 +1547,7 @@ dependencies = [
  "sp-std",
  "sp-trie",
  "sp-version",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
  "trie-db",
 ]
@@ -1591,7 +1591,7 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
 ]
 
 [[package]]
@@ -1615,7 +1615,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
  "staging-xcm-executor",
 ]
@@ -1644,7 +1644,7 @@ dependencies = [
  "sp-api",
  "sp-runtime",
  "sp-trie",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
 ]
 
 [[package]]
@@ -1697,7 +1697,7 @@ dependencies = [
  "parity-scale-codec",
  "polkadot-runtime-common",
  "sp-runtime",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
  "staging-xcm-executor",
 ]
@@ -2369,7 +2369,7 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 [[package]]
 name = "fc-pallet-communities"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2380,13 +2380,13 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-runtime",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
 ]
 
 [[package]]
 name = "fc-pallet-gas-transaction-payment"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "frame-contrib-traits",
  "parity-scale-codec",
@@ -2397,7 +2397,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-listings"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "fc-traits-listings",
  "frame-benchmarking",
@@ -2415,7 +2415,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-orders"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2431,7 +2431,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-pass"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -2447,7 +2447,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "fc-traits-payments",
  "frame-benchmarking",
@@ -2464,7 +2464,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-referenda-tracks"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "fc-traits-tracks",
  "frame-benchmarking",
@@ -2482,7 +2482,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -2494,7 +2494,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn-proc"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "proc-macro-crate 3.3.0",
  "quote",
@@ -2504,7 +2504,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-gas-tank"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "fc-traits-nonfungibles-helpers",
  "frame-support",
@@ -2516,7 +2516,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-listings"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2527,7 +2527,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-memberships"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2537,12 +2537,12 @@ dependencies = [
 [[package]]
 name = "fc-traits-nonfungibles-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 
 [[package]]
 name = "fc-traits-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -2553,7 +2553,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-tracks"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "frame-support",
  "pallet-referenda",
@@ -2680,9 +2680,9 @@ checksum = "28dd6caf6059519a65843af8fe2a3ae298b14b80179855aeb4adc2c1934ee619"
 
 [[package]]
 name = "frame-benchmarking"
-version = "40.0.0"
+version = "40.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55b0892434d3cc61fab58b2e48b27b12fc162465c5af48fa283ed15bb86dbfb2"
+checksum = "aaf87febd8e05e4fc404a4ff2654319f86baf02863d5ab19a1fa5cee5162e03d"
 dependencies = [
  "frame-support",
  "frame-support-procedural",
@@ -2706,7 +2706,7 @@ dependencies = [
 [[package]]
 name = "frame-contrib-traits"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "fc-traits-authn",
  "fc-traits-gas-tank",
@@ -2718,9 +2718,9 @@ dependencies = [
 
 [[package]]
 name = "frame-election-provider-solution-type"
-version = "16.1.0"
+version = "16.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b9ebdd91dfac51469c51f46d9d946f094be5dd4e7b1041f132ca1b40910f900"
+checksum = "b0b525f462fa8121c3d143ad0d876660584f160ad5baa68c57bfeeb293c6b8fb"
 dependencies = [
  "proc-macro-crate 3.3.0",
  "proc-macro2",
@@ -2730,9 +2730,9 @@ dependencies = [
 
 [[package]]
 name = "frame-election-provider-support"
-version = "40.1.0"
+version = "40.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "067296b33b050f1ea93ef4885589d9cfe1f4d948c77c050592b883756c733ada"
+checksum = "258462616cd9a44c9cf4b7e3cb3aebaa050027838aa98f538f8af1ae75c8d2d1"
 dependencies = [
  "frame-election-provider-solution-type",
  "frame-support",
@@ -2820,9 +2820,9 @@ dependencies = [
 
 [[package]]
 name = "frame-support-procedural"
-version = "33.0.0"
+version = "33.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73bc18090aa96a5e69cd566fb755b5be08964b926864b2101dd900f64a870437"
+checksum = "bcb3c16c8fe1b4edc6df122212b50f776dfce31a94fa63305100841ba4eb7c93"
 dependencies = [
  "Inflector",
  "cfg-expr",
@@ -3510,9 +3510,9 @@ dependencies = [
 
 [[package]]
 name = "hyper-util"
-version = "0.1.11"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "497bbc33a26fdd4af9ed9c70d63f61cf56a938375fbb32df34db9b1cd6d643f2"
+checksum = "cf9f1e950e0d9d1d3c47184416723cf29c0d1f93bd8cccf37e4beb6b44f31710"
 dependencies = [
  "bytes",
  "futures-util",
@@ -3535,7 +3535,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.61.1",
+ "windows-core 0.61.2",
 ]
 
 [[package]]
@@ -3596,9 +3596,9 @@ checksum = "00210d6893afc98edb752b664b8890f0ef174c8adbb8d0be9710fa66fbbf72d3"
 
 [[package]]
 name = "icu_properties"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2549ca8c7241c82f59c80ba2a6f415d931c5b58d24fb8412caa1a1f02c49139a"
+checksum = "016c619c1eeb94efb86809b015c58f479963de65bdb6253345c1a1276f22e32b"
 dependencies = [
  "displaydoc",
  "icu_collections",
@@ -3612,9 +3612,9 @@ dependencies = [
 
 [[package]]
 name = "icu_properties_data"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8197e866e47b68f8f7d95249e172903bec06004b18b2937f1095d40a0c57de04"
+checksum = "298459143998310acd25ffe6810ed544932242d3f07083eee1084d83a71bd632"
 
 [[package]]
 name = "icu_provider"
@@ -4295,7 +4295,7 @@ dependencies = [
  "sp-version",
  "sp-weights",
  "staging-parachain-info",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
  "staging-xcm-executor",
  "substrate-wasm-builder",
@@ -5135,7 +5135,7 @@ dependencies = [
 [[package]]
 name = "mock-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#11b02eaecef3535c2b59639790ff7726e8af20c7"
+source = "git+https://github.com/virto-network/frame-contrib#2d654cb9d6e4721bf035b1f79949ff2c471bbc17"
 dependencies = [
  "fc-pallet-listings",
  "frame-support",
@@ -5547,6 +5547,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
+name = "once_cell_polyfill"
+version = "1.70.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4895175b425cb1f87721b59f0f286c2092bd4af812243672510e1ac53e2e0ad"
+
+[[package]]
 name = "opaque-debug"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5859,7 +5865,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
  "wasm-instrument",
  "wasmi",
@@ -5934,9 +5940,9 @@ dependencies = [
 
 [[package]]
 name = "pallet-election-provider-multi-phase"
-version = "39.1.0"
+version = "39.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49e20002d915da6fa29b2b1e932c7610e963e81de11e32b0d9c24e13de7798f8"
+checksum = "c0425fefdbe37d50a05b6984cd536111acb362a5ed8f267a4c6253431af0717f"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -6136,9 +6142,9 @@ dependencies = [
 
 [[package]]
 name = "pallet-scheduler"
-version = "41.0.0"
+version = "41.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7de58764e1499f570f180c81ba1fff24a1a3d5c9bfdcf76b6a384a985dcdd39"
+checksum = "954531ea38dea2298c19a10df060572ac9722d79bbe326039c8809b86bcf5d13"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -6189,9 +6195,9 @@ dependencies = [
 
 [[package]]
 name = "pallet-staking"
-version = "40.1.0"
+version = "40.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfe698a05666fabe5a5f60da69ddef674262fe84bd0f93f03ddacfba7fe4c361"
+checksum = "bd4ce865c70bb5fd4850d2af985d96fc971ebc9a352bba8d97b053f9ca00b80d"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -6339,9 +6345,9 @@ dependencies = [
 
 [[package]]
 name = "pallet-xcm"
-version = "19.1.0"
+version = "19.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab7e7cc378044212673fa3d477324504642178fa9f98d96e56981fb57bbbe3e1"
+checksum = "2634c61cdfe53073384659adea1ae2c4e0a4c1e35a9f7e7fc0acb68891df4c39"
 dependencies = [
  "bounded-collections",
  "frame-benchmarking",
@@ -6354,7 +6360,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
  "staging-xcm-executor",
  "tracing",
@@ -6374,7 +6380,7 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
  "staging-xcm-executor",
 ]
@@ -6405,7 +6411,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "staging-parachain-info",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-executor",
 ]
 
@@ -6424,9 +6430,9 @@ dependencies = [
 
 [[package]]
 name = "parity-scale-codec"
-version = "3.7.4"
+version = "3.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9fde3d0718baf5bc92f577d652001da0f8d54cd03a7974e118d04fc888dc23d"
+checksum = "799781ae679d79a948e13d4824a40970bfa500058d245760dd857301059810fa"
 dependencies = [
  "arrayvec",
  "bitvec",
@@ -6441,9 +6447,9 @@ dependencies = [
 
 [[package]]
 name = "parity-scale-codec-derive"
-version = "3.7.4"
+version = "3.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "581c837bb6b9541ce7faa9377c20616e4fb7650f6b0f68bc93c827ee504fb7b3"
+checksum = "34b4653168b563151153c9e4c08ebed57fb8262bebfa79711552fa983c623e7a"
 dependencies = [
  "proc-macro-crate 3.3.0",
  "proc-macro2",
@@ -6751,7 +6757,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-staking",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
  "staging-xcm-executor",
  "static_assertions",
@@ -6813,7 +6819,7 @@ dependencies = [
  "sp-session",
  "sp-staking",
  "sp-std",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-executor",
  "static_assertions",
 ]
@@ -7724,7 +7730,7 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "staging-parachain-info",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
  "staging-xcm-executor",
 ]
@@ -7741,7 +7747,7 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-weights",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-builder",
 ]
 
@@ -7886,9 +7892,9 @@ dependencies = [
 
 [[package]]
 name = "rustversion"
-version = "1.0.20"
+version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
+checksum = "8a0d197bd2c9dc6e53b84da9556a69ba4cdfab8619eb41a8bd1cc2027a0f6b1d"
 
 [[package]]
 name = "rw-stream-sink"
@@ -9131,9 +9137,9 @@ dependencies = [
 
 [[package]]
 name = "sp-npos-elections"
-version = "36.1.0"
+version = "36.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "214e59764b21445b9ec5cb9623df68b765682e34c75f4bd27522e629d7e62fd4"
+checksum = "85ad469d2982afb7f1fb407920b1b712e831fb7a14317472a97e268a4029e70d"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -9492,9 +9498,9 @@ dependencies = [
 
 [[package]]
 name = "staging-xcm"
-version = "16.1.0"
+version = "16.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dead7481ba2dec11b0df89745cef3a76f3eef9c9df20155426cd7e9651b4c799"
+checksum = "d0126278d7fc6d7dec55e5a109f838bbf401dd084aecf2597e4e11ea07515a0a"
 dependencies = [
  "array-bytes",
  "bounded-collections",
@@ -9514,9 +9520,9 @@ dependencies = [
 
 [[package]]
 name = "staging-xcm-builder"
-version = "20.1.0"
+version = "20.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fdd44a74a38339c423f690900678a1b5a31d0a44d8e01a0f445a64c96ec3175"
+checksum = "6f031952c1496cf7f86d19ab38e3264be9a54b7d8eecb25ba69f977cc7549d08"
 dependencies = [
  "environmental",
  "frame-support",
@@ -9532,16 +9538,16 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-weights",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-executor",
  "tracing",
 ]
 
 [[package]]
 name = "staging-xcm-executor"
-version = "19.1.1"
+version = "19.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6700a9c09afc7371898dab94f7c6d06ccda7629aab04e0776f6e7b296fde521d"
+checksum = "af9bc315e8c7018fcfe0371ce4b7e726fb699e37b2acc3e5effb87a7d131a3ff"
 dependencies = [
  "environmental",
  "frame-benchmarking",
@@ -9554,7 +9560,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-weights",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "tracing",
 ]
 
@@ -10357,7 +10363,7 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-runtime",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "wasm-bindgen",
 ]
 
@@ -10953,14 +10959,14 @@ dependencies = [
 
 [[package]]
 name = "windows-core"
-version = "0.61.1"
+version = "0.61.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46ec44dc15085cea82cf9c78f85a9114c463a369786585ad2882d1ff0b0acf40"
+checksum = "c0fdd3ddb90610c7638aa2b3a3ab2904fb9e5cdbecc643ddb3647212781c4ae3"
 dependencies = [
  "windows-implement",
  "windows-interface",
  "windows-link",
- "windows-result 0.3.3",
+ "windows-result 0.3.4",
  "windows-strings",
 ]
 
@@ -11003,18 +11009,18 @@ dependencies = [
 
 [[package]]
 name = "windows-result"
-version = "0.3.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b895b5356fc36103d0f64dd1e94dfa7ac5633f1c9dd6e80fe9ec4adef69e09d"
+checksum = "56f42bd332cc6c8eac5af113fc0c1fd6a8fd2aa08a0119358686e5160d0586c6"
 dependencies = [
  "windows-link",
 ]
 
 [[package]]
 name = "windows-strings"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a7ab927b2637c19b3dbe0965e75d8f2d30bdd697a1516191cad2ec4df8fb28a"
+checksum = "56e6c93f3a0c3b36176cb1327a4958a0353d5d166c2a35cb268ace15e91d3b57"
 dependencies = [
  "windows-link",
 ]
@@ -11348,16 +11354,16 @@ dependencies = [
 
 [[package]]
 name = "xcm-runtime-apis"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c167c669dcff79985e7367c70a8adeba6021b156c710133615c1183a31a5895"
+checksum = "b87c89a2721a4423325f21453ff71bb7a874cfdbe31a25d70d571804b68c0e06"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
  "scale-info",
  "sp-api",
  "sp-weights",
- "staging-xcm 16.1.0",
+ "staging-xcm 16.2.0",
  "staging-xcm-executor",
 ]
 

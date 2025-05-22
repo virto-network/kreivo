@@ -20,7 +20,7 @@ pub use {
 	collator_support::{ConsensusHook, SLOT_DURATION},
 	currency::{KreivoAssetsCall, KreivoAssetsInstance, MembershipsGasTank},
 	governance::{pallet_custom_origins, TreasuryAccount},
-	system::RuntimeBlockWeights,
+	system::{RelaychainData, RuntimeBlockWeights},
 };
 
 #[cfg(feature = "runtime-benchmarks")]

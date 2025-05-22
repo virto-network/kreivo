@@ -64,6 +64,9 @@ impl pallet_listings::Config<ListingsInstance> for Runtime {
 	type ItemSKU = listings::ItemId;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmarks::ListingsBenchmarkHelper;
+	type CollectionConfig =
+		pallet_nfts::CollectionConfig<Balance, BlockNumberFor<Runtime>, InventoryIdFor<Runtime, ListingsInstance>>;
+	type ItemConfig = pallet_nfts::ItemConfig;
 }
 
 // #[runtime::pallet_index(62)]
@@ -101,7 +104,7 @@ impl pallet_nfts::Config<ListingsInstance> for Runtime {
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = benchmarks::ListingsCatalogBenchmarkHelper;
 	type WeightInfo = ();
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 }
 
 morph_types! {
@@ -127,6 +130,7 @@ impl pallet_orders::Config<ListingsInstance> for Runtime {
 	type Listings = Listings;
 	type Payments = Payments;
 	type Scheduler = Scheduler;
+	type BlockNumberProvider = RelaychainData;
 	type MaxLifetimeForCheckoutOrder = MaxLifetimeForCheckoutOrder;
 	type MaxCartLen = MaxCartLen;
 	type MaxItemLen = MaxItemLen;

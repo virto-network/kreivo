@@ -114,6 +114,8 @@ parameter_types! {
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
+pub type RelaychainData = cumulus_pallet_parachain_system::RelaychainDataProvider<Runtime>;
+
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
@@ -251,6 +253,7 @@ impl pallet_pass::Config for Runtime {
 	#[cfg(feature = "runtime-benchmarks")]
 	type Authenticator = benchmarks::PassAuthenticator;
 	type Scheduler = Scheduler;
+	type BlockNumberProvider = RelaychainData;
 	type RegistrarConsideration = SkipConsideration<
 		HoldConsideration<
 			AccountId,

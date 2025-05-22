@@ -144,7 +144,7 @@ impl pallet_vesting::Config for Runtime {
 	type MinVestedTransfer = MinVestedTransfer;
 	type WeightInfo = weights::pallet_vesting::WeightInfo<Self>;
 	type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 	const MAX_VESTING_SCHEDULES: u32 = 28;
 }
 
@@ -171,7 +171,7 @@ parameter_types! {
 }
 
 pub type MembershipsGasTank =
-	NonFungibleGasTank<Runtime, CommunityMemberships, pallet_nfts::ItemConfig, MembershipIsNotExpired>;
+	NonFungibleGasTank<Runtime, RelaychainData, CommunityMemberships, pallet_nfts::ItemConfig, MembershipIsNotExpired>;
 
 impl pallet_gas_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;

@@ -202,23 +202,24 @@ impl pallet_nfts::Config for Test {
 }
 
 impl pallet_communities::Config for Test {
-	type PalletId = CommunitiesPalletId;
-	type CommunityId = CommunityId;
-	type MembershipId = MembershipId;
-	type Assets = Assets;
-	type AssetsFreezer = AssetsFreezer;
-	type Balances = Balances;
-	type ItemConfig = pallet_nfts::ItemConfig;
-	type MemberMgmt = NonFungiblesMemberships<Memberships>;
-	type Polls = Referenda;
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type WeightInfo = WeightInfo;
 	type CreateOrigin = EnsureNever<Deposit>;
 	type AdminOrigin = EnsureCommunity<Self>;
 	type MemberMgmtOrigin = EnsureCommunity<Self>;
-	type RuntimeCall = RuntimeCall;
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeFreezeReason = RuntimeFreezeReason;
-	type WeightInfo = WeightInfo;
+	type CommunityId = CommunityId;
+	type MembershipId = MembershipId;
+	type ItemConfig = pallet_nfts::ItemConfig;
+	type MemberMgmt = NonFungiblesMemberships<Memberships>;
+	type Polls = Referenda;
+	type Assets = Assets;
+	type AssetsFreezer = AssetsFreezer;
+	type Balances = Balances;
+	type BlockNumberProvider = System;
+	type PalletId = CommunitiesPalletId;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = CommunityBenchmarkHelper;
 }
@@ -227,19 +228,19 @@ impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	// Types to support community creation
 	type CreateCollection = Memberships;
+	type MakeTank = NonFungibleGasTank<Test, System, Memberships, pallet_nfts::ItemConfig>;
 	type Tracks = Tracks;
 	type RankedCollective = Collective;
+	type WeightInfo = WeightInfo;
 	type RegisterOrigin = EnsureRootWithSuccess<AccountId, NoDepositOnRootRegistration>;
+
 	// Types to support memberships creation
 	type CreateMembershipsOrigin = EnsureRoot<AccountId>;
 	type MembershipId = MembershipId;
-
 	type MembershipsManagerCollectionId = MembershipsManagerCollectionId;
 	type MembershipsManagerOwner = RootAccount;
-	type CreateMemberships = Memberships;
-	type MakeTank = NonFungibleGasTank<Test, Memberships, pallet_nfts::ItemConfig>;
 
-	type WeightInfo = WeightInfo;
+	type CreateMemberships = Memberships;
 }
 
 pub fn new_test_ext() -> TestExternalities {

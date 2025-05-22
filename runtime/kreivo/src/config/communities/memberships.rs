@@ -63,5 +63,5 @@ impl pallet_nfts::Config<CommunityMembershipsInstance> for Runtime {
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
 	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 }

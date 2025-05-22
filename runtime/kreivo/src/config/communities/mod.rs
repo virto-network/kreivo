@@ -62,6 +62,7 @@ impl pallet_communities::Config for Runtime {
 
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = CommunityBenchmarkHelper;
+	type BlockNumberProvider = RelaychainData;
 }
 
 impl pallet_communities_manager::Config for Runtime {

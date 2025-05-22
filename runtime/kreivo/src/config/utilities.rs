@@ -21,7 +21,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = ConstU32<100>;
 	type WeightInfo = weights::pallet_multisig::WeightInfo<Self>;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 }
 
 // #[runtime::pallet_index(43)]
@@ -60,7 +60,7 @@ impl pallet_proxy::Config for Runtime {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 }
 
 // #[runtime::pallet_index(45)]
@@ -91,7 +91,7 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = weights::pallet_scheduler::WeightInfo<Self>;
 	type Preimages = Preimage;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 }
 
 // #[runtime::pallet_index(46)]

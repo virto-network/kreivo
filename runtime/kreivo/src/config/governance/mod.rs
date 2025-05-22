@@ -32,7 +32,7 @@ parameter_types! {
 
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
-	type RejectOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type RejectOrigin = EnsureRoot<Self::AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type SpendPeriod = SpendPeriod;
 	type Burn = ();
@@ -53,5 +53,5 @@ impl pallet_treasury::Config for Runtime {
 	/// empty implementation. type BenchmarkHelper =
 	/// polkadot_runtime_common::impls::benchmarks::TreasuryArguments;
 	type BenchmarkHelper = ();
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 }
