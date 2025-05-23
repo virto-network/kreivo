@@ -105,6 +105,7 @@ mod benchmarks {
 	use pallet_referenda::{BoundedCallOf, Curve, Pallet as Referenda, TrackInfo};
 	use pallet_referenda_tracks::Pallet as Tracks;
 	use parity_scale_codec::Encode;
+	use sp_runtime::traits::BlockNumberProvider;
 	use sp_runtime::Perbill;
 
 	type MembershipsManagementCollection = ItemOf<CommunityMemberships, MembershipsCollectionId, AccountId>;
@@ -200,19 +201,19 @@ mod benchmarks {
 			)?;
 			Referenda::<Runtime, CommunityReferendaInstance>::place_decision_deposit(origin, index)?;
 
-			System::set_block_number(2);
+			RelaychainData::set_block_number(2);
 			Referenda::<Runtime, CommunityReferendaInstance>::nudge_referendum(RuntimeOrigin::root(), 0)?;
 
 			Ok(0)
 		}
 
 		fn finish_poll(index: PollIndexOf<Runtime>) -> Result<(), BenchmarkError> {
-			System::set_block_number(8);
+			RelaychainData::set_block_number(8);
 			Referenda::<Runtime, CommunityReferendaInstance>::nudge_referendum(RuntimeOrigin::root(), index)?;
 
 			frame_support::assert_ok!(Referenda::<Runtime, CommunityReferendaInstance>::ensure_ongoing(index));
 
-			System::set_block_number(9);
+			RelaychainData::set_block_number(9);
 			Referenda::<Runtime, CommunityReferendaInstance>::nudge_referendum(RuntimeOrigin::root(), index)?;
 
 			frame_support::assert_err!(
