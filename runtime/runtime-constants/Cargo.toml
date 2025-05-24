@@ -16,7 +16,6 @@ polkadot-runtime-common.workspace = true
 sp-runtime.workspace = true
 sp-weights.workspace = true
 sp-core.workspace = true
-sp-std.workspace = true
 xcm.workspace = true
 xcm-builder.workspace = true
 
@@ -24,11 +23,13 @@ xcm-builder.workspace = true
 default = ["std"]
 paseo = []
 std = [
-	"frame-support/std",
-	"polkadot-primitives/std",
-	"polkadot-runtime-common/std",
-	"sp-core/std",
-	"sp-runtime/std",
-	"sp-weights/std",
-	"xcm-builder/std",
+  "frame-support/std",
+  "polkadot-primitives/std",
+  "polkadot-runtime-common/std",
+  "sp-core/std",
+  "sp-runtime/std",
+  "sp-weights/std",
+  "xcm-builder/std",
+  "parachains-common/std",
+  "xcm/std",
 ]

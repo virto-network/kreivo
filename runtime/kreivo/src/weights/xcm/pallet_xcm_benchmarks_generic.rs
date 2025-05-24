@@ -43,7 +43,7 @@
 #![allow(unused_imports)]
 
 use frame_support::{traits::Get, weights::Weight};
-use sp_std::marker::PhantomData;
+use core::marker::PhantomData;
 
 /// Weights for `pallet_xcm_benchmarks::generic`.
 pub struct WeightInfo<T>(PhantomData<T>);
@@ -75,6 +75,20 @@ impl<T: frame_system::Config> WeightInfo<T> {
 		//  Estimated: `0`
 		// Minimum execution time: 3_898_000 picoseconds.
 		Weight::from_parts(3_994_000, 0)
+	}
+	pub(crate) fn pay_fees() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 2_899_000 picoseconds.
+		Weight::from_parts(3_090_000, 0)
+	}
+	pub(crate) fn asset_claimer() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 669_000 picoseconds.
+		Weight::from_parts(714_000, 0)
 	}
 	// Storage: PolkadotXcm Queries (r:1 w:0)
 	// Proof Skipped: PolkadotXcm Queries (max_values: None, max_size: None, mode: Measured)
@@ -127,6 +141,13 @@ impl<T: frame_system::Config> WeightInfo<T> {
 		//  Estimated: `0`
 		// Minimum execution time: 3_584_000 picoseconds.
 		Weight::from_parts(3_679_000, 0)
+	}
+	pub(crate) fn execute_with_origin() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 790_000 picoseconds.
+		Weight::from_parts(843_000, 0)
 	}
 	pub fn clear_origin() -> Weight {
 		// Proof Size summary in bytes:
