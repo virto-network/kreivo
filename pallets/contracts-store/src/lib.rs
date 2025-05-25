@@ -43,13 +43,17 @@ use alloc::vec::Vec;
 use frame_contrib_traits::listings::{item::Item, InspectInventory, InspectItem, InventoryLifecycle, MutateItem};
 use frame_support::{pallet_prelude::*, traits::Incrementable};
 use frame_system::pallet_prelude::*;
-use pallet_contracts::{CodeUploadReturnValue, Determinism};
+use pallet_contracts::{Code, CodeUploadReturnValue, CollectEvents, DebugInfo, Determinism, InstantiateReturnValue};
+use parity_scale_codec::HasCompact;
 use sp_runtime::traits::StaticLookup;
 
 #[cfg(test)]
 pub(crate) mod mock;
 #[cfg(test)]
 mod tests;
+
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
 
 mod types;
 pub mod weights;
@@ -61,9 +65,6 @@ pub use weights::*;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use core::fmt::Debug;
-	use pallet_contracts::{Code, CollectEvents, DebugInfo, InstantiateReturnValue};
-	use parity_scale_codec::HasCompact;
 
 	pub const CONTRACT_MERCHANT_ID: [u8; 20] = *b"CONTRACT_MERCHANT_ID";
 
@@ -194,11 +195,14 @@ pub mod pallet {
 	#[pallet::call(weight(<T as Config>::WeightInfo))]
 	impl<T: Config> Pallet<T>
 	where
-		<BalanceOf<T> as HasCompact>::Type: Clone + Eq + PartialEq + Debug + TypeInfo + Encode,
+		<BalanceOf<T> as HasCompact>::Type: Parameter,
 	{
 		/// Publish a new application,
 		#[pallet::call_index(0)]
-		#[pallet::weight(<T as Config>::WeightInfo::publish(code.len() as u32))]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::publish()
+				.saturating_add(<<T as pallet_contracts::Config>::WeightInfo as pallet_contracts::WeightInfo>::upload_code_determinism_enforced(code.len() as u32))
+		)]
 		pub fn publish(
 			origin: OriginFor<T>,
 			code: Vec<u8>,
@@ -208,31 +212,7 @@ pub mod pallet {
 			let publisher = T::UploadOrigin::ensure_origin(origin)?;
 			let id = Self::generate_app_id()?;
 
-			Apps::<T>::try_mutate_exists(id.clone(), |app| -> DispatchResult {
-				let mut app_info = AppInfo {
-					code_hash: Default::default(),
-					publisher: publisher.clone(),
-					max_instances,
-					instances: 0,
-					price: price.clone(),
-					version: 0,
-				};
-
-				Self::upload_code(&mut app_info, &publisher, code)?;
-				*app = Some(app_info);
-
-				let inventory_id = (T::ContractsStoreMerchantId::get(), id.clone());
-				T::Listings::create(inventory_id, &publisher)?;
-
-				Self::deposit_event(Event::AppPublished {
-					id,
-					publisher,
-					max_instances,
-					price,
-				});
-
-				Ok(())
-			})
+			Self::do_publish(id, &publisher, code, max_instances, price, Self::upload_code)
 		}
 
 		/// Sets the price for an existing application.
@@ -274,17 +254,13 @@ pub mod pallet {
 		/// This would call a migration to set the new code on for every app
 		/// instance.
 		#[pallet::call_index(2)]
-		#[pallet::weight(<T as Config>::WeightInfo::publish_upgrade(code.len() as u32))]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::publish_upgrade()
+				.saturating_add(<<T as pallet_contracts::Config>::WeightInfo as pallet_contracts::WeightInfo>::upload_code_determinism_enforced(code.len() as u32))
+		)]
 		pub fn publish_upgrade(origin: OriginFor<T>, app_id: T::AppId, code: Vec<u8>) -> DispatchResult {
 			let who = &T::UploadOrigin::ensure_origin(origin)?;
-			Apps::<T>::try_mutate(app_id, |maybe_app| {
-				let Some(app_info) = maybe_app else {
-					Err(Error::<T>::AppNotFound)?
-				};
-
-				ensure!(&app_info.publisher == who, Error::<T>::NoPermission);
-				Self::upload_code(app_info, who, code)
-			})
+			Self::do_publish_upgrade(who, app_id, code, Self::upload_code)
 		}
 
 		/// Request a license for instantiating an application.
@@ -325,6 +301,14 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(4)]
+		#[pallet::weight(
+			<<T as pallet_contracts::Config>::WeightInfo as pallet_contracts::WeightInfo>::instantiate(
+				data.len() as u32,
+				salt.len() as u32,
+			)
+				// + app info + item info
+				.saturating_add(<T as frame_system::Config>::DbWeight::get().reads(3))
+		)]
 		pub fn instantiate(
 			origin: OriginFor<T>,
 			app_id: T::AppId,
@@ -372,6 +356,11 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(5)]
+		#[pallet::weight(
+			<<T as pallet_contracts::Config>::WeightInfo as pallet_contracts::WeightInfo>::set_code()
+				// + app info + item info + instance hash
+				.saturating_add(<T as frame_system::Config>::DbWeight::get().reads(4))
+		)]
 		pub fn upgrade(origin: OriginFor<T>, app_id: T::AppId, license_id: T::LicenseId) -> DispatchResult {
 			let (who, _) = &<<T as Config>::InstantiateOrigin>::ensure_origin(origin)?;
 
@@ -414,6 +403,63 @@ impl<T: Config> Pallet<T> {
 			let id = next_id.clone();
 			*next_id = id.increment().ok_or(Error::<T>::CannotIncrement)?;
 			Ok(id)
+		})
+	}
+
+	fn do_publish(
+		id: T::AppId,
+		publisher: &AccountIdOf<T>,
+		code: Vec<u8>,
+		max_instances: Option<u64>,
+		price: Option<ItemPriceOf<T>>,
+		upload_code: impl FnOnce(&mut AppInfoFor<T>, &AccountIdOf<T>, Vec<u8>) -> DispatchResult,
+	) -> DispatchResult {
+		Apps::<T>::try_mutate_exists(id.clone(), |app| -> DispatchResult {
+			let mut app_info = AppInfo {
+				code_hash: Default::default(),
+				publisher: publisher.clone(),
+				max_instances,
+				instances: 0,
+				price: price.clone(),
+				version: 0,
+			};
+
+			upload_code(&mut app_info, publisher, code)?;
+			*app = Some(app_info);
+
+			let inventory_id = (T::ContractsStoreMerchantId::get(), id.clone());
+			T::Listings::create(inventory_id, publisher)?;
+
+			Self::deposit_event(Event::AppPublished {
+				id,
+				publisher: publisher.clone(),
+				max_instances,
+				price,
+			});
+
+			Ok(())
+		})
+	}
+
+	fn do_publish_upgrade(
+		who: &AccountIdOf<T>,
+		app_id: T::AppId,
+		code: Vec<u8>,
+		upload_code: impl FnOnce(&mut AppInfoFor<T>, &AccountIdOf<T>, Vec<u8>) -> DispatchResult,
+	) -> DispatchResult {
+		Apps::<T>::try_mutate(app_id.clone(), |maybe_app| {
+			let Some(app_info) = maybe_app else {
+				Err(Error::<T>::AppNotFound)?
+			};
+
+			ensure!(&app_info.publisher == who, Error::<T>::NoPermission);
+			upload_code(app_info, who, code)?;
+
+			Self::deposit_event(Event::<T>::AppUpdated {
+				id: app_id,
+				version: app_info.version,
+			});
+			Ok(())
 		})
 	}
 
