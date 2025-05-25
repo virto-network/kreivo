@@ -208,6 +208,8 @@ mod benchmarks {
 	impl pallet_orders::BenchmarkHelper<Runtime, ListingsInstance> for OrdersBenchmarkHelper {
 		type Balances = Balances;
 		type Assets = Assets;
+		type InventoryDeposit = <Runtime as pallet_nfts::Config<ListingsInstance>>::CollectionDeposit;
+		type ItemDeposit = <Runtime as pallet_nfts::Config<ListingsInstance>>::ItemDeposit;
 
 		fn inventory_id() -> (
 			MerchantIdOf<Runtime, ListingsInstance>,

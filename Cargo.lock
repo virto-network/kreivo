@@ -2369,7 +2369,7 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 [[package]]
 name = "fc-pallet-communities"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2386,7 +2386,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-gas-transaction-payment"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "frame-contrib-traits",
  "parity-scale-codec",
@@ -2397,7 +2397,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-listings"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "fc-traits-listings",
  "frame-benchmarking",
@@ -2415,7 +2415,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-orders"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2431,7 +2431,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-pass"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -2447,7 +2447,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "fc-traits-payments",
  "frame-benchmarking",
@@ -2464,7 +2464,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-referenda-tracks"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "fc-traits-tracks",
  "frame-benchmarking",
@@ -2482,7 +2482,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -2494,7 +2494,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn-proc"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "proc-macro-crate 3.3.0",
  "quote",
@@ -2504,7 +2504,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-gas-tank"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "fc-traits-nonfungibles-helpers",
  "frame-support",
@@ -2516,7 +2516,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-listings"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2527,7 +2527,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-memberships"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2537,12 +2537,12 @@ dependencies = [
 [[package]]
 name = "fc-traits-nonfungibles-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 
 [[package]]
 name = "fc-traits-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -2553,7 +2553,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-tracks"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "frame-support",
  "pallet-referenda",
@@ -2706,7 +2706,7 @@ dependencies = [
 [[package]]
 name = "frame-contrib-traits"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "fc-traits-authn",
  "fc-traits-gas-tank",
@@ -5135,7 +5135,7 @@ dependencies = [
 [[package]]
 name = "mock-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#73259776db638d1d02b1010de264a71fc5116d79"
+source = "git+https://github.com/virto-network/frame-contrib#2b2fd7df4db1295aa1d0ff1c505459e9b03c5dd5"
 dependencies = [
  "fc-pallet-listings",
  "frame-support",

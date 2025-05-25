@@ -53,6 +53,7 @@ impl pallet_payments::PaymentId<Runtime> for virto_common::PaymentId {
 	fn next(_: &AccountId, beneficiary: &AccountId) -> Option<Self> {
 		let block: u32 = System::block_number();
 		let idx = System::extrinsic_index()?;
+		// TODO: @olanod PLEASE FIX THIS PAYMENT ID DERIVATION
 		Some((block, idx, beneficiary.encode().as_slice()).into())
 	}
 }
