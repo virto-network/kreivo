@@ -4,7 +4,7 @@ use alloc::vec;
 use frame_benchmarking::v2::*;
 use frame_support::traits::fungible::Mutate;
 use parity_scale_codec::HasCompact;
-use sp_runtime::traits::{Bounded, Hash};
+use sp_runtime::traits::{Bounded, EnsureDiv, Hash};
 
 type RuntimeEventFor<T> = <T as Config>::RuntimeEvent;
 
@@ -23,7 +23,8 @@ fn prepare_publisher<T: Config>(who: &AccountIdOf<T>) -> DispatchResult
 where
 	BalanceOf<T>: Bounded,
 {
-	<T as pallet_contracts::Config>::Currency::mint_into(&who, BalanceOf::<T>::max_value())?;
+	let amount = BalanceOf::<T>::max_value().ensure_div(2u32.into())?;
+	<T as pallet_contracts::Config>::Currency::mint_into(&who, amount)?;
 	Ok(())
 }
 
