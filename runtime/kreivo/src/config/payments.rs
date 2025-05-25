@@ -1,10 +1,14 @@
 use super::*;
 
+mod indices;
+
 use frame_support::traits::EitherOf;
 use frame_system::EnsureSigned;
 use pallet_communities::origin::AsSignedByCommunity;
 use parity_scale_codec::Encode;
 use sp_runtime::traits::AccountIdConversion;
+
+pub use indices::pallet_payment_indices;
 
 parameter_types! {
 	pub const MaxRemarkLength: u8 = 50;
@@ -28,7 +32,7 @@ impl FeeHandler<Runtime> for KreivoFeeHandler {
 		_remark: Option<&[u8]>,
 	) -> Fees<Runtime> {
 		let min = <Assets as fungibles::Inspect<AccountId>>::minimum_balance(*asset);
-		let pallet_id = crate::config::communities::CommunityPalletId::get();
+		let pallet_id = communities::CommunityPalletId::get();
 		let default_fee = |fee: Percent| (TreasuryAccount::get(), min.max(fee.mul_floor(*amount)), MANDATORY_FEE);
 		let is_community =
 			|who| matches!(PalletId::try_from_sub_account::<CommunityId>(who), Some((pid, _)) if pallet_id == pid );
@@ -49,11 +53,11 @@ impl FeeHandler<Runtime> for KreivoFeeHandler {
 	}
 }
 
+impl pallet_payment_indices::Config for Runtime {}
 impl pallet_payments::PaymentId<Runtime> for virto_common::PaymentId {
 	fn next(_: &AccountId, beneficiary: &AccountId) -> Option<Self> {
 		let block: u32 = System::block_number();
-		let idx = System::extrinsic_index()?;
-		// TODO: @olanod PLEASE FIX THIS PAYMENT ID DERIVATION
+		let idx = PaymentIndices::next_index();
 		Some((block, idx, beneficiary.encode().as_slice()).into())
 	}
 }

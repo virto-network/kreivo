@@ -20,6 +20,7 @@ pub use {
 	collator_support::{ConsensusHook, SLOT_DURATION},
 	currency::{KreivoAssetsCall, KreivoAssetsInstance, MembershipsGasTank},
 	governance::{pallet_custom_origins, TreasuryAccount},
+	payments::pallet_payment_indices,
 	system::{RelaychainData, RuntimeBlockWeights},
 };
 
