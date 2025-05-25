@@ -7,6 +7,7 @@ use sp_runtime::traits::{AccountIdConversion, Verify};
 #[cfg(not(feature = "runtime-benchmarks"))]
 use frame_system::EnsureNever;
 use frame_system::EnsureSigned;
+use sp_core::ConstU128;
 use sp_runtime::morph_types;
 use virto_common::listings;
 
@@ -86,15 +87,24 @@ impl pallet_nfts::Config<ListingsInstance> for Runtime {
 	type CreateOrigin = frame_system::EnsureSigned<AccountId>;
 	type Locker = ();
 	type CollectionDeposit = ();
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type ItemDeposit = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type ItemDeposit = ConstU128<UNITS>;
 	type MetadataDepositBase = ();
 	type AttributeDepositBase = ();
 	type DepositPerByte = ();
 	type StringLimit = ValueLimit;
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type ApprovalsLimit = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type ApprovalsLimit = ConstU32<1>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type ItemAttributesApprovalsLimit = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type ItemAttributesApprovalsLimit = ConstU32<1>;
 	type MaxTips = ();
 	type MaxDeadlineDuration = ();
 	type MaxAttributesPerCall = ();
@@ -163,7 +173,7 @@ mod benchmarks {
 		> for ListingsCatalogBenchmarkHelper
 	{
 		fn collection(i: u16) -> InventoryIdFor<Runtime, ListingsInstance> {
-			InventoryId(i, 0)
+			InventoryId(0, i.into())
 		}
 
 		fn item(i: u16) -> ItemIdOf<Runtime, ListingsInstance> {

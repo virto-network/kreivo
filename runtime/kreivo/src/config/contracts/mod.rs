@@ -9,13 +9,12 @@ use sp_runtime::morph_types;
 
 use kreivo_apis::KreivoChainExtensions;
 use pallet_balances::Call as BalancesCall;
-use pallet_communities::origin::EnsureCommunity;
 use virto_common::listings;
 
 #[cfg(not(feature = "runtime-benchmarks"))]
-use frame_system::EnsureNever;
+use {frame_system::EnsureNever, pallet_communities::origin::EnsureCommunity};
 #[cfg(feature = "runtime-benchmarks")]
-use frame_system::EnsureSigned;
+use {frame_system::EnsureSigned, sp_runtime::traits::Replace};
 
 pub struct CallFilter;
 impl Contains<RuntimeCall> for CallFilter {
@@ -153,10 +152,15 @@ morph_types! {
 	};
 }
 
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type EnsureInstantiator = EnsureCommunity<Runtime>;
+#[cfg(feature = "runtime-benchmarks")]
+pub type EnsureInstantiator = MapSuccess<EnsureSigned<AccountId>, Replace<ContractsStoreMerchantId>>;
+
 impl pallet_contracts_store::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
-	type InstantiateOrigin = MapSuccess<EnsureCommunity<Self>, AppInstantiationParams>;
+	type InstantiateOrigin = MapSuccess<EnsureInstantiator, AppInstantiationParams>;
 	type AppId = listings::InventoryId;
 	type LicenseId = listings::ItemId;
 	type Listings = Listings;
