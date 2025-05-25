@@ -17,10 +17,10 @@ frame_benchmarking::define_benchmarks!(
 
 	// Monetary stuff
 	[pallet_balances, Balances]
-	[pallet_assets, Assets]
-	[pallet_vesting, Vesting]
 	[pallet_transaction_payment, TransactionPayment]
+	[pallet_assets, Assets]
 	[pallet_asset_tx_payment, AssetsTxPayment]
+	[pallet_vesting, Vesting]
 	[pallet_gas_transaction_payment, GasTxPayment]
 
 	// Collator support
@@ -29,10 +29,10 @@ frame_benchmarking::define_benchmarks!(
 
 	// XCM
 	[cumulus_pallet_xcmp_queue, XcmpQueue]
-	[pallet_message_queue, MessageQueue]
 	// NOTE: Make sure you point to the individual modules below.
 	[pallet_xcm_benchmarks::fungible, XcmBalances]
 	[pallet_xcm_benchmarks::generic, XcmGeneric]
+	[pallet_message_queue, MessageQueue]
 
 	// Utils
 	[pallet_multisig, Multisig]
@@ -46,8 +46,11 @@ frame_benchmarking::define_benchmarks!(
 	[pallet_ranked_collective, KreivoCollective]
 	[pallet_referenda, KreivoReferenda]
 
-	// Virto Tooling
+	// Merchants
 	[pallet_payments, Payments]
+	[pallet_listings, Listings]
+	[pallet_nfts, ListingsCatalog]
+	[pallet_orders, Orders]
 
 	// Communities at Kreivo
 	[pallet_communities, Communities]
@@ -58,6 +61,7 @@ frame_benchmarking::define_benchmarks!(
 
 	// Contracts
 	[pallet_contracts, Contracts]
+	[pallet_contracts_store, ContractsStore]
 );
 
 pub(crate) fn benchmark_metadata(extra: bool) -> (Vec<BenchmarkList>, Vec<StorageInfo>) {
