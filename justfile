@@ -57,7 +57,7 @@ benchmarks:
         | each {|record| just benchmark $record.pallet}
 
 benchmark pallet="" extrinsic="*":
-    do --ignore-errors { frame-omni-bencher v1 benchmark pallet \
+    do -i { frame-omni-bencher v1 benchmark pallet \
         --runtime {{ runtime }} \
         --pallet '{{ pallet }}' --extrinsic '{{ extrinsic }}' \
         --steps 2 \
