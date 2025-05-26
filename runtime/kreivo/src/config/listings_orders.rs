@@ -52,22 +52,22 @@ impl<Id> EnsureOriginWithArg<RuntimeOrigin, InventoryId<CommunityId, Id>> for En
 
 impl pallet_listings::Config<ListingsInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
-	type Balances = Balances;
-	type Assets = Assets;
-	type Nonfungibles = ListingsCatalog;
-	type NonfungiblesKeyLimit = KeyLimit;
-	type NonfungiblesValueLimit = ValueLimit;
+	type WeightInfo = weights::pallet_listings::WeightInfo<Self>;
 	type CreateInventoryOrigin = EnsureCommunity;
 	type InventoryAdminOrigin = EnsureCommunity;
 	type MerchantId = CommunityId;
 	type InventoryId = listings::InventoryId;
 	type ItemSKU = listings::ItemId;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = benchmarks::ListingsBenchmarkHelper;
 	type CollectionConfig =
 		pallet_nfts::CollectionConfig<Balance, BlockNumberFor<Runtime>, InventoryIdFor<Runtime, ListingsInstance>>;
 	type ItemConfig = pallet_nfts::ItemConfig;
+	type Balances = Balances;
+	type Assets = Assets;
+	type Nonfungibles = ListingsCatalog;
+	type NonfungiblesKeyLimit = KeyLimit;
+	type NonfungiblesValueLimit = ValueLimit;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = benchmarks::ListingsBenchmarkHelper;
 }
 
 // #[runtime::pallet_index(62)]
@@ -132,7 +132,7 @@ impl pallet_orders::Config<ListingsInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_orders::WeightInfo<Self>;
 	type CreateOrigin = MapSuccess<EnsureSigned<AccountId>, MaxCartsForRegularUsers>;
 	type OrderAdminOrigin = MapSuccess<EnsureSigned<AccountId>, MaxItemsForRegularUsers>;
 	type PaymentOrigin = EnsureSigned<AccountId>;
