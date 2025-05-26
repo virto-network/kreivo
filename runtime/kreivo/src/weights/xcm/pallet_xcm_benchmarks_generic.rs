@@ -72,6 +72,14 @@ impl<T: frame_system::Config> WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
+	pub fn exchange_asset() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 986_000 picoseconds.
+		Weight::from_parts(1_072_000, 0)
+			.saturating_add(Weight::from_parts(0, 0))
+	}
 	pub fn asset_claimer() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
@@ -107,6 +115,7 @@ impl<T: frame_system::Config> WeightInfo<T> {
 		Weight::from_parts(3_869_000, 0)
 			.saturating_add(Weight::from_parts(0, 0))
 	}
+	#[allow(dead_code)]
 	pub fn initiate_reserve_withdraw() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
@@ -137,6 +146,22 @@ impl<T: frame_system::Config> WeightInfo<T> {
 		//  Estimated: `0`
 		// Minimum execution time: 934_000 picoseconds.
 		Weight::from_parts(959_000, 0)
+			.saturating_add(Weight::from_parts(0, 0))
+	}
+	pub fn alias_origin() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 931_000 picoseconds.
+		Weight::from_parts(996_000, 0)
+			.saturating_add(Weight::from_parts(0, 0))
+	}
+	pub fn universal_origin() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 931_000 picoseconds.
+		Weight::from_parts(996_000, 0)
 			.saturating_add(Weight::from_parts(0, 0))
 	}
 	pub fn descend_origin() -> Weight {

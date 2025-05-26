@@ -20,6 +20,7 @@
 pub mod pallet_payment_indices {
 	use frame_support::{pallet_prelude::*, traits::Hooks};
 	use frame_system::pallet_prelude::*;
+	use sp_core::U256;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {}
@@ -41,13 +42,13 @@ pub mod pallet_payment_indices {
 		type PaymentId = virto_common::PaymentId;
 
 		fn generate(_: &T::AccountId, beneficiary: &T::AccountId) -> Option<virto_common::PaymentId> {
-			let block: u32 = frame_system::Pallet::<T>::block_number();
+			let block: U256 = frame_system::Pallet::<T>::block_number().into();
 			let idx = Index::<T>::mutate(|index| {
 				let ix = *index;
 				*index += 1;
 				ix
 			});
-			Some((block, idx, beneficiary.encode().as_slice()).into())
+			Some((block.as_u32(), idx, beneficiary.encode().as_slice()).into())
 		}
 	}
 }
