@@ -5,7 +5,6 @@ mod indices;
 use frame_support::traits::EitherOf;
 use frame_system::EnsureSigned;
 use pallet_communities::origin::AsSignedByCommunity;
-use parity_scale_codec::Encode;
 use sp_runtime::traits::AccountIdConversion;
 
 pub use indices::pallet_payment_indices;
@@ -54,13 +53,6 @@ impl FeeHandler<Runtime> for KreivoFeeHandler {
 }
 
 impl pallet_payment_indices::Config for Runtime {}
-impl pallet_payments::PaymentId<Runtime> for virto_common::PaymentId {
-	fn next(_: &AccountId, beneficiary: &AccountId) -> Option<Self> {
-		let block: u32 = System::block_number();
-		let idx = PaymentIndices::next_index();
-		Some((block, idx, beneficiary.encode().as_slice()).into())
-	}
-}
 
 impl pallet_payments::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -78,7 +70,8 @@ impl pallet_payments::Config for Runtime {
 	type FeeHandler = KreivoFeeHandler;
 	type Scheduler = Scheduler;
 	type Preimages = Preimage;
-	type OnPaymentStatusChanged = ();
+	type OnPaymentStatusChanged = Orders;
+	type GeneratePaymentId = PaymentIndices;
 	type PalletId = PaymentPalletId;
 	type IncentivePercentage = IncentivePercentage;
 	type MaxRemarkLength = MaxRemarkLength;

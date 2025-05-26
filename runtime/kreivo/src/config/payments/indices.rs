@@ -37,13 +37,17 @@ pub mod pallet_payment_indices {
 		}
 	}
 
-	impl<T: Config> Pallet<T> {
-		pub fn next_index() -> u32 {
-			Index::<T>::mutate(|index| {
+	impl<T: Config> pallet_payments::GeneratePaymentId<T::AccountId> for Pallet<T> {
+		type PaymentId = virto_common::PaymentId;
+
+		fn generate(_: &T::AccountId, beneficiary: &T::AccountId) -> Option<virto_common::PaymentId> {
+			let block: u32 = frame_system::Pallet::<T>::block_number();
+			let idx = Index::<T>::mutate(|index| {
 				let ix = *index;
 				*index += 1;
 				ix
-			})
+			});
+			Some((block, idx, beneficiary.encode().as_slice()).into())
 		}
 	}
 }
