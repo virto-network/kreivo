@@ -1277,9 +1277,9 @@ dependencies = [
 
 [[package]]
 name = "core-foundation"
-version = "0.10.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b55271e5c8c478ad3f38ad24ef34923091e0548492a266d19b3c0b4d82574c63"
+checksum = "b2a6cd9ae233e7f62ba4e9353e81a88df7fc8a5987b8d445b4d90c879bd156f6"
 dependencies = [
  "core-foundation-sys",
  "libc",
@@ -1423,6 +1423,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a97769d94ddab943e4510d138150169a2758b5ef3eb191a9ee688de3e23ef7b3"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "critical-section"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "790eea4361631c5e7d22598ecd5723ff611904e3344ce8720784c93e3d83d40b"
+
+[[package]]
+name = "crossbeam-channel"
+version = "0.5.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82b8f8f868b36967f9606790d1903570de9ceaf870a7bf9fbbd3016d636a2cb2"
+dependencies = [
+ "crossbeam-utils",
 ]
 
 [[package]]
@@ -2369,7 +2384,7 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 [[package]]
 name = "fc-pallet-communities"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2386,7 +2401,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-gas-transaction-payment"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "frame-contrib-traits",
  "parity-scale-codec",
@@ -2397,7 +2412,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-listings"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "fc-traits-listings",
  "frame-benchmarking",
@@ -2415,7 +2430,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-orders"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2432,7 +2447,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-pass"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -2448,7 +2463,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "fc-traits-payments",
  "frame-benchmarking",
@@ -2465,7 +2480,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-referenda-tracks"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "fc-traits-tracks",
  "frame-benchmarking",
@@ -2483,7 +2498,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -2495,7 +2510,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn-proc"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "proc-macro-crate 3.3.0",
  "quote",
@@ -2505,7 +2520,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-gas-tank"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "fc-traits-nonfungibles-helpers",
  "frame-support",
@@ -2517,7 +2532,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-listings"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2528,7 +2543,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-memberships"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2538,12 +2553,12 @@ dependencies = [
 [[package]]
 name = "fc-traits-nonfungibles-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 
 [[package]]
 name = "fc-traits-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -2554,7 +2569,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-tracks"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "frame-support",
  "pallet-referenda",
@@ -2707,7 +2722,7 @@ dependencies = [
 [[package]]
 name = "frame-contrib-traits"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "fc-traits-authn",
  "fc-traits-gas-tank",
@@ -3074,6 +3089,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "generator"
+version = "0.8.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d18470a76cb7f8ff746cf1f7470914f900252ec36bbc40b569d74b1258446827"
+dependencies = [
+ "cc",
+ "cfg-if",
+ "libc",
+ "log",
+ "rustversion",
+ "windows 0.61.1",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3326,6 +3355,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "hickory-proto"
+version = "0.25.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8a6fe56c0038198998a6f217ca4e7ef3a5e51f46163bd6dd60b5c71ca6c6502"
+dependencies = [
+ "async-trait",
+ "cfg-if",
+ "data-encoding",
+ "enum-as-inner",
+ "futures-channel",
+ "futures-io",
+ "futures-util",
+ "idna 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ipnet",
+ "once_cell",
+ "rand 0.9.1",
+ "ring 0.17.14",
+ "thiserror 2.0.12",
+ "tinyvec",
+ "tokio",
+ "tracing",
+ "url 2.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "hickory-resolver"
 version = "0.24.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3333,7 +3387,7 @@ checksum = "cbb117a1ca520e111743ab2f6688eddee69db4e0ea242545a604dce8a66fd22e"
 dependencies = [
  "cfg-if",
  "futures-util",
- "hickory-proto",
+ "hickory-proto 0.24.4",
  "ipconfig",
  "lru-cache",
  "once_cell",
@@ -3342,6 +3396,27 @@ dependencies = [
  "resolv-conf",
  "smallvec",
  "thiserror 1.0.69",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "hickory-resolver"
+version = "0.25.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc62a9a99b0bfb44d2ab95a7208ac952d31060efc16241c87eaf36406fecf87a"
+dependencies = [
+ "cfg-if",
+ "futures-util",
+ "hickory-proto 0.25.2",
+ "ipconfig",
+ "moka",
+ "once_cell",
+ "parking_lot 0.12.3",
+ "rand 0.9.1",
+ "resolv-conf",
+ "smallvec",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
 ]
@@ -3695,7 +3770,7 @@ dependencies = [
  "rtnetlink",
  "system-configuration",
  "tokio",
- "windows",
+ "windows 0.53.0",
 ]
 
 [[package]]
@@ -4419,7 +4494,7 @@ checksum = "97f37f30d5c7275db282ecd86e54f29dd2176bd3ac656f06abf43bedb21eb8bd"
 dependencies = [
  "async-trait",
  "futures",
- "hickory-resolver",
+ "hickory-resolver 0.24.4",
  "libp2p-core",
  "libp2p-identity",
  "parking_lot 0.12.3",
@@ -4505,7 +4580,7 @@ checksum = "14b8546b6644032565eb29046b42744aee1e9f261ed99671b2c93fb140dba417"
 dependencies = [
  "data-encoding",
  "futures",
- "hickory-proto",
+ "hickory-proto 0.24.4",
  "if-watch",
  "libp2p-core",
  "libp2p-identity",
@@ -4886,9 +4961,9 @@ checksum = "241eaef5fd12c88705a01fc1066c48c4b36e0dd4377dcdc7ec3942cea7a69956"
 
 [[package]]
 name = "litep2p"
-version = "0.9.4"
+version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d71056c23c896bb0e18113b2d2f1989be95135e6bdeedb0b757422ee21a073eb"
+checksum = "14fb10e63363204b89d91e1292df83322fd9de5d7fa76c3d5c78ddc2f8f3efa9"
 dependencies = [
  "async-trait",
  "bs58",
@@ -4897,7 +4972,7 @@ dependencies = [
  "ed25519-dalek",
  "futures",
  "futures-timer",
- "hickory-resolver",
+ "hickory-resolver 0.25.2",
  "indexmap 2.9.0",
  "libc",
  "mockall",
@@ -4946,6 +5021,19 @@ name = "log"
 version = "0.4.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
+
+[[package]]
+name = "loom"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "419e0dc8046cb947daa77eb95ae174acfbddb7673b4151f56d1eed8e93fbfaca"
+dependencies = [
+ "cfg-if",
+ "generator",
+ "scoped-tls",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "lru"
@@ -5130,7 +5218,7 @@ dependencies = [
 [[package]]
 name = "mock-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#0f86760d1a6b4dfeeaf09e87244ca01826ba8258"
+source = "git+https://github.com/virto-network/frame-contrib#ce3cca14e4b73f1cc9a76e59fe2e5da038679b1a"
 dependencies = [
  "fc-pallet-listings",
  "frame-support",
@@ -5165,6 +5253,25 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.101",
+]
+
+[[package]]
+name = "moka"
+version = "0.12.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9321642ca94a4282428e6ea4af8cc2ca4eac48ac7a6a4ea8f33f76d0ce70926"
+dependencies = [
+ "crossbeam-channel",
+ "crossbeam-epoch",
+ "crossbeam-utils",
+ "loom",
+ "parking_lot 0.12.3",
+ "portable-atomic",
+ "rustc_version",
+ "smallvec",
+ "tagptr",
+ "thiserror 1.0.69",
+ "uuid",
 ]
 
 [[package]]
@@ -5540,6 +5647,10 @@ name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
+dependencies = [
+ "critical-section",
+ "portable-atomic",
+]
 
 [[package]]
 name = "once_cell_polyfill"
@@ -7016,6 +7127,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "portable-atomic"
+version = "1.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "350e9b48cbc6b0e028b0473b114454c6316e57336ee184ceab6e53f72c178b3e"
+
+[[package]]
 name = "potential_utf"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8368,6 +8485,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "scoped-tls"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1cf6437eb19a8f4a6cc0f7dca544973b0b78843adbfeb3683d1a94a0024a294"
+
+[[package]]
 name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8428,7 +8551,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "271720403f46ca04f7ba6f55d438f8bd878d6b8ca0a1046e8228c4145bcbb316"
 dependencies = [
  "bitflags 2.9.1",
- "core-foundation 0.10.0",
+ "core-foundation 0.10.1",
  "core-foundation-sys",
  "libc",
  "security-framework-sys",
@@ -8695,9 +8818,9 @@ dependencies = [
 
 [[package]]
 name = "socket2"
-version = "0.5.9"
+version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f5fd57c80058a56cf5c777ab8a126398ece8e442983605d280a44ce79d0edef"
+checksum = "e22376abed350d73dd1cd119b57ffccad95b4e585a7cda43e286245ce23c0678"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
@@ -9752,6 +9875,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "tagptr"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b2093cf4c8eb1e67749a6762251bc9cd836b6fc171623bd0a9d324d37af2417"
+
+[[package]]
 name = "tap"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10323,6 +10452,17 @@ name = "utf8parse"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
+
+[[package]]
+name = "uuid"
+version = "1.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3cf4199d1e5d15ddd86a694e4d0dffa9c323ce759fea589f00fef9d81cc1931d"
+dependencies = [
+ "getrandom 0.3.3",
+ "js-sys",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "valuable"
@@ -10943,6 +11083,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "windows"
+version = "0.61.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5ee8f3d025738cb02bad7868bbb5f8a6327501e870bf51f1b455b0a2454a419"
+dependencies = [
+ "windows-collections",
+ "windows-core 0.61.2",
+ "windows-future",
+ "windows-link",
+ "windows-numerics",
+]
+
+[[package]]
+name = "windows-collections"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3beeceb5e5cfd9eb1d76b381630e82c4241ccd0d27f1a39ed41b2760b255c5e8"
+dependencies = [
+ "windows-core 0.61.2",
+]
+
+[[package]]
 name = "windows-core"
 version = "0.53.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10963,6 +11125,17 @@ dependencies = [
  "windows-link",
  "windows-result 0.3.4",
  "windows-strings",
+]
+
+[[package]]
+name = "windows-future"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc6a41e98427b19fe4b73c550f060b59fa592d7d686537eebf9385621bfbad8e"
+dependencies = [
+ "windows-core 0.61.2",
+ "windows-link",
+ "windows-threading",
 ]
 
 [[package]]
@@ -10992,6 +11165,16 @@ name = "windows-link"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "76840935b766e1b0a05c0066835fb9ec80071d4c09a16f6bd5f7e655e3c14c38"
+
+[[package]]
+name = "windows-numerics"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9150af68066c4c5c07ddc0ce30421554771e528bde427614c61038bc2c92c2b1"
+dependencies = [
+ "windows-core 0.61.2",
+ "windows-link",
+]
 
 [[package]]
 name = "windows-result"
@@ -11100,6 +11283,15 @@ dependencies = [
  "windows_x86_64_gnu 0.52.6",
  "windows_x86_64_gnullvm 0.52.6",
  "windows_x86_64_msvc 0.52.6",
+]
+
+[[package]]
+name = "windows-threading"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b66463ad2e0ea3bbf808b7f1d371311c80e115c0b71d60efc142cafbcfb057a6"
+dependencies = [
+ "windows-link",
 ]
 
 [[package]]
