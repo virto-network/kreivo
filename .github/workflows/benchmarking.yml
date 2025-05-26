@@ -150,6 +150,7 @@ jobs:
           path: ./.benchmarking-logs
 
       - uses: peter-evans/create-pull-request@v6
+        if: success() || failure()
         with:
           add-paths: runtime/kreivo/src/weights
           commit-message: '[ci] calculate weights'
