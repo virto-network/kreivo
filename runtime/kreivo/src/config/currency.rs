@@ -59,7 +59,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = ConstU8<5>;
-	type WeightInfo = pallet_transaction_payment::weights::SubstrateWeight<Self>;
+	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Self>;
 }
 
 // #[runtime::pallet_index(12)]
@@ -124,7 +124,7 @@ impl pallet_asset_tx_payment::Config for Runtime {
 		BalanceToAssetBalance<Balances, Runtime, ConvertInto, KreivoAssetsInstance>,
 		AssetsToBlockAuthor<Runtime, KreivoAssetsInstance>,
 	>;
-	type WeightInfo = pallet_asset_tx_payment::weights::SubstrateWeight<Self>;
+	type WeightInfo = weights::pallet_asset_tx_payment::WeightInfo<Self>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmarks::AssetsTxPaymentBenchmarkHelper;
 }
@@ -175,7 +175,7 @@ pub type MembershipsGasTank =
 
 impl pallet_gas_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_gas_transaction_payment::WeightInfo<Self>;
 	type GasTank = MembershipsGasTank;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmarks::GasTransactionPaymentBenchmarkHelper;

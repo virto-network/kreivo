@@ -159,7 +159,7 @@ pub type EnsureInstantiator = MapSuccess<EnsureSigned<AccountId>, Replace<Contra
 
 impl pallet_contracts_store::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_contracts_store::WeightInfo<Self>;
 	type InstantiateOrigin = MapSuccess<EnsureInstantiator, AppInstantiationParams>;
 	type AppId = listings::InventoryId;
 	type LicenseId = listings::ItemId;

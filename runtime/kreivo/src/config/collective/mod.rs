@@ -18,7 +18,7 @@ impl<const R: Rank, T> Convert<T, Rank> for AtLeastRank<R> {
 
 pub type KreivoCollectiveInstance = pallet_ranked_collective::Instance1;
 impl pallet_ranked_collective::Config<KreivoCollectiveInstance> for Runtime {
-	type WeightInfo = pallet_ranked_collective::weights::SubstrateWeight<Self>;
+	type WeightInfo = weights::pallet_ranked_collective::WeightInfo<Self>;
 	type RuntimeEvent = RuntimeEvent;
 	// Initially, members of kreivo collective are managed via governance action
 	// In the future, it's expected to have an auxiliary pallet to observe the

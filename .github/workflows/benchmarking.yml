@@ -156,7 +156,7 @@ jobs:
           commit-message: '[ci] calculate weights'
           branch: benchmarks
           branch-suffix: short-commit-hash
-          title: "Benchmarking: Calculate weights for ${{ github.sha }}"
+          title: "chore: Calculate weights for `${{ github.sha }}`"
           body: |
             This Pull Request is automatically raised when pushing over `master`
             and should be resolved and reviewed manually.
