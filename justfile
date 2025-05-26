@@ -60,8 +60,8 @@ benchmark pallet="" extrinsic="*":
     do -i { frame-omni-bencher v1 benchmark pallet \
         --runtime {{ runtime }} \
         --pallet '{{ pallet }}' --extrinsic '{{ extrinsic }}' \
-        --steps 2 \
-        --repeat 1 \
+        --steps 50 \
+        --repeat 20 \
         --output ./runtime/kreivo/src/weights/ | \
         save --force ".benchmarking-logs/{{ pallet }}.out.txt" \
         --stderr ".benchmarking-logs/{{ pallet }}.log.txt" }
