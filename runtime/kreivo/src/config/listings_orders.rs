@@ -7,6 +7,7 @@ use sp_runtime::traits::{AccountIdConversion, Verify};
 #[cfg(not(feature = "runtime-benchmarks"))]
 use frame_system::EnsureNever;
 use frame_system::EnsureSigned;
+#[cfg(feature = "runtime-benchmarks")]
 use sp_core::ConstU128;
 use sp_runtime::morph_types;
 use virto_common::listings;

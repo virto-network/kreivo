@@ -165,7 +165,7 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 	type Context = BlockNumber;
 
 	fn generate(cx: &Self::Context, xtc: &impl ExtrinsicContext) -> Challenge {
-		(System::block_hash(cx).0, xtc.as_ref()).using_encoded(blake2_256)
+		blake2_256(&[&System::block_hash(cx).0, xtc.as_ref()].concat())
 	}
 
 	fn check_challenge(cx: &Self::Context, xtc: &impl ExtrinsicContext, challenge: &[u8]) -> Option<()> {
