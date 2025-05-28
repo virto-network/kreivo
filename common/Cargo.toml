@@ -36,13 +36,8 @@ std = [
   "sp-runtime?/std",
   "xcm?/std",
 ]
-scale = [
-  "dep:parity-scale-codec",
-  "dep:scale-info",
-]
-serde = [
-  "dep:serde",
-]
+scale = ["dep:parity-scale-codec", "dep:scale-info"]
+serde = ["dep:serde"]
 alloc = []
 js = ["alloc", "wasm-bindgen"]
 nightly = []
