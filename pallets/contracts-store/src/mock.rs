@@ -76,6 +76,7 @@ impl test_utils::Config for Test {
 	type ItemId = LicenseId;
 	type AssetId = AssetId;
 	type Balance = Balance;
+	type MaxMetadataLen = ConstU32<64>;
 	type MaxKeyLen = ConstU32<32>;
 	type MaxValueLen = ConstU32<64>;
 }
