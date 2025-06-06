@@ -65,3 +65,5 @@ impl pallet_nfts::Config<CommunityMembershipsInstance> for Runtime {
 	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
 	type BlockNumberProvider = RelaychainData;
 }
+
+pub type Memberships = NonFungiblesMemberships<CommunityMemberships, pallet_nfts::ItemConfig>;
