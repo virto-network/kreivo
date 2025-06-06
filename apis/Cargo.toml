@@ -11,6 +11,7 @@ repository.workspace = true
 [dependencies]
 frame-contrib-traits = { workspace = true }
 frame-support = { workspace = true }
+num_enum.workspace = true
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
 
@@ -27,16 +28,17 @@ virto-common = { workspace = true, optional = true, features = ["scale"] }
 [features]
 default = ["std", "runtime", "contract"]
 std = [
-  "frame-support/std",
-  "frame-system/std",
-  "ink?/std",
-  "ink_env?/std",
-  "log?/std",
-  "pallet-contracts?/std",
-  "parity-scale-codec/std",
-  "scale-info/std",
-  "virto-common?/std",
-  "frame-contrib-traits/std",
+	"frame-support/std",
+	"frame-system/std",
+	"ink?/std",
+	"ink_env?/std",
+	"log?/std",
+	"num_enum/std",
+	"pallet-contracts?/std",
+	"parity-scale-codec/std",
+	"scale-info/std",
+	"virto-common?/std",
+	"frame-contrib-traits/std",
 ]
 runtime = ["dep:frame-system", "dep:log", "dep:pallet-contracts"]
 contract = ["dep:ink", "dep:ink_env", "dep:virto-common"]

@@ -7,7 +7,7 @@ use frame_support::DefaultNoBound;
 use pallet_contracts::chain_extension::{ChainExtension, Environment, Ext, InitState, RetVal};
 
 mod config;
-pub use config::{Config, MerchantIdInfo};
+pub use config::{Config, GroupInfo, MerchantIdInfo};
 
 mod impls;
 use impls::*;
@@ -17,10 +17,14 @@ use types::*;
 
 mod api_impls {
 	use super::*;
+	use config::*;
+
 	mod assets;
 	mod listings;
+	mod memberships;
 	pub use assets::*;
 	pub use listings::*;
+	pub use memberships::*;
 }
 use api_impls::*;
 
@@ -35,6 +39,7 @@ where
 {
 	type Assets = RuntimeAssetsAPI<T>;
 	type Listings = RuntimeListingsAPI<T>;
+	type Memberships = RuntimeMembershipsAPI<T>;
 }
 
 /// A [`ChainExtension`] that implements the [`KreivoAPI`]s.
@@ -56,6 +61,7 @@ where
 		let result = match request.clone() {
 			ApiInfo::Assets(ref api_info) => api_info.call(env.ext()),
 			ApiInfo::Listings(ref api_info) => api_info.call(env.ext()),
+			ApiInfo::Memberships(ref api_info) => api_info.call(env.ext()),
 		};
 
 		log::trace!(

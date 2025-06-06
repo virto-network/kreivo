@@ -1,7 +1,7 @@
 use super::*;
 
 #[repr(u16)]
-#[derive(TypeInfo, Encode, Decode, Clone, Debug, PartialEq)]
+#[derive(TypeInfo, Encode, Decode, Clone, Debug, PartialEq, TryFromPrimitive)]
 pub enum ListingsApiError {
 	/// The contract does not have an associated `MerchantId`, therefore it
 	/// cannot use the Listing APIs.
@@ -28,33 +28,12 @@ pub enum ListingsApiError {
 	FailedToSetAttribute,
 	/// Transferring an item is not possible.
 	CannotTransfer,
+	/// It was not possible to set the metadata.
+	FailedToSetMetadata,
 }
 
 impl From<ListingsApiError> for KreivoApisError {
 	fn from(error: ListingsApiError) -> Self {
 		KreivoApisError::Listings(error)
-	}
-}
-
-impl TryFrom<KreivoApisErrorCode> for ListingsApiError {
-	type Error = ();
-
-	fn try_from(value: KreivoApisErrorCode) -> Result<Self, Self::Error> {
-		match value.0 {
-			0 => Ok(ListingsApiError::NoMerchantId),
-			1 => Ok(ListingsApiError::UnknownInventory),
-			2 => Ok(ListingsApiError::FailedToCreateInventory),
-			3 => Ok(ListingsApiError::ArchivedInventory),
-			4 => Ok(ListingsApiError::FailedToArchiveInventory),
-			5 => Ok(ListingsApiError::FailedToPublishItem),
-			6 => Ok(ListingsApiError::UnknownItem),
-			7 => Ok(ListingsApiError::NotForResale),
-			8 => Ok(ListingsApiError::ItemNonTransferable),
-			9 => Ok(ListingsApiError::FailedToSetNotForResale),
-			10 => Ok(ListingsApiError::FailedToSetTransferable),
-			11 => Ok(ListingsApiError::FailedToSetAttribute),
-			12 => Ok(ListingsApiError::CannotTransfer),
-			_ => Err(()),
-		}
 	}
 }

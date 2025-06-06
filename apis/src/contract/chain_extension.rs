@@ -1,7 +1,7 @@
 use super::*;
 
 use crate::apis::KreivoApisErrorCode;
-use crate::contract::config::{AssetBalanceOf, InventoryIdOf, ItemIdOf, ItemOf, ItemPriceOf};
+use crate::contract::config::{AssetBalanceOf, InventoryIdOf, ItemIdOf, ItemOf, ItemPriceOf, MembershipOf, RankOf};
 use config::{AccountIdOf, AssetIdOf, BalanceOf};
 use ink::{chain_extension, prelude::vec::Vec};
 
@@ -60,6 +60,14 @@ pub trait ChainExtension {
 	#[allow(non_snake_case)]
 	#[ink(function = 0x0106)]
 	fn listings__inventory_clear_attribute(id: InventoryIdOf<Environment>, key: Vec<u8>) -> CallResult;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x0107)]
+	fn listings__set_inventory_metadata(id: InventoryIdOf<Environment>, metadata: Vec<u8>) -> CallResult;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x0108)]
+	fn listings__clear_inventory_metadata(id: InventoryIdOf<Environment>) -> CallResult;
 
 	// Listings: Items
 	#[allow(non_snake_case)]
@@ -161,6 +169,51 @@ pub trait ChainExtension {
 		id: ItemIdOf<Environment>,
 		beneficiary: AccountIdOf<Environment>,
 	) -> CallResult;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x011f)]
+	fn listings__set_metadata(
+		inventory_id: InventoryIdOf<Environment>,
+		id: ItemIdOf<Environment>,
+		metadata: Vec<u8>,
+	) -> CallResult;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x0120)]
+	fn listings__clear_metadata(inventory_id: InventoryIdOf<Environment>, id: ItemIdOf<Environment>) -> CallResult;
+
+	// Memberships
+	#[allow(non_snake_case)]
+	#[ink(function = 0x0200)]
+	fn memberships__assign_membership(who: AccountIdOf<Environment>) -> CallResult;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x0201, handle_status = false)]
+	fn memberships__membership_of(who: AccountIdOf<Environment>) -> Option<MembershipOf<Environment>>;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x0202, handle_status = false)]
+	fn memberships__rank_of(id: MembershipOf<Environment>) -> Option<RankOf<Environment>>;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x0203, handle_status = false)]
+	fn memberships__attribute(id: MembershipOf<Environment>, key: Vec<u8>) -> Option<Vec<u8>>;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x0204)]
+	fn memberships__set_attribute(id: MembershipOf<Environment>, key: Vec<u8>, value: Vec<u8>) -> CallResult;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x0205)]
+	fn memberships__clear_attribute(id: MembershipOf<Environment>, key: Vec<u8>) -> CallResult;
+
+	#[allow(non_snake_case)]
+	#[ink(function = 0x0206, handle_status = false)]
+	fn memberships__filter_membership(
+		who: AccountIdOf<Environment>,
+		key: Vec<u8>,
+		value: Vec<u8>,
+	) -> Option<MembershipOf<Environment>>;
 }
 
 impl ink::env::chain_extension::FromStatusCode for KreivoApisErrorCode {

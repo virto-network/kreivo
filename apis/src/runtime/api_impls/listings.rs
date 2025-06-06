@@ -1,9 +1,6 @@
 use super::*;
 
-use config::Config;
 use frame_contrib_traits::listings::{item::ItemPrice, *};
-
-type MerchantIdOf<T> = <<T as Config>::MerchantIdInfo as MerchantIdInfo<AccountIdOf<T>>>::MerchantId;
 
 /// A helper structure that implements [`ListingsInventoriesAPI`] in the context
 /// of the Runtime.
@@ -53,6 +50,34 @@ where
 		}
 
 		T::Listings::archive(&(merchant_id, *id)).map_err(|_| ListingsApiError::FailedToArchiveInventory.into())
+	}
+
+	fn set_inventory_metadata(env: &E, id: &Self::InventoryId, metadata: &[u8]) -> Result<(), KreivoApisError> {
+		let merchant_id = Self::merchant_id(env).ok_or(ListingsApiError::NoMerchantId)?;
+
+		if !T::Listings::exists(&(merchant_id, *id)) {
+			Err(ListingsApiError::UnknownInventory)?
+		}
+		if !T::Listings::is_active(&(merchant_id, *id)) {
+			Err(ListingsApiError::ArchivedInventory)?
+		}
+
+		T::Listings::set_inventory_metadata(&(merchant_id, *id), metadata)
+			.map_err(|_| ListingsApiError::FailedToSetMetadata.into())
+	}
+
+	fn clear_inventory_metadata(env: &E, id: &Self::InventoryId) -> Result<(), KreivoApisError> {
+		let merchant_id = Self::merchant_id(env).ok_or(ListingsApiError::NoMerchantId)?;
+
+		if !T::Listings::exists(&(merchant_id, *id)) {
+			Err(ListingsApiError::UnknownInventory)?
+		}
+		if !T::Listings::is_active(&(merchant_id, *id)) {
+			Err(ListingsApiError::ArchivedInventory)?
+		}
+
+		T::Listings::clear_inventory_metadata(&(merchant_id, *id))
+			.map_err(|_| ListingsApiError::FailedToSetMetadata.into())
 	}
 
 	fn inventory_set_attribute<K: Encode, V: Encode>(
@@ -156,6 +181,25 @@ where
 
 		T::Listings::clear_price(&(merchant_id, *inventory_id), id)
 			.map_err(|_| ListingsApiError::FailedToSetAttribute.into())
+	}
+
+	fn set_metadata(
+		env: &E,
+		inventory_id: &Self::InventoryId,
+		id: &Self::ItemId,
+		value: &[u8],
+	) -> Result<(), KreivoApisError> {
+		let merchant_id = Self::merchant_id(env).ok_or(ListingsApiError::NoMerchantId)?;
+
+		T::Listings::set_metadata(&(merchant_id, *inventory_id), id, value)
+			.map_err(|_| ListingsApiError::FailedToSetMetadata.into())
+	}
+
+	fn clear_metadata(env: &E, inventory_id: &Self::InventoryId, id: &Self::ItemId) -> Result<(), KreivoApisError> {
+		let merchant_id = Self::merchant_id(env).ok_or(ListingsApiError::NoMerchantId)?;
+
+		T::Listings::clear_metadata(&(merchant_id, *inventory_id), id)
+			.map_err(|_| ListingsApiError::FailedToSetMetadata.into())
 	}
 
 	fn item_enable_resell(ext: &E, inventory_id: &Self::InventoryId, id: &Self::ItemId) -> Result<(), KreivoApisError> {

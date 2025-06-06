@@ -2075,7 +2075,7 @@ dependencies = [
  "regex",
  "syn 2.0.101",
  "termcolor",
- "toml 0.8.22",
+ "toml 0.8.23",
  "walkdir",
 ]
 
@@ -2384,7 +2384,7 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 [[package]]
 name = "fc-pallet-communities"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2401,7 +2401,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-gas-transaction-payment"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "frame-contrib-traits",
  "parity-scale-codec",
@@ -2412,7 +2412,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-listings"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "fc-traits-listings",
  "frame-benchmarking",
@@ -2430,7 +2430,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-orders"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -2447,7 +2447,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-pass"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -2463,7 +2463,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "fc-traits-payments",
  "frame-benchmarking",
@@ -2480,7 +2480,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-referenda-tracks"
 version = "1.0.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "fc-traits-tracks",
  "frame-benchmarking",
@@ -2498,7 +2498,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -2510,7 +2510,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn-proc"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "proc-macro-crate 3.3.0",
  "quote",
@@ -2520,7 +2520,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-gas-tank"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "fc-traits-nonfungibles-helpers",
  "frame-support",
@@ -2532,7 +2532,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-listings"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2543,7 +2543,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-memberships"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2553,12 +2553,12 @@ dependencies = [
 [[package]]
 name = "fc-traits-nonfungibles-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 
 [[package]]
 name = "fc-traits-payments"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -2569,7 +2569,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-tracks"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "frame-support",
  "pallet-referenda",
@@ -2683,7 +2683,7 @@ dependencies = [
 [[package]]
 name = "form_urlencoded"
 version = "1.2.1"
-source = "git+https://github.com/servo/rust-url#68f151c01682d620605b749b61684084150a6c41"
+source = "git+https://github.com/servo/rust-url#dbd526178ed9276176602dd039022eba89e8fc93"
 dependencies = [
  "percent-encoding 2.3.1 (git+https://github.com/servo/rust-url)",
 ]
@@ -2722,7 +2722,7 @@ dependencies = [
 [[package]]
 name = "frame-contrib-traits"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "fc-traits-authn",
  "fc-traits-gas-tank",
@@ -3723,7 +3723,7 @@ dependencies = [
 [[package]]
 name = "idna"
 version = "1.0.3"
-source = "git+https://github.com/servo/rust-url#68f151c01682d620605b749b61684084150a6c41"
+source = "git+https://github.com/servo/rust-url#dbd526178ed9276176602dd039022eba89e8fc93"
 dependencies = [
  "idna_adapter",
  "smallvec",
@@ -4272,6 +4272,7 @@ dependencies = [
  "ink",
  "ink_env",
  "log",
+ "num_enum",
  "pallet-contracts",
  "parity-scale-codec",
  "scale-info",
@@ -4342,7 +4343,7 @@ dependencies = [
  "pallet-xcm-benchmarks",
  "parachains-common",
  "parity-scale-codec",
- "pass-webauthn",
+ "pass-authenticators-webauthn",
  "polkadot-core-primitives",
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
@@ -5218,7 +5219,7 @@ dependencies = [
 [[package]]
 name = "mock-helpers"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/frame-contrib#e521518e003d8bf70e69fc9b7ee938b427ccde62"
+source = "git+https://github.com/virto-network/frame-contrib#2250c37c83a93e1b135018e5f5d8b608f09e0ea9"
 dependencies = [
  "fc-pallet-listings",
  "frame-support",
@@ -5604,6 +5605,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_enum"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e613fc340b2220f734a8595782c551f1250e969d87d3be1ae0579e8d4065179"
+dependencies = [
+ "num_enum_derive",
+]
+
+[[package]]
+name = "num_enum_derive"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af1844ef2428cc3e1cb900be36181049ef3d3193c63e43026cfe202983b27a56"
+dependencies = [
+ "proc-macro-crate 3.3.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.101",
+]
+
+[[package]]
 name = "object"
 version = "0.30.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5986,7 +6008,7 @@ dependencies = [
  "parity-wasm",
  "sp-runtime",
  "tempfile",
- "toml 0.8.22",
+ "toml 0.8.23",
  "twox-hash 2.1.0",
 ]
 
@@ -6630,9 +6652,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7924d1d0ad836f665c9065e26d016c673ece3993f30d340068b16f282afc1156"
 
 [[package]]
-name = "pass-webauthn"
+name = "pass-authenticators-webauthn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/webauthn#37d199e53180e3b787b38a5684a5605c24b7466d"
+source = "git+https://github.com/virto-network/pass-authenticators#31dff1654aa69f8584d6204b13b10aa8aae643e4"
 dependencies = [
  "fc-traits-authn",
  "log",
@@ -6641,7 +6663,7 @@ dependencies = [
  "scale-info",
  "simple-base64",
  "url 2.5.4 (git+https://github.com/servo/rust-url)",
- "verifier",
+ "webauthn-verifier",
 ]
 
 [[package]]
@@ -6690,7 +6712,7 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 [[package]]
 name = "percent-encoding"
 version = "2.3.1"
-source = "git+https://github.com/servo/rust-url#68f151c01682d620605b749b61684084150a6c41"
+source = "git+https://github.com/servo/rust-url#dbd526178ed9276176602dd039022eba89e8fc93"
 
 [[package]]
 name = "petgraph"
@@ -7128,9 +7150,9 @@ dependencies = [
 
 [[package]]
 name = "portable-atomic"
-version = "1.11.0"
+version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "350e9b48cbc6b0e028b0473b114454c6316e57336ee184ceab6e53f72c178b3e"
+checksum = "f84267b20a16ea918e43c6a88433c2d54fa145c92a811b5b047ccbe153674483"
 
 [[package]]
 name = "potential_utf"
@@ -8645,9 +8667,9 @@ dependencies = [
 
 [[package]]
 name = "serde_spanned"
-version = "0.6.8"
+version = "0.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87607cb1398ed59d48732e575a4c28a7a8ebf2454b964fe3f224f2afc07909e1"
+checksum = "bf41e0cfaf7226dca15e8197172c295a782857fcb97fad1808a166870dee75a3"
 dependencies = [
  "serde",
 ]
@@ -8795,9 +8817,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.15.0"
+version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8917285742e9f3e1683f0a9c4e6b57960b7314d0b08d30d1ecd426713ee2eee9"
+checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "snow"
@@ -9797,7 +9819,7 @@ dependencies = [
  "sp-maybe-compressed-blob",
  "strum 0.26.3",
  "tempfile",
- "toml 0.8.22",
+ "toml 0.8.23",
  "walkdir",
  "wasm-opt",
 ]
@@ -10125,9 +10147,9 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.8.22"
+version = "0.8.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05ae329d1f08c4d17a59bed7ff5b5a769d062e64a62d34a3261b219e62cd5aae"
+checksum = "dc1beb996b9d83529a9e75c17a1686767d148d70663143c7854d8b4a09ced362"
 dependencies = [
  "serde",
  "serde_spanned",
@@ -10137,18 +10159,18 @@ dependencies = [
 
 [[package]]
 name = "toml_datetime"
-version = "0.6.9"
+version = "0.6.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3da5db5a963e24bc68be8b17b6fa82814bb22ee8660f192bb182771d498f09a3"
+checksum = "22cddaf88f4fbc13c51aebbf5f8eceb5c7c5a9da2ac40a13519eb5b0a0e8f11c"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "toml_edit"
-version = "0.22.26"
+version = "0.22.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "310068873db2c5b3e7659d2cc35d21855dbafa50d1ce336397c666e3cb08137e"
+checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
 dependencies = [
  "indexmap 2.9.0",
  "serde",
@@ -10160,9 +10182,9 @@ dependencies = [
 
 [[package]]
 name = "toml_write"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfb942dfe1d8e29a7ee7fcbde5bd2b9a25fb89aa70caea2eba3bee836ff41076"
+checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
 
 [[package]]
 name = "tower-service"
@@ -10184,9 +10206,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-attributes"
-version = "0.1.28"
+version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "395ae124c09f9e6918a2310af6038fba074bcf474ac352496d5910dd59a2226d"
+checksum = "1b1ffbcf9c6f6b99d386e7444eb608ba646ae452a36b39737deb9663b610f662"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -10195,9 +10217,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-core"
-version = "0.1.33"
+version = "0.1.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e672c95779cf947c5311f83787af4fa8fffd12fb27e4993211a84bdfd9610f9c"
+checksum = "b9d12581f227e93f094d3af2ae690a574abb8a2b9b7a96e7cfe9647b2b617678"
 dependencies = [
  "once_cell",
  "valuable",
@@ -10428,7 +10450,7 @@ dependencies = [
 [[package]]
 name = "url"
 version = "2.5.4"
-source = "git+https://github.com/servo/rust-url#68f151c01682d620605b749b61684084150a6c41"
+source = "git+https://github.com/servo/rust-url#dbd526178ed9276176602dd039022eba89e8fc93"
 dependencies = [
  "form_urlencoded 1.2.1 (git+https://github.com/servo/rust-url)",
  "idna 1.0.3 (git+https://github.com/servo/rust-url)",
@@ -10469,16 +10491,6 @@ name = "valuable"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
-
-[[package]]
-name = "verifier"
-version = "0.1.0"
-source = "git+https://github.com/virto-network/webauthn#37d199e53180e3b787b38a5684a5605c24b7466d"
-dependencies = [
- "log",
- "p256",
- "sha2 0.10.9",
-]
 
 [[package]]
 name = "version_check"
@@ -11017,6 +11029,16 @@ checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "webauthn-verifier"
+version = "0.1.0"
+source = "git+https://github.com/virto-network/pass-authenticators#31dff1654aa69f8584d6204b13b10aa8aae643e4"
+dependencies = [
+ "log",
+ "p256",
+ "sha2 0.10.9",
 ]
 
 [[package]]

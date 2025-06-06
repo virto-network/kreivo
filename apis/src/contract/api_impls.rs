@@ -1,4 +1,13 @@
+use super::{
+	apis::{AssetsAPI, KreivoAPI, KreivoApisError, ListingsInventoriesAPI, ListingsItemsAPI},
+	chain_extension::ChainExtension,
+	config::{AccountIdOf, AssetBalanceOf, AssetIdOf, InventoryIdOf, ItemIdOf, ItemOf, ItemPriceOf},
+	KreivoApiEnvironment,
+};
+use crate::apis::MembershipsAPI;
+use crate::contract::config::{MembershipOf, RankOf};
 use core::marker::PhantomData;
+use frame_support::Parameter;
 use ink::{
 	prelude::vec::Vec,
 	scale::{Decode, Encode},
@@ -6,18 +15,12 @@ use ink::{
 };
 use ink_env::Environment;
 
-use super::{
-	apis::{AssetsAPI, KreivoAPI, KreivoApisError, ListingsInventoriesAPI, ListingsItemsAPI},
-	chain_extension::ChainExtension,
-	config::{AccountIdOf, AssetBalanceOf, AssetIdOf, InventoryIdOf, ItemIdOf, ItemOf, ItemPriceOf},
-	KreivoApiEnvironment,
-};
-
 pub struct KreivoApi<E = KreivoApiEnvironment>(PhantomData<E>);
 
 impl<E: Environment<ChainExtension = ChainExtension>> KreivoAPI<EnvAccess<'_, E>> for KreivoApi<E> {
 	type Assets = KreivoAssetsApi;
 	type Listings = KreivoListingsApi;
+	type Memberships = KreivoMembershipsApi;
 }
 
 // Assets
@@ -100,6 +103,24 @@ where
 		env.clone()
 			.extension()
 			.listings__inventory_archive(*id)
+			.map_err(|code| code.into())
+	}
+
+	fn set_inventory_metadata(
+		env: &EnvAccess<'_, E>,
+		id: &Self::InventoryId,
+		metadata: &[u8],
+	) -> Result<(), KreivoApisError> {
+		env.clone()
+			.extension()
+			.listings__set_inventory_metadata(*id, metadata.to_vec())
+			.map_err(|code| code.into())
+	}
+
+	fn clear_inventory_metadata(env: &EnvAccess<'_, E>, id: &Self::InventoryId) -> Result<(), KreivoApisError> {
+		env.clone()
+			.extension()
+			.listings__clear_inventory_metadata(*id)
 			.map_err(|code| code.into())
 	}
 
@@ -201,6 +222,29 @@ where
 			.map_err(|code| code.into())
 	}
 
+	fn set_metadata(
+		env: &EnvAccess<'_, E>,
+		inventory_id: &Self::InventoryId,
+		id: &Self::ItemId,
+		value: &[u8],
+	) -> Result<(), KreivoApisError> {
+		env.clone()
+			.extension()
+			.listings__set_metadata(*inventory_id, *id, value.to_vec())
+			.map_err(|code| code.into())
+	}
+
+	fn clear_metadata(
+		env: &EnvAccess<'_, E>,
+		inventory_id: &Self::InventoryId,
+		id: &Self::ItemId,
+	) -> Result<(), KreivoApisError> {
+		env.clone()
+			.extension()
+			.listings__clear_metadata(*inventory_id, *id)
+			.map_err(|code| code.into())
+	}
+
 	fn item_enable_resell(
 		env: &EnvAccess<'_, E>,
 		inventory_id: &Self::InventoryId,
@@ -292,5 +336,73 @@ where
 			.extension()
 			.listings__item_creator_transfer(*inventory_id, *id, *beneficiary)
 			.map_err(|code| code.into())
+	}
+}
+
+// Memberships
+pub struct KreivoMembershipsApi;
+
+impl<E> MembershipsAPI<EnvAccess<'_, E>> for KreivoMembershipsApi
+where
+	E: Environment<ChainExtension = ChainExtension>,
+{
+	type AccountId = AccountIdOf<KreivoApiEnvironment>;
+	type MembershipId = MembershipOf<KreivoApiEnvironment>;
+	type Rank = RankOf<KreivoApiEnvironment>;
+
+	fn assign_membership(env: &EnvAccess<'_, E>, who: &Self::AccountId) -> Result<(), KreivoApisError> {
+		env.clone()
+			.extension()
+			.memberships__assign_membership(*who)
+			.map_err(|code| code.into())
+	}
+
+	fn membership_of(env: &EnvAccess<'_, E>, who: &Self::AccountId) -> Option<Self::MembershipId> {
+		env.clone().extension().memberships__membership_of(*who)
+	}
+
+	fn rank_of(env: &EnvAccess<'_, E>, id: &Self::MembershipId) -> Option<Self::Rank> {
+		env.clone().extension().memberships__rank_of(*id)
+	}
+
+	fn attribute<K: Encode, V: Parameter>(env: &EnvAccess<'_, E>, id: &Self::MembershipId, key: &K) -> Option<V> {
+		env.clone()
+			.extension()
+			.memberships__attribute(*id, key.encode())
+			.and_then(|v| Decode::decode(&mut v.as_ref()).ok())
+	}
+
+	fn set_attribute<K: Encode, V: Encode>(
+		env: &EnvAccess<'_, E>,
+		id: &Self::MembershipId,
+		key: &K,
+		value: &V,
+	) -> Result<(), KreivoApisError> {
+		env.clone()
+			.extension()
+			.memberships__set_attribute(*id, key.encode(), value.encode())
+			.map_err(|code| code.into())
+	}
+
+	fn clear_attribute<K: Encode>(
+		env: &EnvAccess<'_, E>,
+		id: &Self::MembershipId,
+		key: &K,
+	) -> Result<(), KreivoApisError> {
+		env.clone()
+			.extension()
+			.memberships__clear_attribute(*id, key.encode())
+			.map_err(|code| code.into())
+	}
+
+	fn filter_membership<K: Encode, V: Parameter>(
+		env: &EnvAccess<'_, E>,
+		who: &Self::AccountId,
+		key: &K,
+		value: &V,
+	) -> Option<Self::MembershipId> {
+		env.clone()
+			.extension()
+			.memberships__filter_membership(*who, key.encode(), value.encode())
 	}
 }
