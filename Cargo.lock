@@ -4343,13 +4343,16 @@ dependencies = [
  "pallet-xcm-benchmarks",
  "parachains-common",
  "parity-scale-codec",
+ "pass-authenticators-substrate-keys",
  "pass-authenticators-webauthn",
  "polkadot-core-primitives",
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
+ "rand 0.9.1",
  "runtime-common",
  "runtime-constants",
  "scale-info",
+ "schnorrkel",
  "serde_json",
  "smallvec",
  "sp-api",
@@ -6652,9 +6655,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7924d1d0ad836f665c9065e26d016c673ece3993f30d340068b16f282afc1156"
 
 [[package]]
+name = "pass-authenticators-substrate-keys"
+version = "0.1.0"
+source = "git+https://github.com/virto-network/pass-authenticators#344a4363b0a887810932d625c63dff896c1f094a"
+dependencies = [
+ "fc-traits-authn",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-runtime",
+]
+
+[[package]]
 name = "pass-authenticators-webauthn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators#31dff1654aa69f8584d6204b13b10aa8aae643e4"
+source = "git+https://github.com/virto-network/pass-authenticators#344a4363b0a887810932d625c63dff896c1f094a"
 dependencies = [
  "fc-traits-authn",
  "log",
@@ -11034,7 +11050,7 @@ dependencies = [
 [[package]]
 name = "webauthn-verifier"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators#31dff1654aa69f8584d6204b13b10aa8aae643e4"
+source = "git+https://github.com/virto-network/pass-authenticators#344a4363b0a887810932d625c63dff896c1f094a"
 dependencies = [
  "log",
  "p256",
