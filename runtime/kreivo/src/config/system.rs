@@ -3,7 +3,9 @@
 use super::*;
 
 use cumulus_pallet_parachain_system::{DefaultCoreSelector, RelayNumberMonotonicallyIncreases};
-use frame_contrib_traits::authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
+use frame_contrib_traits::authn::{
+	composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger as ChallengerT,
+};
 use frame_support::traits::{AsEnsureOriginWithArg, LinearStoragePrice};
 use frame_support::{
 	derive_impl,
@@ -161,7 +163,7 @@ parameter_types! {
 /// `PAST_BLOCKS`.
 pub struct BlockHashChallenger<const PAST_BLOCKS: BlockNumber>;
 
-impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLOCKS> {
+impl<const PAST_BLOCKS: BlockNumber> ChallengerT for BlockHashChallenger<PAST_BLOCKS> {
 	type Context = BlockNumber;
 
 	fn generate(cx: &Self::Context, xtc: &impl ExtrinsicContext) -> Challenge {
@@ -174,12 +176,14 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 	}
 }
 
-pub type WebAuthn =
-	pass_webauthn::Authenticator<BlockHashChallenger<{ 30 * MINUTES }>, AuthorityFromPalletId<PassPalletId>>;
+pub type Challenger = BlockHashChallenger<{ 30 * MINUTES }>;
+pub type WebAuthn = pass_webauthn::Authenticator<Challenger, AuthorityFromPalletId<PassPalletId>>;
+pub type SubstrateKey = pass_substrate_keys::Authenticator<Challenger, AuthorityFromPalletId<PassPalletId>>;
 
 composite_authenticator!(
 	pub Pass<AuthorityFromPalletId<PassPalletId>> {
 		WebAuthn,
+		SubstrateKey,
 	}
 );
 
@@ -248,10 +252,7 @@ impl pallet_pass::Config for Runtime {
 	>;
 	type AddressGenerator = ();
 	type Balances = Balances;
-	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Authenticator = PassAuthenticator;
-	#[cfg(feature = "runtime-benchmarks")]
-	type Authenticator = benchmarks::PassAuthenticator;
 	type Scheduler = Scheduler;
 	type BlockNumberProvider = RelaychainData;
 	type RegistrarConsideration = SkipConsideration<
@@ -288,7 +289,9 @@ impl pallet_pass::Config for Runtime {
 mod benchmarks {
 	use super::*;
 	use frame_benchmarking::BenchmarkError;
-	use sp_core::U256;
+	use frame_support::Blake2_256;
+	use pass_substrate_keys::{Sign, SignedMessage};
+	use sp_core::{DeriveJunction::Hard, Pair, U256};
 
 	impl frame_system_benchmarking::Config for Runtime {
 		fn setup_set_code_requirements(code: &Vec<u8>) -> Result<(), BenchmarkError> {
@@ -303,45 +306,83 @@ mod benchmarks {
 		}
 	}
 
-	pub type Dummy = frame_contrib_traits::authn::util::dummy::Dummy<AuthorityFromPalletId<PassPalletId>>;
-	composite_authenticator!(
-	pub Pass<AuthorityFromPalletId<PassPalletId>> {
-			WebAuthn,
-			Dummy,
-		}
-	);
-
 	#[frame_support::storage_alias]
-	type LastDeviceId = StorageValue<Pass, U256, frame_support::pallet_prelude::ValueQuery>;
+	type BenchmarkNextDeviceId = StorageValue<Pass, U256, frame_support::pallet_prelude::ValueQuery>;
+	#[frame_support::storage_alias]
+	type BenchmarkDeviceForId =
+		StorageMap<Pass, Blake2_256, DeviceId, DeviceId, frame_support::pallet_prelude::OptionQuery>;
 
 	pub struct PassBenchmarkHelper;
 
 	impl PassBenchmarkHelper {
 		fn next_id() -> DeviceId {
-			LastDeviceId::mutate(|id| {
-				let device_id = Decode::decode(&mut &id.encode()[..]).expect("U256 is encoded as [u8; 32]");
+			BenchmarkNextDeviceId::mutate(|id| {
+				let device_id = Decode::decode(&mut &id.encode()[..]).expect("U256 is encoded as [u8; 32]; qed");
 				*id = id.saturating_add(U256::one());
 				device_id
 			})
 		}
+
+		fn derive(id: DeviceId) -> sp_core::sr25519::Pair {
+			let alice = sp_keyring::sr25519::Keyring::Alice.pair();
+			alice
+				.derive([Hard(id)].iter(), None)
+				.expect("Correctly derives a key")
+				.0
+		}
+
+		fn pair(account_id: DeviceId) -> sp_core::sr25519::Pair {
+			let id = BenchmarkDeviceForId::get(account_id).expect("pairs handled by benchmarks are saved here; qed");
+			Self::derive(id)
+		}
+
+		fn set_pair(device_id: DeviceId, id: DeviceId) {
+			BenchmarkDeviceForId::insert(device_id, id)
+		}
 	}
 
 	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
-		fn device_attestation(_: &impl ExtrinsicContext) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
-			PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(
-				true,
-				Self::next_id(),
-			))
+		fn device_attestation(xtc: &impl ExtrinsicContext) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
+			let id = Self::next_id();
+			let key = Self::derive(id);
+
+			let context = System::block_number();
+			let message = SignedMessage {
+				context,
+				challenge: Challenger::generate(&context, xtc),
+				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
+			};
+			let signature = message.clone().sign(key.clone());
+
+			let attestation = PassDeviceAttestation::SubstrateKey(pass_substrate_keys::KeyRegistration {
+				message,
+				public: key.public().into(),
+				signature,
+			});
+
+			Self::set_pair(*attestation.device_id(), id);
+			attestation
 		}
 
 		fn credential(
 			user_id: HashedUserId,
-			_: DeviceId,
-			_: &impl ExtrinsicContext,
+			device_id: DeviceId,
+			xtc: &impl ExtrinsicContext,
 		) -> pallet_pass::CredentialOf<Runtime, ()> {
-			PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(
-				true, user_id,
-			))
+			let key = Self::pair(device_id);
+			let context = System::block_number();
+			let message = SignedMessage {
+				context,
+				challenge: Challenger::generate(&context, xtc),
+				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
+			};
+			let signature = message.clone().sign(key.clone());
+
+			PassCredential::SubstrateKey(pass_substrate_keys::KeySignature {
+				user_id,
+				message,
+				signature,
+			})
 		}
 	}
 }

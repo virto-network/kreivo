@@ -68,6 +68,7 @@ pallet-referenda-tracks = { git = "https://github.com/virto-network/frame-contri
 
 # Pass Authenticators
 pass-webauthn = { git = "https://github.com/virto-network/pass-authenticators", default-features = false, package = "pass-authenticators-webauthn" }
+pass-substrate-keys = { git = "https://github.com/virto-network/pass-authenticators", default-features = false, package = "pass-authenticators-substrate-keys" }
 
 # Substrate std
 pallet-transaction-payment-rpc = { version = "43.0.0" }
@@ -88,6 +89,7 @@ sp-transaction-pool = { version = "36.0.0", default-features = false }
 # Substrate Runtime
 sp-genesis-builder = { version = "0.17.0", default-features = false }
 sp-inherents = { version = "36.0.0", default-features = false }
+sp-keyring = { version = "41.0.0", default-features = false }
 sp-runtime = { version = "41.1.0", default-features = false }
 sp-version = { version = "39.0.0", default-features = false }
 sp-weights = { version = "31.1.0", default-features = false }
