@@ -131,7 +131,7 @@ impl core::fmt::Display for PaymentId {
 mod runtime {
 	use super::PaymentId;
 	use core::mem;
-	use parity_scale_codec::{Decode, Encode, EncodeLike, Error, Input, MaxEncodedLen};
+	use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, EncodeLike, Error, Input, MaxEncodedLen};
 	use scale_info::{TypeDefPrimitive, TypeInfo};
 
 	impl EncodeLike for PaymentId {}
@@ -160,6 +160,7 @@ mod runtime {
 			Some(mem::size_of::<u64>())
 		}
 	}
+	impl DecodeWithMemTracking for PaymentId {}
 	impl TypeInfo for PaymentId {
 		type Identity = u64;
 		fn type_info() -> scale_info::Type {
