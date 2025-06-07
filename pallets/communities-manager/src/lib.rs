@@ -104,6 +104,8 @@ pub mod pallet {
 
 		type MembershipsManagerOwner: Get<AccountIdOf<Self>>;
 
+		type ItemConfig: Default;
+
 		type CreateMemberships: CollectionCreate<
 				AccountIdOf<Self>,
 				CollectionConfig<NativeBalanceOf<Self>, BlockNumberFor<Self>, CommunityIdOf<Self>>,

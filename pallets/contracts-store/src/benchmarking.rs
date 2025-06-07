@@ -24,7 +24,7 @@ where
 	BalanceOf<T>: Bounded,
 {
 	let amount = BalanceOf::<T>::max_value().ensure_div(2u32.into())?;
-	<T as pallet_contracts::Config>::Currency::mint_into(&who, amount)?;
+	<T as pallet_contracts::Config>::Currency::mint_into(who, amount)?;
 	Ok(())
 }
 

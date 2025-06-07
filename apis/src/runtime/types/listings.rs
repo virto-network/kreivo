@@ -104,6 +104,22 @@ pub enum ListingsApiInfo<T: Config> {
 		id: ItemIdOf<T>,
 		beneficiary: AccountIdOf<T>,
 	},
+	SetInventoryMetadata {
+		inventory_id: InventoryIdOf<T>,
+		metadata: BoundedVec<u8, ConstU32<256>>,
+	},
+	ClearInventoryMetadata {
+		inventory_id: InventoryIdOf<T>,
+	},
+	SetMetadata {
+		inventory_id: InventoryIdOf<T>,
+		item_id: ItemIdOf<T>,
+		metadata: BoundedVec<u8, ConstU32<256>>,
+	},
+	ClearMetadata {
+		inventory_id: InventoryIdOf<T>,
+		item_id: ItemIdOf<T>,
+	},
 }
 
 impl<T, E> TryFrom<&mut Environment<'_, '_, E, BufInBufOutState>> for ListingsApiInfo<T>
@@ -143,6 +159,14 @@ where
 			0x0106 => {
 				let (id, key) = env.read_as()?;
 				Ok(ListingsApiInfo::InventoryClearAttribute { id, key })
+			}
+			0x0107 => {
+				let (inventory_id, metadata) = env.read_as()?;
+				Ok(ListingsApiInfo::SetInventoryMetadata { inventory_id, metadata })
+			}
+			0x0108 => {
+				let inventory_id = env.read_as()?;
+				Ok(ListingsApiInfo::ClearInventoryMetadata { inventory_id })
 			}
 			// Items
 			0x0110 => {
@@ -226,6 +250,18 @@ where
 					id,
 					beneficiary,
 				})
+			}
+			0x011f => {
+				let (inventory_id, item_id, metadata) = env.read_as()?;
+				Ok(ListingsApiInfo::SetMetadata {
+					inventory_id,
+					item_id,
+					metadata,
+				})
+			}
+			0x0120 => {
+				let (inventory_id, item_id) = env.read_as()?;
+				Ok(ListingsApiInfo::ClearMetadata { inventory_id, item_id })
 			}
 			id => {
 				log::error!("Called an unregistered `func_id`: {id:}");

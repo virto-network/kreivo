@@ -18,6 +18,7 @@ pub mod payments;
 
 pub use {
 	collator_support::{ConsensusHook, SLOT_DURATION},
+	communities::Memberships,
 	currency::{KreivoAssetsCall, KreivoAssetsInstance, MembershipsGasTank},
 	governance::{pallet_custom_origins, TreasuryAccount},
 	payments::pallet_payment_indices,

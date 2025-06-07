@@ -1,11 +1,14 @@
+use num_enum::TryFromPrimitive;
 use parity_scale_codec::{Decode, Encode, Error};
 use scale_info::TypeInfo;
 
 mod assets;
 mod listings;
+mod memberships;
 
 pub use assets::*;
 pub use listings::*;
+pub use memberships::*;
 
 #[derive(Encode, Decode, Debug, Clone, Copy)]
 pub struct KreivoApisErrorCode(u32);
@@ -34,35 +37,33 @@ pub enum KreivoApisError {
 	ExtQueryError,
 	Assets(AssetsApiError),
 	Listings(ListingsApiError),
+	Memberships(MembershipsApiError),
 }
 
 impl From<KreivoApisError> for KreivoApisErrorCode {
 	fn from(error: KreivoApisError) -> KreivoApisErrorCode {
-		match error {
-			KreivoApisError::UnknownError => Self(1),
-			KreivoApisError::ExtQueryError => Self(2),
-			KreivoApisError::Assets(e) => Self((1u32 << 16) | e as u16 as u32),
-			KreivoApisError::Listings(e) => Self((2u32 << 16) | e as u16 as u32),
-		}
+		let inner = |e: u16| e as u32;
+		Self(match error {
+			KreivoApisError::UnknownError => 1,
+			KreivoApisError::ExtQueryError => 2,
+			KreivoApisError::Assets(e) => 0x00010000 | inner(e as u16),
+			KreivoApisError::Listings(e) => 0x00020000 | inner(e as u16),
+			KreivoApisError::Memberships(e) => 0x00030000 | inner(e as u16),
+		})
 	}
 }
 
 impl From<KreivoApisErrorCode> for KreivoApisError {
 	fn from(value: KreivoApisErrorCode) -> Self {
+		let inner = (value.0 & 0x0000ffff) as u16;
 		match value.0 {
-			0x00000002 => KreivoApisError::ExtQueryError,
-			0x00010000..0x00020000 => {
-				TryFrom::<KreivoApisErrorCode>::try_from(KreivoApisErrorCode(value.0 & 0x0000ffff))
-					.map(KreivoApisError::Assets)
-					.unwrap_or(KreivoApisError::UnknownError)
-			}
-			0x00020000..0x00030000 => {
-				TryFrom::<KreivoApisErrorCode>::try_from(KreivoApisErrorCode(value.0 & 0x0000ffff))
-					.map(KreivoApisError::Listings)
-					.unwrap_or(KreivoApisError::UnknownError)
-			}
-			_ => KreivoApisError::UnknownError,
+			0x00000002 => Some(KreivoApisError::ExtQueryError),
+			0x00010000..0x00020000 => TryFrom::<u16>::try_from(inner).ok().map(KreivoApisError::Assets),
+			0x00020000..0x00030000 => TryFrom::<u16>::try_from(inner).ok().map(KreivoApisError::Listings),
+			0x00030000..0x00040000 => TryFrom::<u16>::try_from(inner).ok().map(KreivoApisError::Memberships),
+			_ => None,
 		}
+		.unwrap_or(KreivoApisError::UnknownError)
 	}
 }
 
@@ -97,5 +98,10 @@ mod tests {
 		test_error_code_conversion!(ListingsApiError::NotForResale);
 		test_error_code_conversion!(ListingsApiError::ItemNonTransferable);
 		test_error_code_conversion!(ListingsApiError::FailedToSetAttribute);
+
+		test_error_code_conversion!(MembershipsApiError::NoGroup);
+		test_error_code_conversion!(MembershipsApiError::UnknownMembership);
+		test_error_code_conversion!(MembershipsApiError::CannotAddMember);
+		test_error_code_conversion!(MembershipsApiError::FailedToSetAttribute);
 	}
 }

@@ -82,6 +82,20 @@ where
 				id,
 				beneficiary,
 			} => ListingsAPIOf::<T, E>::item_creator_transfer(ext, inventory_id, id, beneficiary).map(|v| v.encode()),
+			ListingsApiInfo::SetInventoryMetadata { inventory_id, metadata } => {
+				ListingsAPIOf::<T, E>::set_inventory_metadata(ext, inventory_id, metadata).map(|v| v.encode())
+			}
+			ListingsApiInfo::ClearInventoryMetadata { inventory_id } => {
+				ListingsAPIOf::<T, E>::clear_inventory_metadata(ext, inventory_id).map(|v| v.encode())
+			}
+			ListingsApiInfo::SetMetadata {
+				inventory_id,
+				item_id,
+				metadata,
+			} => ListingsAPIOf::<T, E>::set_metadata(ext, inventory_id, item_id, metadata).map(|v| v.encode()),
+			ListingsApiInfo::ClearMetadata { inventory_id, item_id } => {
+				ListingsAPIOf::<T, E>::clear_metadata(ext, inventory_id, item_id).map(|v| v.encode())
+			}
 		}
 	}
 }

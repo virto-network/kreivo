@@ -212,8 +212,7 @@ impl pallet_communities::Config for Test {
 	type MemberMgmtOrigin = EnsureCommunity<Self>;
 	type CommunityId = CommunityId;
 	type MembershipId = MembershipId;
-	type ItemConfig = pallet_nfts::ItemConfig;
-	type MemberMgmt = NonFungiblesMemberships<Memberships>;
+	type MemberMgmt = NonFungiblesMemberships<Memberships, pallet_nfts::ItemConfig>;
 	type Polls = Referenda;
 	type Assets = Assets;
 	type AssetsFreezer = AssetsFreezer;
@@ -239,6 +238,7 @@ impl Config for Test {
 	type MembershipId = MembershipId;
 	type MembershipsManagerCollectionId = MembershipsManagerCollectionId;
 	type MembershipsManagerOwner = RootAccount;
+	type ItemConfig = pallet_nfts::ItemConfig;
 
 	type CreateMemberships = Memberships;
 }

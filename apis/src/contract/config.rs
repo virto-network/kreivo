@@ -45,3 +45,12 @@ pub type InventoryIdOf<T> = <T as ListingsConfig>::InventoryId;
 pub type ItemIdOf<T> = <T as ListingsConfig>::ItemId;
 pub type ItemOf<T> = Item<AccountIdOf<T>, AssetIdOf<T>, AssetBalanceOf<T>>;
 pub type ItemPriceOf<T> = ItemPrice<AssetIdOf<T>, AssetBalanceOf<T>>;
+
+// Memberships
+pub trait MembershipsConfig: Config {
+	type Membership: Parameter + Copy;
+	type Rank: Parameter + Copy;
+}
+
+pub type MembershipOf<T> = <T as MembershipsConfig>::Membership;
+pub type RankOf<T> = <T as MembershipsConfig>::Rank;

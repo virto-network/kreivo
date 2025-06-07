@@ -288,6 +288,7 @@ impl pallet_pass::Config for Runtime {
 mod benchmarks {
 	use super::*;
 	use frame_benchmarking::BenchmarkError;
+	use sp_core::U256;
 
 	impl frame_system_benchmarking::Config for Runtime {
 		fn setup_set_code_requirements(code: &Vec<u8>) -> Result<(), BenchmarkError> {
@@ -310,19 +311,34 @@ mod benchmarks {
 		}
 	);
 
+	#[frame_support::storage_alias]
+	type LastDeviceId = StorageValue<Pass, U256, frame_support::pallet_prelude::ValueQuery>;
+
 	pub struct PassBenchmarkHelper;
 
+	impl PassBenchmarkHelper {
+		fn next_id() -> DeviceId {
+			LastDeviceId::mutate(|id| {
+				let device_id = Decode::decode(&mut &id.encode()[..]).expect("U256 is encoded as [u8; 32]");
+				*id = id.saturating_add(U256::one());
+				device_id
+			})
+		}
+	}
+
 	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
-		fn device_attestation(
-			device_id: DeviceId,
-			_: &impl ExtrinsicContext,
-		) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
+		fn device_attestation(_: &impl ExtrinsicContext) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
 			PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(
-				true, device_id,
+				true,
+				Self::next_id(),
 			))
 		}
 
-		fn credential(user_id: HashedUserId, _: &impl ExtrinsicContext) -> pallet_pass::CredentialOf<Runtime, ()> {
+		fn credential(
+			user_id: HashedUserId,
+			_: DeviceId,
+			_: &impl ExtrinsicContext,
+		) -> pallet_pass::CredentialOf<Runtime, ()> {
 			PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(
 				true, user_id,
 			))

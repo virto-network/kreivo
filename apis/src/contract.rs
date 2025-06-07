@@ -1,6 +1,7 @@
 use super::*;
+use frame_contrib_traits::memberships::GenericRank;
 
-use crate::contract::config::ListingsConfig;
+use crate::contract::config::{ListingsConfig, MembershipsConfig};
 use contract::config::{AssetsConfig, Config};
 use ink::env::{DefaultEnvironment, Environment};
 
@@ -44,4 +45,9 @@ impl<E: Environment> AssetsConfig for KreivoApiEnvironment<E> {
 impl<E: Environment> ListingsConfig for KreivoApiEnvironment<E> {
 	type InventoryId = virto_common::listings::InventoryId;
 	type ItemId = virto_common::listings::ItemId;
+}
+
+impl<E: Environment> MembershipsConfig for KreivoApiEnvironment<E> {
+	type Membership = virto_common::MembershipId;
+	type Rank = GenericRank;
 }

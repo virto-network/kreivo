@@ -26,6 +26,7 @@ anyhow = { version = "1.0.98", default-features = false }
 tempfile = { version = "3.19.1" }
 toml = { version = "0.8.22" }
 twox-hash = { version = "2.1.0", default-features = false }
+num_enum = { version = "0.7.3", default-features = false }
 
 clap = { version = "4.5.3" }
 hex-literal = { version = "1.0.0" }
@@ -65,8 +66,8 @@ pallet-payments = { git = "https://github.com/virto-network/frame-contrib", defa
 pallet-pass = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-pass" }
 pallet-referenda-tracks = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-referenda-tracks" }
 
-# Frame Contrib: Pass WebAuthn
-pass-webauthn = { git = "https://github.com/virto-network/webauthn", default-features = false }
+# Pass Authenticators
+pass-webauthn = { git = "https://github.com/virto-network/pass-authenticators", default-features = false, package = "pass-authenticators-webauthn" }
 
 # Substrate std
 pallet-transaction-payment-rpc = { version = "43.0.0" }

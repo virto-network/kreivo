@@ -41,6 +41,16 @@ impl kreivo_apis::Config for Runtime {
 	type Assets = Assets;
 	type MerchantIdInfo = Self;
 	type Listings = Listings;
+	type GroupInfo = Self;
+	type Memberships = Memberships;
+}
+
+impl kreivo_apis::GroupInfo<AccountId> for Runtime {
+	type Group = CommunityId;
+
+	fn maybe_group(who: &AccountId) -> Option<Self::Group> {
+		ContractsStore::maybe_merchant_id(who)
+	}
 }
 
 impl kreivo_apis::MerchantIdInfo<AccountId> for Runtime {

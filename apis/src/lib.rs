@@ -13,6 +13,7 @@
 //!   regarding assets.
 
 extern crate alloc;
+extern crate core;
 
 pub mod apis;
 #[cfg(feature = "contract")]
@@ -23,4 +24,4 @@ mod runtime;
 #[cfg(feature = "contract")]
 pub use contract::{KreivoApi, KreivoApiEnvironment};
 #[cfg(feature = "runtime")]
-pub use runtime::{Config, KreivoChainExtensions, MerchantIdInfo};
+pub use runtime::{Config, GroupInfo, KreivoChainExtensions, MerchantIdInfo};

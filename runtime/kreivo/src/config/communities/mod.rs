@@ -1,16 +1,18 @@
 use super::*;
 
+use frame_contrib_traits::memberships::{NonFungiblesMemberships, WithHooks};
 use frame_support::traits::TryMapSuccess;
 use frame_system::{EnsureRootWithSuccess, EnsureSigned};
 use pallet_communities::origin::{EnsureCommunity, EnsureSignedPays};
 use sp_runtime::{morph_types, traits::AccountIdConversion};
 use virto_common::{CommunityId, MembershipId};
 
-use frame_contrib_traits::memberships::{NonFungiblesMemberships, WithHooks};
+use memberships::CopySystemAttributesOnAssign;
+pub use memberships::Memberships;
+use pallet_custom_origins::CreateMemberships;
+
 pub mod governance;
 pub mod memberships;
-
-use pallet_custom_origins::CreateMemberships;
 
 type CreationPayment = Option<(Balance, AccountId, AccountId)>;
 
@@ -33,36 +35,34 @@ type RootCreatesCommunitiesForFree = EnsureRootWithSuccess<AccountId, NoPay>;
 type AnyoneElsePays = EnsureSignedPays<Runtime, CommunityDepositAmount, TreasuryAccount>;
 
 impl pallet_communities::Config for Runtime {
-	type CommunityId = CommunityId;
-	type MembershipId = MembershipId;
-	type ItemConfig = pallet_nfts::ItemConfig;
-	type MemberMgmt =
-		WithHooks<NonFungiblesMemberships<CommunityMemberships>, memberships::CopySystemAttributesOnAssign>;
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type WeightInfo = weights::pallet_communities::WeightInfo<Runtime>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type CreateOrigin = frame_system::EnsureNever<CreationPayment>;
+
 	#[cfg(feature = "runtime-benchmarks")]
 	type CreateOrigin = RootCreatesCommunitiesForFree;
+
 	type AdminOrigin = EitherOf<EnsureCommunity<Self>, EnsureCommunityAccount>;
-
 	type MemberMgmtOrigin = EitherOf<EnsureCommunity<Self>, EnsureCommunityAccount>;
+	type CommunityId = CommunityId;
 
+	type MembershipId = MembershipId;
+	type MemberMgmt = WithHooks<Memberships, CopySystemAttributesOnAssign>;
 	type Polls = CommunityReferenda;
 	type Assets = Assets;
+
 	type AssetsFreezer = AssetsFreezer;
 
 	type Balances = Balances;
-	type RuntimeCall = RuntimeCall;
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type BlockNumberProvider = RelaychainData;
 
-	type RuntimeEvent = RuntimeEvent;
-
-	type WeightInfo = weights::pallet_communities::WeightInfo<Runtime>;
 	type PalletId = CommunityPalletId;
-
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = CommunityBenchmarkHelper;
-	type BlockNumberProvider = RelaychainData;
 }
 
 impl pallet_communities_manager::Config for Runtime {
@@ -78,6 +78,7 @@ impl pallet_communities_manager::Config for Runtime {
 	type MembershipId = MembershipId;
 	type MembershipsManagerCollectionId = MembershipsCollectionId;
 	type MembershipsManagerOwner = TreasuryAccount;
+	type ItemConfig = pallet_nfts::ItemConfig;
 
 	type CreateMemberships = CommunityMemberships;
 }
