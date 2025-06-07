@@ -4348,9 +4348,11 @@ dependencies = [
  "polkadot-core-primitives",
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
+ "rand 0.9.1",
  "runtime-common",
  "runtime-constants",
  "scale-info",
+ "schnorrkel",
  "serde_json",
  "smallvec",
  "sp-api",
@@ -4360,7 +4362,6 @@ dependencies = [
  "sp-genesis-builder",
  "sp-inherents",
  "sp-io",
- "sp-keyring",
  "sp-offchain",
  "sp-runtime",
  "sp-session",
@@ -6656,7 +6657,7 @@ checksum = "7924d1d0ad836f665c9065e26d016c673ece3993f30d340068b16f282afc1156"
 [[package]]
 name = "pass-authenticators-substrate-keys"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators#50ddfd9330b959693aeb5d409375112f379dee05"
+source = "git+https://github.com/virto-network/pass-authenticators#344a4363b0a887810932d625c63dff896c1f094a"
 dependencies = [
  "fc-traits-authn",
  "log",
@@ -6669,7 +6670,7 @@ dependencies = [
 [[package]]
 name = "pass-authenticators-webauthn"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators#50ddfd9330b959693aeb5d409375112f379dee05"
+source = "git+https://github.com/virto-network/pass-authenticators#344a4363b0a887810932d625c63dff896c1f094a"
 dependencies = [
  "fc-traits-authn",
  "log",
@@ -11049,7 +11050,7 @@ dependencies = [
 [[package]]
 name = "webauthn-verifier"
 version = "0.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators#50ddfd9330b959693aeb5d409375112f379dee05"
+source = "git+https://github.com/virto-network/pass-authenticators#344a4363b0a887810932d625c63dff896c1f094a"
 dependencies = [
  "log",
  "p256",

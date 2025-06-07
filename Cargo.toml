@@ -37,9 +37,11 @@ parity-scale-codec = { version = "3.6.4", default-features = false, features = [
 scale-info = { version = "2.10.0", default-features = false, features = [
   "derive",
 ] }
+rand = { version = "0.9.1", default-features = false }
 serde = { version = "1.0.188", default-features = false }
 serde_json = { version = "1.0.121", default-features = false }
 smallvec = "1.11"
+schnorrkel = { version = "0.11.4", default-features = false }
 
 # Local dependencies
 kreivo-runtime = { path = "runtime/kreivo" }
@@ -89,7 +91,6 @@ sp-transaction-pool = { version = "36.0.0", default-features = false }
 # Substrate Runtime
 sp-genesis-builder = { version = "0.17.0", default-features = false }
 sp-inherents = { version = "36.0.0", default-features = false }
-sp-keyring = { version = "41.0.0", default-features = false }
 sp-runtime = { version = "41.1.0", default-features = false }
 sp-version = { version = "39.0.0", default-features = false }
 sp-weights = { version = "31.1.0", default-features = false }

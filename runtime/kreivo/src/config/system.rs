@@ -3,9 +3,7 @@
 use super::*;
 
 use cumulus_pallet_parachain_system::{DefaultCoreSelector, RelayNumberMonotonicallyIncreases};
-use frame_contrib_traits::authn::{
-	composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger as ChallengerT,
-};
+use frame_contrib_traits::authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
 use frame_support::traits::{AsEnsureOriginWithArg, LinearStoragePrice};
 use frame_support::{
 	derive_impl,
@@ -163,7 +161,7 @@ parameter_types! {
 /// `PAST_BLOCKS`.
 pub struct BlockHashChallenger<const PAST_BLOCKS: BlockNumber>;
 
-impl<const PAST_BLOCKS: BlockNumber> ChallengerT for BlockHashChallenger<PAST_BLOCKS> {
+impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLOCKS> {
 	type Context = BlockNumber;
 
 	fn generate(cx: &Self::Context, xtc: &impl ExtrinsicContext) -> Challenge {
@@ -176,9 +174,9 @@ impl<const PAST_BLOCKS: BlockNumber> ChallengerT for BlockHashChallenger<PAST_BL
 	}
 }
 
-pub type Challenger = BlockHashChallenger<{ 30 * MINUTES }>;
-pub type WebAuthn = pass_webauthn::Authenticator<Challenger, AuthorityFromPalletId<PassPalletId>>;
-pub type SubstrateKey = pass_substrate_keys::Authenticator<Challenger, AuthorityFromPalletId<PassPalletId>>;
+pub type KreivoChallenger = BlockHashChallenger<{ 30 * MINUTES }>;
+pub type WebAuthn = pass_webauthn::Authenticator<KreivoChallenger, AuthorityFromPalletId<PassPalletId>>;
+pub type SubstrateKey = pass_substrate_keys::Authenticator<KreivoChallenger, AuthorityFromPalletId<PassPalletId>>;
 
 composite_authenticator!(
 	pub Pass<AuthorityFromPalletId<PassPalletId>> {
@@ -290,8 +288,11 @@ mod benchmarks {
 	use super::*;
 	use frame_benchmarking::BenchmarkError;
 	use frame_support::Blake2_256;
-	use pass_substrate_keys::{Sign, SignedMessage};
-	use sp_core::{DeriveJunction::Hard, Pair, U256};
+	use pass_substrate_keys::SignedMessage;
+	use rand::rngs::SmallRng;
+	use rand::{RngCore, SeedableRng};
+	use schnorrkel::{Keypair, SecretKey};
+	use sp_runtime::MultiSignature;
 
 	impl frame_system_benchmarking::Config for Runtime {
 		fn setup_set_code_requirements(code: &Vec<u8>) -> Result<(), BenchmarkError> {
@@ -306,61 +307,54 @@ mod benchmarks {
 		}
 	}
 
+	/// This is a map of secret keys, grouped by its derived [`DeviceId`]
 	#[frame_support::storage_alias]
-	type BenchmarkNextDeviceId = StorageValue<Pass, U256, frame_support::pallet_prelude::ValueQuery>;
-	#[frame_support::storage_alias]
-	type BenchmarkDeviceForId =
-		StorageMap<Pass, Blake2_256, DeviceId, DeviceId, frame_support::pallet_prelude::OptionQuery>;
+	type BenchmarkDeviceIdSecretKey =
+		StorageMap<Pass, Blake2_256, DeviceId, [u8; 64], frame_support::pallet_prelude::OptionQuery>;
 
 	pub struct PassBenchmarkHelper;
 
 	impl PassBenchmarkHelper {
-		fn next_id() -> DeviceId {
-			BenchmarkNextDeviceId::mutate(|id| {
-				let device_id = Decode::decode(&mut &id.encode()[..]).expect("U256 is encoded as [u8; 32]; qed");
-				*id = id.saturating_add(U256::one());
-				device_id
-			})
+		fn derive() -> Keypair {
+			let mut seed = SmallRng::seed_from_u64(1);
+			let mut secret = [0u8; 64];
+			seed.fill_bytes(&mut secret);
+
+			let secret = SecretKey::from_bytes(&secret).expect("got some secret key");
+			secret.to_keypair()
 		}
 
-		fn derive(id: DeviceId) -> sp_core::sr25519::Pair {
-			let alice = sp_keyring::sr25519::Keyring::Alice.pair();
-			alice
-				.derive([Hard(id)].iter(), None)
-				.expect("Correctly derives a key")
-				.0
+		fn pair(id: DeviceId) -> Keypair {
+			let bytes = BenchmarkDeviceIdSecretKey::get(id).expect("pairs handled by benchmarks are saved here; qed");
+			SecretKey::from_bytes(&bytes)
+				.expect("saved using `to_bytes`; qed")
+				.to_keypair()
 		}
 
-		fn pair(account_id: DeviceId) -> sp_core::sr25519::Pair {
-			let id = BenchmarkDeviceForId::get(account_id).expect("pairs handled by benchmarks are saved here; qed");
-			Self::derive(id)
-		}
-
-		fn set_pair(device_id: DeviceId, id: DeviceId) {
-			BenchmarkDeviceForId::insert(device_id, id)
+		fn set_pair(device_id: DeviceId, keypair: Keypair) {
+			BenchmarkDeviceIdSecretKey::insert(device_id, keypair.secret.to_bytes());
 		}
 	}
 
 	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
 		fn device_attestation(xtc: &impl ExtrinsicContext) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
-			let id = Self::next_id();
-			let key = Self::derive(id);
+			let pair = Self::derive();
 
 			let context = System::block_number();
 			let message = SignedMessage {
 				context,
-				challenge: Challenger::generate(&context, xtc),
+				challenge: KreivoChallenger::generate(&context, xtc),
 				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
 			};
-			let signature = message.clone().sign(key.clone());
+			let signature = pair.secret.sign_simple(&[], message.message().as_ref(), &pair.public);
 
 			let attestation = PassDeviceAttestation::SubstrateKey(pass_substrate_keys::KeyRegistration {
 				message,
-				public: key.public().into(),
-				signature,
+				public: AccountId::new(pair.public.to_bytes()),
+				signature: MultiSignature::Sr25519(signature.to_bytes().into()),
 			});
 
-			Self::set_pair(*attestation.device_id(), id);
+			Self::set_pair(*attestation.device_id(), pair);
 			attestation
 		}
 
@@ -369,19 +363,20 @@ mod benchmarks {
 			device_id: DeviceId,
 			xtc: &impl ExtrinsicContext,
 		) -> pallet_pass::CredentialOf<Runtime, ()> {
-			let key = Self::pair(device_id);
+			let pair = Self::pair(device_id);
+
 			let context = System::block_number();
 			let message = SignedMessage {
 				context,
-				challenge: Challenger::generate(&context, xtc),
+				challenge: KreivoChallenger::generate(&context, xtc),
 				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
 			};
-			let signature = message.clone().sign(key.clone());
+			let signature = pair.secret.sign_simple(&[], message.message().as_ref(), &pair.public);
 
 			PassCredential::SubstrateKey(pass_substrate_keys::KeySignature {
 				user_id,
 				message,
-				signature,
+				signature: MultiSignature::Sr25519(signature.to_bytes().into()),
 			})
 		}
 	}
