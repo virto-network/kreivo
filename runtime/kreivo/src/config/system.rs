@@ -319,9 +319,9 @@ mod benchmarks {
 	impl PassBenchmarkHelper {
 		fn next_id() -> DeviceId {
 			LastDeviceId::mutate(|id| {
-				let device_id = id.clone();
-				*id = device_id.saturating_add(U256::one());
-				Decode::decode(&mut &id.encode()[..]).expect("U256 is encoded as [u8; 32]")
+				let device_id = Decode::decode(&mut &id.encode()[..]).expect("U256 is encoded as [u8; 32]");
+				*id = id.saturating_add(U256::one());
+				device_id
 			})
 		}
 	}
