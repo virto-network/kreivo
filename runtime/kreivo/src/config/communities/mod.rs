@@ -58,7 +58,7 @@ impl pallet_communities::Config for Runtime {
 	type AssetsFreezer = AssetsFreezer;
 
 	type Balances = Balances;
-	type BlockNumberProvider = RelaychainData;
+	type BlockNumberProvider = System;
 
 	type PalletId = CommunityPalletId;
 	#[cfg(feature = "runtime-benchmarks")]
@@ -202,19 +202,19 @@ mod benchmarks {
 			)?;
 			Referenda::<Runtime, CommunityReferendaInstance>::place_decision_deposit(origin, index)?;
 
-			RelaychainData::set_block_number(2);
+			System::set_block_number(2);
 			Referenda::<Runtime, CommunityReferendaInstance>::nudge_referendum(RuntimeOrigin::root(), 0)?;
 
 			Ok(0)
 		}
 
 		fn finish_poll(index: PollIndexOf<Runtime>) -> Result<(), BenchmarkError> {
-			RelaychainData::set_block_number(8);
+			System::set_block_number(8);
 			Referenda::<Runtime, CommunityReferendaInstance>::nudge_referendum(RuntimeOrigin::root(), index)?;
 
 			frame_support::assert_ok!(Referenda::<Runtime, CommunityReferendaInstance>::ensure_ongoing(index));
 
-			RelaychainData::set_block_number(9);
+			System::set_block_number(9);
 			Referenda::<Runtime, CommunityReferendaInstance>::nudge_referendum(RuntimeOrigin::root(), index)?;
 
 			frame_support::assert_err!(

@@ -110,7 +110,7 @@ impl pallet_referenda::Config<CommunityReferendaInstance> for Runtime {
 	type AlarmInterval = AlarmInterval;
 	type Tracks = CommunityTracks;
 	type Preimages = Preimage;
-	type BlockNumberProvider = RelaychainData;
+	type BlockNumberProvider = System;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

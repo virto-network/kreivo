@@ -252,7 +252,7 @@ impl pallet_pass::Config for Runtime {
 	type Balances = Balances;
 	type Authenticator = PassAuthenticator;
 	type Scheduler = Scheduler;
-	type BlockNumberProvider = RelaychainData;
+	type BlockNumberProvider = System;
 	type RegistrarConsideration = SkipConsideration<
 		HoldConsideration<
 			AccountId,
