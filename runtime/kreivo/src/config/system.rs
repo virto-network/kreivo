@@ -174,12 +174,14 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 	}
 }
 
-pub type WebAuthn =
-	pass_webauthn::Authenticator<BlockHashChallenger<{ 30 * MINUTES }>, AuthorityFromPalletId<PassPalletId>>;
+pub type KreivoChallenger = BlockHashChallenger<{ 30 * MINUTES }>;
+pub type WebAuthn = pass_webauthn::Authenticator<KreivoChallenger, AuthorityFromPalletId<PassPalletId>>;
+pub type SubstrateKey = pass_substrate_keys::Authenticator<KreivoChallenger, AuthorityFromPalletId<PassPalletId>>;
 
 composite_authenticator!(
 	pub Pass<AuthorityFromPalletId<PassPalletId>> {
 		WebAuthn,
+		SubstrateKey,
 	}
 );
 
@@ -248,10 +250,7 @@ impl pallet_pass::Config for Runtime {
 	>;
 	type AddressGenerator = ();
 	type Balances = Balances;
-	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Authenticator = PassAuthenticator;
-	#[cfg(feature = "runtime-benchmarks")]
-	type Authenticator = benchmarks::PassAuthenticator;
 	type Scheduler = Scheduler;
 	type BlockNumberProvider = RelaychainData;
 	type RegistrarConsideration = SkipConsideration<
@@ -285,10 +284,15 @@ impl pallet_pass::Config for Runtime {
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-mod benchmarks {
+pub mod benchmarks {
 	use super::*;
 	use frame_benchmarking::BenchmarkError;
+	use frame_support::Blake2_256;
+	use pass_substrate_keys::SignedMessage;
+	use rand_core::{CryptoRng, Error, RngCore};
+	use schnorrkel::{context::SigningContext, Keypair, SecretKey};
 	use sp_core::U256;
+	use sp_runtime::MultiSignature;
 
 	impl frame_system_benchmarking::Config for Runtime {
 		fn setup_set_code_requirements(code: &Vec<u8>) -> Result<(), BenchmarkError> {
@@ -303,45 +307,143 @@ mod benchmarks {
 		}
 	}
 
-	pub type Dummy = frame_contrib_traits::authn::util::dummy::Dummy<AuthorityFromPalletId<PassPalletId>>;
-	composite_authenticator!(
-	pub Pass<AuthorityFromPalletId<PassPalletId>> {
-			WebAuthn,
-			Dummy,
-		}
-	);
-
+	/// This is a map of secret keys, grouped by its derived [`DeviceId`]
 	#[frame_support::storage_alias]
-	type LastDeviceId = StorageValue<Pass, U256, frame_support::pallet_prelude::ValueQuery>;
+	type BenchmarkDeviceIdSecretKey =
+		StorageMap<Pass, Blake2_256, DeviceId, [u8; 64], frame_support::pallet_prelude::OptionQuery>;
+
+	parameter_types! {
+		pub Rng: BenchRng = BenchRng::from(U256::zero());
+	}
+
+	/// A hash-based _(not really random)_ "RNG". Marked as [`CryptoRng`] (even
+	/// though it is clearly not) because these are benchmarking tests, and
+	/// don't aim to test for security issues.
+	pub struct BenchRng([u8; 32], u8);
+	impl BenchRng {
+		fn rotate(&mut self) {
+			if self.1 == 31 {
+				self.0 = blake2_256(&self.0);
+				self.1 = 0;
+			} else {
+				self.1 += 1
+			}
+		}
+	}
+	impl From<U256> for BenchRng {
+		fn from(u256: U256) -> Self {
+			Self(blake2_256(&u256.to_little_endian()), 0)
+		}
+	}
+	impl CryptoRng for BenchRng {}
+	impl RngCore for BenchRng {
+		fn next_u32(&mut self) -> u32 {
+			let mut b = [0u8; 4];
+			for i in 0..4 {
+				b[i] = self.0[i];
+				self.rotate();
+			}
+			u32::from_le_bytes(b)
+		}
+
+		fn next_u64(&mut self) -> u64 {
+			let mut b = [0u8; 8];
+			for i in 0..8 {
+				b[i] = self.0[i];
+				self.rotate();
+			}
+			u64::from_le_bytes(b)
+		}
+
+		fn fill_bytes(&mut self, dest: &mut [u8]) {
+			for byte in dest.iter_mut() {
+				*byte = self.0[self.1 as usize];
+				self.rotate();
+			}
+		}
+
+		fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+			for byte in dest.iter_mut() {
+				*byte = self.0[self.1 as usize];
+				self.rotate();
+			}
+			Ok(())
+		}
+	}
 
 	pub struct PassBenchmarkHelper;
 
 	impl PassBenchmarkHelper {
-		fn next_id() -> DeviceId {
-			LastDeviceId::mutate(|id| {
-				let device_id = Decode::decode(&mut &id.encode()[..]).expect("U256 is encoded as [u8; 32]");
-				*id = id.saturating_add(U256::one());
-				device_id
-			})
+		fn sign<Cx: Encode>(pair: &Keypair, msg: &SignedMessage<Cx>) -> MultiSignature {
+			let msg = msg.message();
+			let t = {
+				// The context must be b"substrate", otherwise it'll fail validation.
+				let t = SigningContext::new(b"substrate").bytes(msg.as_ref());
+				schnorrkel::context::attach_rng(t, Rng::get())
+			};
+			MultiSignature::Sr25519(pair.sign(t).to_bytes().into())
+		}
+
+		fn derive() -> Keypair {
+			let secret = SecretKey::generate_with(Rng::get());
+			secret.to_keypair()
+		}
+
+		fn pair(id: DeviceId) -> Keypair {
+			let bytes = BenchmarkDeviceIdSecretKey::get(id).expect("pairs handled by benchmarks are saved here; qed");
+			SecretKey::from_bytes(&bytes)
+				.expect("saved using `to_bytes`; qed")
+				.to_keypair()
+		}
+
+		fn set_pair(device_id: DeviceId, keypair: Keypair) {
+			BenchmarkDeviceIdSecretKey::insert(device_id, keypair.secret.to_bytes());
 		}
 	}
 
 	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
-		fn device_attestation(_: &impl ExtrinsicContext) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
-			PassDeviceAttestation::Dummy(frame_contrib_traits::authn::util::dummy::DummyAttestation::new(
-				true,
-				Self::next_id(),
-			))
+		fn device_attestation(xtc: &impl ExtrinsicContext) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
+			let pair = Self::derive();
+
+			let context = System::block_number();
+			let message = SignedMessage {
+				context,
+				challenge: KreivoChallenger::generate(&context, xtc),
+				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
+			};
+			let public = AccountId::new(pair.public.to_bytes());
+			let signature = Self::sign(&pair, &message);
+
+			let attestation = PassDeviceAttestation::SubstrateKey(pass_substrate_keys::KeyRegistration {
+				message,
+				public,
+				signature,
+			});
+
+			Self::set_pair(*attestation.device_id(), pair);
+			attestation
 		}
 
 		fn credential(
 			user_id: HashedUserId,
-			_: DeviceId,
-			_: &impl ExtrinsicContext,
+			device_id: DeviceId,
+			xtc: &impl ExtrinsicContext,
 		) -> pallet_pass::CredentialOf<Runtime, ()> {
-			PassCredential::Dummy(frame_contrib_traits::authn::util::dummy::DummyCredential::new(
-				true, user_id,
-			))
+			let pair = Self::pair(device_id);
+
+			let context = System::block_number();
+			let message = SignedMessage {
+				context,
+				challenge: KreivoChallenger::generate(&context, xtc),
+				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
+			};
+			let signature = Self::sign(&pair, &message);
+
+			PassCredential::SubstrateKey(pass_substrate_keys::KeySignature {
+				user_id,
+				message,
+				signature,
+			})
 		}
 	}
 }
