@@ -37,7 +37,7 @@ parity-scale-codec = { version = "3.6.4", default-features = false, features = [
 scale-info = { version = "2.10.0", default-features = false, features = [
   "derive",
 ] }
-rand = { version = "0.9.1", default-features = false }
+rand_core = { version = "0.6.4", default-features = false }
 serde = { version = "1.0.188", default-features = false }
 serde_json = { version = "1.0.121", default-features = false }
 smallvec = "1.11"

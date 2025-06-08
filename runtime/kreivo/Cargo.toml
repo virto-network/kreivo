@@ -22,7 +22,7 @@ scale-info = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["alloc"] }
 smallvec.workspace = true
 schnorrkel = { workspace = true, optional = true, features = ["alloc"] }
-rand = { workspace = true, optional = true, features = ["small_rng"] }
+rand_core = { workspace = true, optional = true }
 
 # Local
 kreivo-apis = { workspace = true, features = ["runtime"] }
@@ -211,7 +211,7 @@ std = [
 	"frame-contrib-traits/std",
 	"pallet-contracts-store/std",
 	"pass-substrate-keys/std",
-	"rand?/std",
+	"rand_core?/std",
 	"schnorrkel?/std"
 ]
 
@@ -257,7 +257,7 @@ runtime-benchmarks = [
   "parachains-common/runtime-benchmarks",
   "polkadot-parachain-primitives/runtime-benchmarks",
   "polkadot-runtime-common/runtime-benchmarks",
-  "rand",
+  "rand_core",
   "runtime-common/runtime-benchmarks",
   "schnorrkel",
   "sp-io",

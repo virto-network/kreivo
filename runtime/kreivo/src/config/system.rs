@@ -284,14 +284,14 @@ impl pallet_pass::Config for Runtime {
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-mod benchmarks {
+pub mod benchmarks {
 	use super::*;
 	use frame_benchmarking::BenchmarkError;
 	use frame_support::Blake2_256;
 	use pass_substrate_keys::SignedMessage;
-	use rand::rngs::SmallRng;
-	use rand::{RngCore, SeedableRng};
-	use schnorrkel::{Keypair, SecretKey};
+	use rand_core::{CryptoRng, Error, RngCore};
+	use schnorrkel::{context::SigningContext, Keypair, SecretKey};
+	use sp_core::U256;
 	use sp_runtime::MultiSignature;
 
 	impl frame_system_benchmarking::Config for Runtime {
@@ -312,15 +312,80 @@ mod benchmarks {
 	type BenchmarkDeviceIdSecretKey =
 		StorageMap<Pass, Blake2_256, DeviceId, [u8; 64], frame_support::pallet_prelude::OptionQuery>;
 
+	parameter_types! {
+		pub Rng: BenchRng = BenchRng::from(U256::zero());
+	}
+
+	/// A hash-based _(not really random)_ "RNG". Marked as [`CryptoRng`] (even
+	/// though it is clearly not) because these are benchmarking tests, and
+	/// don't aim to test for security issues.
+	pub struct BenchRng([u8; 32], u8);
+	impl BenchRng {
+		fn rotate(&mut self) {
+			if self.1 == 31 {
+				self.0 = blake2_256(&self.0);
+				self.1 = 0;
+			} else {
+				self.1 += 1
+			}
+		}
+	}
+	impl From<U256> for BenchRng {
+		fn from(u256: U256) -> Self {
+			Self(blake2_256(&u256.to_little_endian()), 0)
+		}
+	}
+	impl CryptoRng for BenchRng {}
+	impl RngCore for BenchRng {
+		fn next_u32(&mut self) -> u32 {
+			let mut b = [0u8; 4];
+			for i in 0..4 {
+				b[i] = self.0[i];
+				self.rotate();
+			}
+			u32::from_le_bytes(b)
+		}
+
+		fn next_u64(&mut self) -> u64 {
+			let mut b = [0u8; 8];
+			for i in 0..8 {
+				b[i] = self.0[i];
+				self.rotate();
+			}
+			u64::from_le_bytes(b)
+		}
+
+		fn fill_bytes(&mut self, dest: &mut [u8]) {
+			for byte in dest.iter_mut() {
+				*byte = self.0[self.1 as usize];
+				self.rotate();
+			}
+		}
+
+		fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+			for byte in dest.iter_mut() {
+				*byte = self.0[self.1 as usize];
+				self.rotate();
+			}
+			Ok(())
+		}
+	}
+
 	pub struct PassBenchmarkHelper;
 
 	impl PassBenchmarkHelper {
-		fn derive() -> Keypair {
-			let mut seed = SmallRng::seed_from_u64(1);
-			let mut secret = [0u8; 64];
-			seed.fill_bytes(&mut secret);
+		fn sign<Cx: Encode>(pair: &Keypair, msg: &SignedMessage<Cx>) -> MultiSignature {
+			let msg = msg.message();
+			let t = {
+				// The context must be b"substrate", otherwise it'll fail validation.
+				let t = SigningContext::new(b"substrate").bytes(msg.as_ref());
+				schnorrkel::context::attach_rng(t, Rng::get())
+			};
+			MultiSignature::Sr25519(pair.sign(t).to_bytes().into())
+		}
 
-			let secret = SecretKey::from_bytes(&secret).expect("got some secret key");
+		fn derive() -> Keypair {
+			let secret = SecretKey::generate_with(Rng::get());
 			secret.to_keypair()
 		}
 
@@ -346,12 +411,13 @@ mod benchmarks {
 				challenge: KreivoChallenger::generate(&context, xtc),
 				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
 			};
-			let signature = pair.secret.sign_simple(&[], message.message().as_ref(), &pair.public);
+			let public = AccountId::new(pair.public.to_bytes());
+			let signature = Self::sign(&pair, &message);
 
 			let attestation = PassDeviceAttestation::SubstrateKey(pass_substrate_keys::KeyRegistration {
 				message,
-				public: AccountId::new(pair.public.to_bytes()),
-				signature: MultiSignature::Sr25519(signature.to_bytes().into()),
+				public,
+				signature,
 			});
 
 			Self::set_pair(*attestation.device_id(), pair);
@@ -371,12 +437,12 @@ mod benchmarks {
 				challenge: KreivoChallenger::generate(&context, xtc),
 				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
 			};
-			let signature = pair.secret.sign_simple(&[], message.message().as_ref(), &pair.public);
+			let signature = Self::sign(&pair, &message);
 
 			PassCredential::SubstrateKey(pass_substrate_keys::KeySignature {
 				user_id,
 				message,
-				signature: MultiSignature::Sr25519(signature.to_bytes().into()),
+				signature,
 			})
 		}
 	}
