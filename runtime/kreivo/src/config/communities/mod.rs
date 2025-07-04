@@ -106,7 +106,6 @@ mod benchmarks {
 	use pallet_referenda::{BoundedCallOf, Curve, Pallet as Referenda, TrackInfo};
 	use pallet_referenda_tracks::Pallet as Tracks;
 	use parity_scale_codec::Encode;
-	use sp_runtime::traits::BlockNumberProvider;
 	use sp_runtime::Perbill;
 
 	type MembershipsManagementCollection = ItemOf<CommunityMemberships, MembershipsCollectionId, AccountId>;

@@ -56,12 +56,10 @@ impl pallet_treasury::Config for Runtime {
 // #[runtime::pallet_index(53)]
 // pub type BlackHole
 
-#[cfg(feature = "paseo")]
 parameter_types! {
 	pub const BlackHolePalletId: PalletId = PalletId(*b"py/bhole");
 }
 
-#[cfg(feature = "paseo")]
 impl pallet_black_hole::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();

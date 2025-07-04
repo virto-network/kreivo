@@ -258,7 +258,6 @@ mod runtime {
 	// Governance
 	#[runtime::pallet_index(50)]
 	pub type Treasury = pallet_treasury;
-	#[cfg(feature = "paseo")]
 	#[runtime::pallet_index(53)]
 	pub type BlackHole = pallet_black_hole;
 

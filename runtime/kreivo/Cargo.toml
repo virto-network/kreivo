@@ -53,7 +53,6 @@ pallet-assets-holder.workspace = true
 pallet-aura.workspace = true
 pallet-authorship.workspace = true
 pallet-balances.workspace = true
-pallet-black-hole = { workspace = true, optional = true }
 pallet-contracts.workspace = true
 pallet-multisig.workspace = true
 pallet-nfts.workspace = true
@@ -113,6 +112,7 @@ parachains-common.workspace = true
 
 # Frame Contrib
 frame-contrib-traits.workspace = true
+pallet-black-hole.workspace = true
 pallet-gas-transaction-payment.workspace = true
 pallet-listings.workspace = true
 pallet-orders.workspace = true
@@ -124,7 +124,7 @@ pass-substrate-keys = { workspace = true, features = ["runtime"] }
 
 [features]
 default = ["std"]
-paseo = ["runtime-constants/paseo", "pallet-black-hole"]
+paseo = ["runtime-constants/paseo"]
 std = [
 	"assets-common/std",
 	"cumulus-pallet-aura-ext/std",
@@ -214,7 +214,7 @@ std = [
 	"pass-substrate-keys/std",
 	"rand_core?/std",
 	"schnorrkel?/std",
-	"pallet-black-hole?/std",
+	"pallet-black-hole/std",
 ]
 
 runtime-benchmarks = [
@@ -274,7 +274,7 @@ runtime-benchmarks = [
 	"pallet-contracts-store/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
 	"xcm/runtime-benchmarks",
-	"pallet-black-hole?/runtime-benchmarks",
+	"pallet-black-hole/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -327,5 +327,5 @@ try-runtime = [
 	"pallet-orders/try-runtime",
 	"pallet-contracts-store/try-runtime",
 	"pass-substrate-keys/try-runtime",
-	"pallet-black-hole?/try-runtime"
+	"pallet-black-hole/try-runtime"
 ]
