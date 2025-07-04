@@ -16,7 +16,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 	type RuntimeOrigin = <RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin;
 
 	fn tracks() -> impl Iterator<Item = Cow<'static, Track<TrackId, Balance, BlockNumber>>> {
-		const DATA: [Track<TrackId, Balance, BlockNumber>; 4] = [
+		const DATA: [Track<TrackId, Balance, BlockNumber>; 5] = [
 			Track {
 				id: 0,
 				info: pallet_referenda::TrackInfo {
@@ -101,6 +101,24 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 					min_support: pallet_referenda::Curve::make_linear(28, 28, percent(50), percent(100)),
 				},
 			},
+			Track {
+				id: 4,
+				info: pallet_referenda::TrackInfo {
+					name: s("Black Hole Event Horizon"),
+					max_deciding: 1,
+					decision_deposit: UNITS,
+					prepare_period: 5 * MINUTES,
+					decision_period: 1 * DAYS,
+					confirm_period: 5 * MINUTES,
+					min_enactment_period: 1,
+					min_approval: pallet_referenda::Curve::LinearDecreasing {
+						length: Perbill::from_percent(100),
+						floor: Perbill::from_percent(50),
+						ceil: Perbill::from_percent(100),
+					},
+					min_support: pallet_referenda::Curve::make_linear(28, 28, percent(50), percent(100)),
+				},
+			},
 		];
 		DATA.iter().map(Borrowed)
 	}
@@ -116,6 +134,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				Origin::ReferendumCanceller => Ok(1),
 				Origin::ReferendumKiller => Ok(2),
 				Origin::CreateMemberships => Ok(3),
+				Origin::BlackHoleEventHorizon => Ok(4),
 			}
 		} else {
 			Err(())

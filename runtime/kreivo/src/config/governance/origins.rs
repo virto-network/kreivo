@@ -35,6 +35,8 @@ pub mod pallet_custom_origins {
 		ReferendumCanceller,
 		/// Origin able to kill referenda.
 		ReferendumKiller,
+		/// Origin able to control the black hole event horizon
+		BlackHoleEventHorizon,
 	}
 
 	macro_rules! decl_unit_ensures {
@@ -68,5 +70,10 @@ pub mod pallet_custom_origins {
 		() => {}
 	}
 
-	decl_unit_ensures!(CreateMemberships, ReferendumCanceller, ReferendumKiller);
+	decl_unit_ensures!(
+		CreateMemberships,
+		ReferendumCanceller,
+		ReferendumKiller,
+		BlackHoleEventHorizon
+	);
 }

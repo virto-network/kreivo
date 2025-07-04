@@ -52,3 +52,22 @@ impl pallet_treasury::Config for Runtime {
 	type BenchmarkHelper = ();
 	type BlockNumberProvider = RelaychainData;
 }
+
+// #[runtime::pallet_index(53)]
+// pub type BlackHole
+
+#[cfg(feature = "paseo")]
+parameter_types! {
+	pub const BlackHolePalletId: PalletId = PalletId(*b"py/bhole");
+}
+
+#[cfg(feature = "paseo")]
+impl pallet_black_hole::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	type EventHorizonDispatchOrigin = EitherOf<EnsureRoot<AccountId>, pallet_custom_origins::BlackHoleEventHorizon>;
+	type Balances = Balances;
+	type BlockNumberProvider = RelaychainData;
+	type PalletId = BlackHolePalletId;
+	type BurnPeriod = ConstU32<HOURS>;
+}

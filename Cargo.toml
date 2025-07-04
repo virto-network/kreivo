@@ -67,6 +67,7 @@ pallet-orders = { git = "https://github.com/virto-network/frame-contrib", defaul
 pallet-payments = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-payments" }
 pallet-pass = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-pass" }
 pallet-referenda-tracks = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-referenda-tracks" }
+pallet-black-hole = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-black-hole" }
 
 # Pass Authenticators
 pass-webauthn = { git = "https://github.com/virto-network/pass-authenticators", default-features = false, package = "pass-authenticators-webauthn" }
@@ -99,7 +100,7 @@ sp-weights = { version = "31.1.0", default-features = false }
 substrate-wasm-builder = { version = "26.0.0" }
 parity-wasm = { version = "0.45.0" }
 
-## Substrate FRAME Dependencies
+## FRAME Dependencies
 frame-executive = { version = "40.0.0", default-features = false }
 frame-support = { version = "40.1.0", default-features = false }
 frame-system = { version = "40.1.0", default-features = false }
@@ -107,7 +108,7 @@ frame-system-benchmarking = { version = "40.0.0", default-features = false }
 frame-system-rpc-runtime-api = { version = "36.0.0", default-features = false }
 frame-try-runtime = { version = "0.46.0", default-features = false }
 
-## Substrate Pallet Dependencies
+## FRAME Pallets
 pallet-asset-tx-payment = { version = "40.0.0", default-features = false }
 pallet-assets = { version = "42.0.0", default-features = false }
 pallet-assets-freezer = { version = "0.7.0", default-features = false }
