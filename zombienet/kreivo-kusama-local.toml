@@ -6,7 +6,6 @@ chain = "kusama-local"
 chain_spec_command = "./bin/runtimes/polkadot/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 default_args = ["-lparachain=debug", "-lxcm=trace"]
 default_command = "./bin/polkadot"
-scheduling_lookahead = 2
 
 [relaychain.async_backing_params]
 max_candidate_depth = 3
@@ -18,7 +17,7 @@ extra_args = [
 ]
 name = "alice"
 validator = true
-ws_port = 10000
+rpc_port = 10000
 
 [[relaychain.nodes]]
 extra_args = [
@@ -53,10 +52,10 @@ onboard_as_parachain = true
 command = "./bin/polkadot-parachain"
 args = ["--force-authoring --log=xcm=trace,parachain=trace"]
 name = "kreivo1"
-ws_port = 20000
+rpc_port = 20000
 
 [[parachains.collators]]
 command = "./bin/polkadot-parachain"
 args = ["--force-authoring --log=xcm=trace,parachain=trace,authn=trace"]
 name = "kreivo2"
-ws_port = 21000
+rpc_port = 21000

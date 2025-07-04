@@ -18,7 +18,7 @@ extra_args = [
 ]
 name = "alice"
 validator = true
-ws_port = 10000
+rpc_port = 10000
 
 [[relaychain.nodes]]
 extra_args = [
@@ -53,10 +53,22 @@ onboard_as_parachain = true
 command = "./bin/polkadot-parachain"
 args = ["--force-authoring --log=xcm=trace,parachain=trace"]
 name = "kreivo1"
-ws_port = 20000
+rpc_port = 20000
 
 [[parachains.collators]]
 command = "./bin/polkadot-parachain"
 args = ["--force-authoring --log=xcm=trace,parachain=trace"]
 name = "kreivo2"
-ws_port = 21000
+rpc_port = 21000
+
+[[parachains.collators]]
+command = "./bin/polkadot-parachain"
+args = ["--force-authoring --log=xcm=trace,parachain=trace"]
+name = "kreivo3"
+rpc_port = 22000
+
+[[parachains.collators]]
+command = "./bin/polkadot-parachain"
+args = ["--force-authoring --log=xcm=trace,parachain=trace"]
+name = "kreivo4"
+rpc_port = 23000
