@@ -66,4 +66,5 @@ impl pallet_nfts::Config<CommunityMembershipsInstance> for Runtime {
 	type BlockNumberProvider = RelaychainData;
 }
 
-pub type Memberships = NonFungiblesMemberships<CommunityMemberships, pallet_nfts::ItemConfig>;
+pub type Memberships =
+	WithHooks<NonFungiblesMemberships<CommunityMemberships, pallet_nfts::ItemConfig>, CopySystemAttributesOnAssign>;
