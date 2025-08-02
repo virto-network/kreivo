@@ -97,7 +97,7 @@ impl pallet_contracts::Config for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	/// The safest default is to allow no calls at all.
 	///
-	/// Runtimes should whitelist dispatchables that are allowed to be called
+	/// Runtimes should note which dispatchables are allowed to be called
 	/// from contracts and make sure they are stable. Dispatchables exposed to
 	/// contracts are not allowed to change because that would break already
 	/// deployed contracts. The `RuntimeCall` structure itself is not allowed
@@ -123,7 +123,7 @@ impl pallet_contracts::Config for Runtime {
 	// Our reasoning is that the error code `CodeTooLarge` is thrown
 	// if a too-large contract is uploaded. We noticed that it poses
 	// less friction during development when the requirement here is
-	// just more lax.
+	// just laxer.
 	type MaxCodeLen = ConstU32<{ 192 * 1024 }>;
 	type MaxStorageKeyLen = ConstU32<128>;
 	type MaxTransientStorageSize = ConstU32<{ 1024 * 1024 }>;

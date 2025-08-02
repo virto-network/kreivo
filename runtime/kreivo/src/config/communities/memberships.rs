@@ -2,6 +2,7 @@ use super::*;
 
 use frame_contrib_traits::memberships::OnMembershipAssigned;
 use frame_system::EnsureRootWithSuccess;
+use parity_scale_codec::Encode;
 use sp_runtime::traits::Verify;
 
 use pallet_nfts::PalletFeatures;
@@ -19,8 +20,9 @@ parameter_types! {
 		Box::new(|_, group, m| {
 			use frame_support::traits::nonfungibles_v2::{Inspect as NonFunsInspect, Mutate};
 			for key in WELL_KNOWN_ATTR_KEYS.into_iter() {
-				if let Some(value) = CommunityMemberships::system_attribute(&group, Some(&m), key) {
-					<CommunityMemberships as Mutate<_, _>>::set_attribute(&group, &m, key, &value)?;
+				let key = key.to_vec();
+				if let Some(value) = CommunityMemberships::system_attribute(&MembershipsCollectionId::get(), Some(&m), &key.encode()) {
+					<CommunityMemberships as Mutate<_, _>>::set_attribute(&group, &m, &key.encode(), &value)?;
 				}
 			}
 

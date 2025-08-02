@@ -122,6 +122,9 @@ pallet-referenda-tracks.workspace = true
 pass-webauthn = { workspace = true, features = ["runtime"] }
 pass-substrate-keys = { workspace = true, features = ["runtime"] }
 
+[dev-dependencies]
+sp-io.workspace = true
+
 [features]
 default = ["std"]
 paseo = ["runtime-constants/paseo"]
