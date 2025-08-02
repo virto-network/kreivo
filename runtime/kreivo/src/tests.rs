@@ -1,6 +1,7 @@
 use super::{Balances, Communities, CommunitiesManager, CommunityMemberships, Runtime, RuntimeOrigin, CENTS, UNITS};
 use crate::config::communities::memberships::CommunityMembershipsInstance;
 use crate::config::system::CommunityLookup;
+use crate::config::{ExistentialDeposit, TreasuryAccount};
 use frame_support::assert_ok;
 use frame_support::traits::fungible::Mutate;
 use frame_support::traits::nonfungibles_v2::Inspect;
@@ -91,6 +92,14 @@ fn runtime_sanity_call_does_not_exceed_1kb() {
 #[test]
 fn ensure_copying_membership_attributes_works() {
 	TestExternalities::default().execute_with(|| {
+		if cfg!(feature = "runtime-benchmarks") {
+			// Note: Need to cover the deposit when the `runtime-benchmarks` feature is set.
+			assert_ok!(Balances::mint_into(
+				&TreasuryAccount::get(),
+				ExistentialDeposit::get() + 10 * CENTS
+			));
+		}
+
 		// Create some memberships.
 		assert_ok!(CommunitiesManager::create_memberships(
 			RuntimeOrigin::root(),
