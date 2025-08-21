@@ -137,7 +137,6 @@ impl EnsureOrigin<RuntimeOrigin> for EnsureSignedMerchant {
 }
 
 impl pallet_contracts_store::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type InstantiateOrigin = EnsureSignedMerchant;
 	type AppId = AppId;

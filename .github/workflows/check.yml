@@ -79,7 +79,7 @@ jobs:
           profile: minimal
           toolchain: ${{ env.NIGHTLY_VERSION }}
           target: wasm32-unknown-unknown
-          components: rust-src
+          components: rust-src, clippy
 
       - uses: actions/checkout@v4
 
