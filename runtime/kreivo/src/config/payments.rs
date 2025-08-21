@@ -55,10 +55,8 @@ impl FeeHandler<Runtime> for KreivoFeeHandler {
 impl pallet_payment_indices::Config for Runtime {}
 
 impl pallet_payments::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type PalletsOrigin = OriginCaller;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type RuntimeCall = RuntimeCall;
 	type WeightInfo = weights::pallet_payments::WeightInfo<Self>;
 	type SenderOrigin = EitherOf<AsSignedByCommunity<Self>, EnsureSigned<AccountId>>;
 	type BeneficiaryOrigin = EnsureSigned<AccountId>;

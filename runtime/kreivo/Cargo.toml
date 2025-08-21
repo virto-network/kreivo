@@ -278,6 +278,7 @@ runtime-benchmarks = [
 	"pallet-transaction-payment/runtime-benchmarks",
 	"xcm/runtime-benchmarks",
 	"pallet-black-hole/runtime-benchmarks",
+	"virto-common/runtime-benchmarks"
 ]
 
 try-runtime = [
@@ -330,5 +331,7 @@ try-runtime = [
 	"pallet-orders/try-runtime",
 	"pallet-contracts-store/try-runtime",
 	"pass-substrate-keys/try-runtime",
-	"pallet-black-hole/try-runtime"
+	"pallet-black-hole/try-runtime",
+	"assets-common/try-runtime",
+	"parachains-common/try-runtime"
 ]

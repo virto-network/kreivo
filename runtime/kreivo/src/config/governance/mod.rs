@@ -61,7 +61,6 @@ parameter_types! {
 }
 
 impl pallet_black_hole::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type EventHorizonDispatchOrigin = EitherOf<EnsureRoot<AccountId>, pallet_custom_origins::BlackHoleEventHorizon>;
 	type Balances = Balances;

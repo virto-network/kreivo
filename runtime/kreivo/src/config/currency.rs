@@ -174,7 +174,6 @@ pub type MembershipsGasTank =
 	NonFungibleGasTank<Runtime, RelaychainData, CommunityMemberships, pallet_nfts::ItemConfig, MembershipIsNotExpired>;
 
 impl pallet_gas_transaction_payment::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::pallet_gas_transaction_payment::WeightInfo<Self>;
 	type GasTank = MembershipsGasTank;
 	#[cfg(feature = "runtime-benchmarks")]

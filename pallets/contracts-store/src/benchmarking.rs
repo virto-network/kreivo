@@ -6,9 +6,7 @@ use frame_support::traits::fungible::Mutate;
 use parity_scale_codec::HasCompact;
 use sp_runtime::traits::{Bounded, EnsureDiv, Hash};
 
-type RuntimeEventFor<T> = <T as Config>::RuntimeEvent;
-
-fn assert_has_event<T: Config>(generic_event: RuntimeEventFor<T>) {
+fn assert_has_event<T: frame_system::Config>(generic_event: T::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_has_event(generic_event.into());
 }
 

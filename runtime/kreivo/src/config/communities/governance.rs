@@ -39,7 +39,6 @@ impl EnsureOriginWithArg<RuntimeOrigin, TrackIdOf<Runtime, CommunityTracksInstan
 impl pallet_referenda_tracks::Config<CommunityTracksInstance> for Runtime {
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type UpdateOrigin = EnsureOriginToTrack;
-	type RuntimeEvent = RuntimeEvent;
 	type TrackId = CommunityId;
 	type MaxTracks = ConstU32<65536>;
 	type WeightInfo = weights::pallet_referenda_tracks::WeightInfo<Self>;

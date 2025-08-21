@@ -7,8 +7,6 @@ use frame_support::{dispatch::DispatchResult, traits::fungible::Mutate};
 use frame_system::RawOrigin;
 use sp_runtime::SaturatedConversion;
 
-type RuntimeEventFor<T> = <T as Config>::RuntimeEvent;
-
 // Since `periodicity` is arbitrary, we assume `DAYS` is a nominal day for 6s
 // block.
 const DAYS: u32 = 14_400;
@@ -17,7 +15,7 @@ fn block_weight<T: frame_system::Config>() -> Weight {
 	<T as frame_system::Config>::BlockWeights::get().max_block / 2
 }
 
-fn assert_has_event<T: Config>(generic_event: RuntimeEventFor<T>) {
+fn assert_has_event<T: frame_system::Config>(generic_event: T::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_has_event(generic_event.into());
 }
 
@@ -32,10 +30,10 @@ where
 
 #[benchmarks(
 where
-	RuntimeEventFor<T>: From<pallet_communities::Event<T>>,
+	T::RuntimeEvent: From<pallet_communities::Event<T>>,
 	NativeBalanceOf<T>: From<u64>,
 	CommunityIdOf<T>: One,
-	<T as Config>::MembershipId: From<u32>,
+	T::MembershipId: From<u32>,
 )]
 mod benchmarks {
 	use super::*;

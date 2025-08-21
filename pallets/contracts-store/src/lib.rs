@@ -69,11 +69,9 @@ pub mod pallet {
 	pub const CONTRACT_MERCHANT_ID: [u8; 20] = *b"CONTRACT_MERCHANT_ID";
 
 	#[pallet::config]
-	pub trait Config: pallet_contracts::Config + frame_system::Config {
+	pub trait Config: pallet_contracts::Config + frame_system::Config<RuntimeEvent: From<Event<Self>>> {
 		// Primitives: Some overarching types that are aggregated in the system.
 
-		/// Overarching event type
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The weight information for this pallet.
 		type WeightInfo: WeightInfo;
 

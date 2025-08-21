@@ -52,7 +52,6 @@ impl<Id> EnsureOriginWithArg<RuntimeOrigin, InventoryId<CommunityId, Id>> for En
 }
 
 impl pallet_listings::Config<ListingsInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::pallet_listings::WeightInfo<Self>;
 	type CreateInventoryOrigin = EnsureCommunity;
 	type InventoryAdminOrigin = EnsureCommunity;
@@ -130,7 +129,6 @@ parameter_types! {
 }
 
 impl pallet_orders::Config<ListingsInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
 	type WeightInfo = weights::pallet_orders::WeightInfo<Self>;

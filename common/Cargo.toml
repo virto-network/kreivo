@@ -50,3 +50,10 @@ runtime = [
   "scale",
   "serde",
 ]
+runtime-benchmarks = [
+	"pallet-payments?/runtime-benchmarks",
+	"cumulus-primitives-core?/runtime-benchmarks",
+	"frame-support?/runtime-benchmarks",
+	"sp-runtime?/runtime-benchmarks",
+	"xcm?/runtime-benchmarks"
+]

@@ -602,4 +602,37 @@ impl<T: frame_system::Config> pallet_assets::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(8))
 			.saturating_add(T::DbWeight::get().writes(8))
 	}
+
+	fn total_issuance() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `547`
+		//  Estimated: `6236`
+		// Minimum execution time: 124_486_000 picoseconds.
+		Weight::from_parts(10_779_000, 0)
+			.saturating_add(Weight::from_parts(0, 6236))
+			.saturating_add(T::DbWeight::get().reads(8))
+			.saturating_add(T::DbWeight::get().writes(8))
+	}
+
+	fn balance() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `547`
+		//  Estimated: `6236`
+		// Minimum execution time: 124_486_000 picoseconds.
+		Weight::from_parts(10_779_000, 0)
+			.saturating_add(Weight::from_parts(0, 6236))
+			.saturating_add(T::DbWeight::get().reads(8))
+			.saturating_add(T::DbWeight::get().writes(8))
+	}
+
+	fn allowance() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `547`
+		//  Estimated: `6236`
+		// Minimum execution time: 124_486_000 picoseconds.
+		Weight::from_parts(10_779_000, 0)
+			.saturating_add(Weight::from_parts(0, 6236))
+			.saturating_add(T::DbWeight::get().reads(8))
+			.saturating_add(T::DbWeight::get().writes(8))
+	}
 }

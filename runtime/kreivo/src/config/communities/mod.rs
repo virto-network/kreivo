@@ -35,9 +35,6 @@ type RootCreatesCommunitiesForFree = EnsureRootWithSuccess<AccountId, NoPay>;
 type AnyoneElsePays = EnsureSignedPays<Runtime, CommunityDepositAmount, TreasuryAccount>;
 
 impl pallet_communities::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeCall = RuntimeCall;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type WeightInfo = weights::pallet_communities::WeightInfo<Runtime>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
@@ -66,20 +63,16 @@ impl pallet_communities::Config for Runtime {
 }
 
 impl pallet_communities_manager::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type CreateCollection = CommunityMemberships;
 	type MakeTank = MembershipsGasTank;
 	type Tracks = CommunityTracks;
 	type RankedCollective = KreivoCollective;
-
 	type WeightInfo = weights::pallet_communities_manager::WeightInfo<Self>;
 	type RegisterOrigin = EitherOf<RootCreatesCommunitiesForFree, AnyoneElsePays>;
 	type CreateMembershipsOrigin = EitherOf<EnsureRoot<AccountId>, CreateMemberships>;
-	type MembershipId = MembershipId;
 	type MembershipsManagerCollectionId = MembershipsCollectionId;
 	type MembershipsManagerOwner = TreasuryAccount;
 	type ItemConfig = pallet_nfts::ItemConfig;
-
 	type CreateMemberships = CommunityMemberships;
 }
 

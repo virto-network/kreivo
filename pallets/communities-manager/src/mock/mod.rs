@@ -151,7 +151,6 @@ impl pallet_referenda::Config for Test {
 }
 
 impl pallet_referenda_tracks::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type TrackId = CommunityId;
 	type MaxTracks = MaxTracks;
 	type AdminOrigin = EnsureRoot<AccountId>;
@@ -202,9 +201,6 @@ impl pallet_nfts::Config for Test {
 }
 
 impl pallet_communities::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeCall = RuntimeCall;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type WeightInfo = WeightInfo;
 	type CreateOrigin = EnsureNever<Deposit>;
@@ -224,7 +220,6 @@ impl pallet_communities::Config for Test {
 }
 
 impl Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	// Types to support community creation
 	type CreateCollection = Memberships;
 	type MakeTank = NonFungibleGasTank<Test, System, Memberships, pallet_nfts::ItemConfig>;
@@ -235,7 +230,6 @@ impl Config for Test {
 
 	// Types to support memberships creation
 	type CreateMembershipsOrigin = EnsureRoot<AccountId>;
-	type MembershipId = MembershipId;
 	type MembershipsManagerCollectionId = MembershipsManagerCollectionId;
 	type MembershipsManagerOwner = RootAccount;
 	type ItemConfig = pallet_nfts::ItemConfig;

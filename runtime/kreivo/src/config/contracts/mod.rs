@@ -168,7 +168,6 @@ pub type EnsureInstantiator = EnsureCommunity<Runtime>;
 pub type EnsureInstantiator = MapSuccess<EnsureSigned<AccountId>, Replace<ContractsStoreMerchantId>>;
 
 impl pallet_contracts_store::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::pallet_contracts_store::WeightInfo<Self>;
 	type InstantiateOrigin = MapSuccess<EnsureInstantiator, AppInstantiationParams>;
 	type AppId = listings::InventoryId;

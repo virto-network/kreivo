@@ -58,14 +58,12 @@ pub mod pallet {
 	/// Configure the pallet by specifying the parameters and types on which it
 	/// depends.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_communities::Config
+	pub trait Config:
+		frame_system::Config<RuntimeEvent: From<Event<Self>>>
+		+ pallet_communities::Config<MembershipId: Incrementable + HasCompact + MaybeSerializeDeserialize>
 	where
 		AssetIdOf<Self>: MaybeSerializeDeserialize,
 	{
-		/// Because this pallet emits events, it depends on the runtime's
-		/// definition of an event.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
 		type CreateCollection: CollectionCreate<
 			AccountIdOf<Self>,
 			CollectionConfig<NativeBalanceOf<Self>, BlockNumberFor<Self>, CommunityIdOf<Self>>,
@@ -74,7 +72,7 @@ pub mod pallet {
 
 		type MakeTank: MakeTank<
 			Gas = Weight,
-			TankId = (CommunityIdOf<Self>, <Self as Config>::MembershipId),
+			TankId = (CommunityIdOf<Self>, Self::MembershipId),
 			BlockNumber = BlockNumberFor<Self>,
 		>;
 
@@ -98,8 +96,6 @@ pub mod pallet {
 
 		type CreateMembershipsOrigin: EnsureOrigin<OriginFor<Self>>;
 
-		type MembershipId: Parameter + Decode + Incrementable + HasCompact + MaybeSerializeDeserialize;
-
 		type MembershipsManagerCollectionId: Get<CommunityIdOf<Self>>;
 
 		type MembershipsManagerOwner: Get<AccountIdOf<Self>>;
@@ -113,12 +109,12 @@ pub mod pallet {
 				AccountIdOf<Self>,
 				Self::ItemConfig,
 				CollectionId = CommunityIdOf<Self>,
-				ItemId = <Self as Config>::MembershipId,
+				ItemId = Self::MembershipId,
 			> + Trading<
 				AccountIdOf<Self>,
 				NativeBalanceOf<Self>,
 				CollectionId = CommunityIdOf<Self>,
-				ItemId = <Self as Config>::MembershipId,
+				ItemId = Self::MembershipId,
 			>;
 	}
 
@@ -142,7 +138,7 @@ pub mod pallet {
 	/// A genesis membership info.
 	pub type GenesisMembershipOf<T> = (
 		// starting_at
-		<T as Config>::MembershipId,
+		<T as pallet_communities::Config>::MembershipId,
 		// amount
 		u16,
 		// price
@@ -200,10 +196,7 @@ pub mod pallet {
 		/// has been created.
 		CommunityRegistered { id: T::CommunityId },
 		/// The
-		MembershipsCreated {
-			starting_at: <T as Config>::MembershipId,
-			amount: u32,
-		},
+		MembershipsCreated { starting_at: T::MembershipId, amount: u32 },
 	}
 
 	// Errors inform users that something worked or went wrong.
@@ -248,7 +241,7 @@ pub mod pallet {
 		pub fn create_memberships(
 			origin: OriginFor<T>,
 			amount: u16,
-			starting_at: <T as Config>::MembershipId,
+			starting_at: T::MembershipId,
 			#[pallet::compact] price: NativeBalanceOf<T>,
 			tank_config: TankConfig<Weight, BlockNumberFor<T>>,
 			maybe_expiration: Option<BlockNumberFor<T>>,
@@ -263,7 +256,7 @@ pub mod pallet {
 		pub fn set_gas_tank(
 			origin: OriginFor<T>,
 			community_id: CommunityIdOf<T>,
-			membership_id: <T as Config>::MembershipId,
+			membership_id: T::MembershipId,
 			config: TankConfig<Weight, BlockNumberFor<T>>,
 		) -> DispatchResult {
 			T::CreateMembershipsOrigin::ensure_origin(origin)?;
@@ -351,7 +344,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub(crate) fn try_create_memberships(
-		starting_at: <T as Config>::MembershipId,
+		starting_at: T::MembershipId,
 		amount: u16,
 		price: NativeBalanceOf<T>,
 		tank_config: TankConfig<Weight, BlockNumberFor<T>>,
@@ -401,7 +394,7 @@ impl<T: Config> Pallet<T> {
 
 	#[inline]
 	pub(crate) fn do_set_gas_tank(
-		tank_id: &(CommunityIdOf<T>, <T as Config>::MembershipId),
+		tank_id: &(CommunityIdOf<T>, T::MembershipId),
 		config: &TankConfig<Weight, BlockNumberFor<T>>,
 	) -> DispatchResult {
 		let TankConfig { capacity, periodicity } = config;

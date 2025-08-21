@@ -129,6 +129,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Self>;
 	type ConsensusHook = ConsensusHook;
 	type SelectCore = DefaultCoreSelector<Self>;
+	type RelayParentOffset = ConstU32<2>;
 }
 
 // #[runtime::pallet_index(2)]
@@ -234,9 +235,7 @@ parameter_types! {
 }
 
 impl pallet_pass::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type PalletsOrigin = OriginCaller;
-	type RuntimeCall = RuntimeCall;
 	type WeightInfo = weights::pallet_pass::WeightInfo<Self>;
 	type RegisterOrigin = EitherOf<
 		// Root can create pass accounts.
@@ -279,6 +278,8 @@ impl pallet_pass::Config for Runtime {
 	>;
 	type PalletId = PassPalletId;
 	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
+	type MaxDevicesPerAccount = ConstU64<10>;
+	type MaxSessionsPerAccount = ConstU64<10>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmarks::PassBenchmarkHelper;
 }
