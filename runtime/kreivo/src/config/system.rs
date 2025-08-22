@@ -129,7 +129,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Self>;
 	type ConsensusHook = ConsensusHook;
 	type SelectCore = DefaultCoreSelector<Self>;
-	type RelayParentOffset = ConstU32<2>;
+	type RelayParentOffset = ConstU32<0>;
 }
 
 // #[runtime::pallet_index(2)]

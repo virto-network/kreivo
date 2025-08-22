@@ -3,7 +3,7 @@ use pallet_contracts::{CollectEvents, DebugInfo, Determinism};
 use sp_api::impl_runtime_apis;
 use sp_core::OpaqueMetadata;
 use sp_runtime::{
-	traits::Block as BlockT,
+	traits::{Block as BlockT, Get},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
