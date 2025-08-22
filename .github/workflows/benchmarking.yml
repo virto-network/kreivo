@@ -135,14 +135,19 @@ jobs:
           target: wasm32-unknown-unknown
           components: rust-src
 
-      - name: Install `frame-omni-bencher`
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: --git https://github.com/paritytech/polkadot-sdk.git --branch stable2503 frame-omni-bencher
+      - name: Download CLI
+        run: |
+          curl -sL https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2506-1/frame-omni-bencher -o frame-omni-bencher
+          chmod +x ./frame-omni-bencher
+          echo "Using frame-omni-bencher version:"
+          ./frame-omni-bencher --version
+          
+          echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
 
       - run: |
           just benchmarks
+        env:
+          PATH: ${{ env.PATH }}:${{  }}
 
       - uses: actions/upload-artifact@v4
         with:

@@ -313,13 +313,13 @@ pub mod benchmarks {
 	type BenchmarkDeviceIdSecretKey =
 		StorageMap<Pass, Blake2_256, DeviceId, [u8; 64], frame_support::pallet_prelude::OptionQuery>;
 
-	parameter_types! {
-		pub Rng: BenchRng = BenchRng::from(U256::zero());
-	}
+	#[frame_support::storage_alias]
+	type Rng = StorageValue<Pass, BenchRng, frame_support::pallet_prelude::ValueQuery>;
 
 	/// A hash-based _(not really random)_ "RNG". Marked as [`CryptoRng`] (even
 	/// though it is clearly not) because these are benchmarking tests, and
 	/// don't aim to test for security issues.
+	#[derive(Debug, Eq, PartialEq, Clone, Encode, Decode, DecodeWithMemTracking, MaxEncodedLen, TypeInfo, Default)]
 	pub struct BenchRng([u8; 32], u8);
 	impl BenchRng {
 		fn rotate(&mut self) {
@@ -376,18 +376,23 @@ pub mod benchmarks {
 
 	impl PassBenchmarkHelper {
 		fn sign<Cx: Encode>(pair: &Keypair, msg: &SignedMessage<Cx>) -> MultiSignature {
-			let msg = msg.message();
-			let t = {
-				// The context must be b"substrate", otherwise it'll fail validation.
-				let t = SigningContext::new(b"substrate").bytes(msg.as_ref());
-				schnorrkel::context::attach_rng(t, Rng::get())
-			};
-			MultiSignature::Sr25519(pair.sign(t).to_bytes().into())
+			Rng::mutate(|rng| {
+				let msg = msg.message();
+				let t = {
+					// The context must be b"substrate", otherwise it'll fail validation.
+					let t = SigningContext::new(b"substrate").bytes(msg.as_ref());
+					schnorrkel::context::attach_rng(t, rng)
+				};
+
+				MultiSignature::Sr25519(pair.sign(t).to_bytes().into())
+			})
 		}
 
 		fn derive() -> Keypair {
-			let secret = SecretKey::generate_with(Rng::get());
-			secret.to_keypair()
+			Rng::mutate(|rng| {
+				let secret = SecretKey::generate_with(rng);
+				secret.to_keypair()
+			})
 		}
 
 		fn pair(id: DeviceId) -> Keypair {
