@@ -7,13 +7,15 @@ chain_spec_command = "./bin/runtimes/polkadot/chain-spec-generator {% raw %} {{c
 default_args = ["-lparachain=debug", "-lxcm=trace"]
 default_command = "./bin/polkadot"
 
-[relaychain.async_backing_params]
-max_candidate_depth = 3
-allowed_ancestry_len = 2
+[relaychain.genesis.runtimeGenesis.patch.configuration]
+config = { async_backing_params = { max_candidate_depth = 3, allowed_ancestry_len = 2 }, scheduler_params = { num_cores = 1, lookahead = 3 } }
 
 [[relaychain.nodes]]
 extra_args = [
-  "--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all",
+  "--force-authoring",
+  "-lparachain=debug",
+  "--unsafe-rpc-external",
+  "--rpc-cors=all",
 ]
 name = "alice"
 validator = true
@@ -21,24 +23,36 @@ rpc_port = 10000
 
 [[relaychain.nodes]]
 extra_args = [
-  "--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all",
+  "--force-authoring",
+  "-lparachain=debug",
+  "--unsafe-rpc-external",
+  "--rpc-cors=all",
 ]
 name = "bob"
 validator = true
+rpc_port = 11000
 
 [[relaychain.nodes]]
 extra_args = [
-  "--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all",
+  "--force-authoring",
+  "-lparachain=debug",
+  "--unsafe-rpc-external",
+  "--rpc-cors=all",
 ]
 name = "charlie"
 validator = true
+rpc_port = 12000
 
 [[relaychain.nodes]]
 extra_args = [
-  "--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all",
+  "--force-authoring",
+  "-lparachain=debug",
+  "--unsafe-rpc-external",
+  "--rpc-cors=all",
 ]
 name = "dave"
 validator = true
+rpc_port = 13000
 
 [[parachains]]
 id = 2281
@@ -50,12 +64,9 @@ onboard_as_parachain = true
 
 [[parachains.collators]]
 command = "./bin/polkadot-parachain"
-args = ["--force-authoring --log=xcm=trace,parachain=trace"]
+args = [
+  "--log=xcm=trace",
+  "--authoring slot-based",
+]
 name = "kreivo1"
 rpc_port = 20000
-
-[[parachains.collators]]
-command = "./bin/polkadot-parachain"
-args = ["--force-authoring --log=xcm=trace,parachain=trace,authn=trace"]
-name = "kreivo2"
-rpc_port = 21000
