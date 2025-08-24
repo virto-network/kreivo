@@ -16,9 +16,9 @@ debug = 0
 [workspace.package]
 authors = ['Virto Team <contact@virto.team>']
 edition = "2021"
-homepage = 'https://github.com/virto-network/virto-node'
+homepage = 'https://github.com/virto-network/kreivo'
 license = "GPL-3.0-only"
-repository = 'https://github.com/virto-network/virto-node'
+repository = 'https://github.com/virto-network/kreivo'
 
 [workspace.dependencies]
 # common

@@ -4,8 +4,8 @@ description = "Common logic for all virto runtimes"
 version = "0.1.0"
 authors = ['Virto Team <contact@virto.team>']
 license = "GPL-3.0-only"
-homepage = 'https://github.com/virto-network/virto-node'
-repository = 'https://github.com/virto-network/virto-node'
+homepage = 'https://github.com/virto-network/kreivo'
+repository = 'https://github.com/virto-network/kreivo'
 edition = "2021"
 
 [package.metadata.docs.rs]
