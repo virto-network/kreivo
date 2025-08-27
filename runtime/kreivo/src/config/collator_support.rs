@@ -87,19 +87,20 @@ impl cumulus_pallet_aura_ext::Config for Runtime {}
 mod async_backing_params {
 	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
 	/// included into the relay chain.
-	pub(crate) const UNINCLUDED_SEGMENT_CAPACITY: u32 = 8;
+	///
+	/// We prefer to hold up to 4 slots (since our collator nodes tend to be
+	/// slow to catch-up with the relay chain), to avoid for early forking.
+	pub(crate) const UNINCLUDED_SEGMENT_CAPACITY: u32 = 4 * BLOCK_PROCESSING_VELOCITY;
 	/// How many parachain blocks are processed by the relay chain per parent.
 	/// Limits the number of blocks authored per slot.
 	pub(crate) const BLOCK_PROCESSING_VELOCITY: u32 = 2;
-	/// Relay chain slot duration, in milliseconds.
-	pub(crate) const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6_000;
 }
 pub(crate) use async_backing_params::*;
 
 /// Aura consensus hook
 pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
 	Runtime,
-	RELAY_CHAIN_SLOT_DURATION_MILLIS,
+	{ SLOT_DURATION as u32 },
 	BLOCK_PROCESSING_VELOCITY,
 	UNINCLUDED_SEGMENT_CAPACITY,
 >;
