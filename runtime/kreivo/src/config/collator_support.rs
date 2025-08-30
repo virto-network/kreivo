@@ -87,13 +87,10 @@ impl cumulus_pallet_aura_ext::Config for Runtime {}
 mod async_backing_params {
 	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
 	/// included into the relay chain.
-	///
-	/// We prefer to hold up to 4 slots (since our collator nodes tend to be
-	/// slow to catch-up with the relay chain), to avoid for early forking.
-	pub(crate) const UNINCLUDED_SEGMENT_CAPACITY: u32 = 4 * BLOCK_PROCESSING_VELOCITY;
+	pub(crate) const UNINCLUDED_SEGMENT_CAPACITY: u32 = 2 * BLOCK_PROCESSING_VELOCITY + 1;
 	/// How many parachain blocks are processed by the relay chain per parent.
 	/// Limits the number of blocks authored per slot.
-	pub(crate) const BLOCK_PROCESSING_VELOCITY: u32 = 2;
+	pub(crate) const BLOCK_PROCESSING_VELOCITY: u32 = 3;
 }
 pub(crate) use async_backing_params::*;
 

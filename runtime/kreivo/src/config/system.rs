@@ -9,6 +9,7 @@ use frame_support::{
 	derive_impl,
 	dispatch::DispatchClass,
 	traits::{fungible::HoldConsideration, Consideration, Footprint},
+	weights::constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_SECOND},
 	PalletId,
 };
 use frame_system::{limits::BlockLength, EnsureRootWithSuccess, EnsureSigned};
@@ -22,12 +23,11 @@ use sp_runtime::{
 	DispatchError,
 };
 
+const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+
 // #[runtime::pallet_index(0)]
 // pub type System
-const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
-	sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
-	cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
-);
+const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), MAX_POV_SIZE);
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
@@ -166,6 +166,9 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 	type Context = BlockNumber;
 
 	fn generate(cx: &Self::Context, xtc: &impl ExtrinsicContext) -> Challenge {
+		log::trace!(target: "authn", "BlockHashChallenger::generate({cx:?}, {:?})", xtc.as_ref());
+		log::trace!(target: "authn", "\t -> ({:?}",
+			blake2_256(&[&System::block_hash(cx).0, xtc.as_ref()].concat()));
 		blake2_256(&[&System::block_hash(cx).0, xtc.as_ref()].concat())
 	}
 

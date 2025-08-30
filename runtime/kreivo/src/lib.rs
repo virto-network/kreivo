@@ -62,9 +62,6 @@ use xcm_config::{LocationConvertedConcreteId, RelayLocation, XcmOriginToTransact
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-// Polkadot imports
-pub use weights::{BlockExecutionWeight, ExtrinsicBaseWeight};
-
 use pallet_asset_tx_payment::ChargeAssetTxPayment;
 use pallet_gas_transaction_payment::ChargeTransactionPayment as ChargeGasTxPayment;
 use pallet_pass::PassAuthenticate;
