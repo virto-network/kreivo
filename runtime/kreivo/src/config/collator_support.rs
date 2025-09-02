@@ -84,15 +84,7 @@ impl pallet_aura::Config for Runtime {
 // pub type AuraExt
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
-mod async_backing_params {
-	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
-	/// included into the relay chain.
-	pub(crate) const UNINCLUDED_SEGMENT_CAPACITY: u32 = 2 * BLOCK_PROCESSING_VELOCITY + 1;
-	/// How many parachain blocks are processed by the relay chain per parent.
-	/// Limits the number of blocks authored per slot.
-	pub(crate) const BLOCK_PROCESSING_VELOCITY: u32 = 3;
-}
-pub(crate) use async_backing_params::*;
+pub(crate) use runtime_constants::async_backing_params::*;
 
 /// Aura consensus hook
 pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<

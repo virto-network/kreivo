@@ -53,10 +53,24 @@ pub mod currency {
 	}
 }
 
+pub mod async_backing_params {
+	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
+	/// included into the relay chain.
+	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 2 * BLOCK_PROCESSING_VELOCITY + 1;
+	/// How many parachain blocks are processed by the relay chain per parent.
+	/// Limits the number of blocks authored per slot.
+	#[cfg(feature = "paseo")]
+	pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
+	#[cfg(not(feature = "paseo"))]
+	pub const BLOCK_PROCESSING_VELOCITY: u32 = 6;
+}
+
 /// Time and blocks.
 pub mod time {
+	use crate::async_backing_params::BLOCK_PROCESSING_VELOCITY;
 	use polkadot_primitives::{BlockNumber, Moment};
-	pub const MILLISECS_PER_BLOCK: Moment = 3_000;
+
+	pub const MILLISECS_PER_BLOCK: Moment = SLOT_DURATION / BLOCK_PROCESSING_VELOCITY as u64;
 	pub const SLOT_DURATION: Moment = 6_000;
 	// These time units are defined in number of blocks.
 	pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);

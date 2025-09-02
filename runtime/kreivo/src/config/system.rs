@@ -281,8 +281,8 @@ impl pallet_pass::Config for Runtime {
 	>;
 	type PalletId = PassPalletId;
 	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
-	type MaxDevicesPerAccount = ConstU64<10>;
-	type MaxSessionsPerAccount = ConstU64<10>;
+	type MaxDevicesPerAccount = ConstU32<100>;
+	type MaxSessionsPerAccount = ConstU32<10>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmarks::PassBenchmarkHelper;
 }
