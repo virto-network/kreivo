@@ -1,4 +1,5 @@
 use super::*;
+use frame_system::EnsureRootWithSuccess;
 use pallet_assets::precompiles::{InlineIdConfig, ERC20};
 
 parameter_types! {
@@ -8,10 +9,7 @@ parameter_types! {
 	pub const ChainId: u64 = 2281;
 }
 
-pub type TrustBackedAssetsInstance = pallet_assets::Instance1;
-// pub type PoolAssetsInstance = pallet_assets::Instance3; // Should be created a new instance for this (Instance3)?
 pub type PoolAssetsInstance = pallet_assets::Instance1;
-use frame_system::EnsureSigned;
 
 impl pallet_revive::Config for Runtime {
 	type Time = Timestamp;
@@ -23,15 +21,15 @@ impl pallet_revive::Config for Runtime {
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = pallet_revive::weights::SubstrateWeight<Self>;
 	type Precompiles = (
-		ERC20<Self, InlineIdConfig<0x120>, TrustBackedAssetsInstance>,
+		ERC20<Self, InlineIdConfig<0x120>, KreivoAssetsInstance>,
 		ERC20<Self, InlineIdConfig<0x320>, PoolAssetsInstance>,
 	);
 	type AddressMapper = pallet_revive::AccountId32Mapper<Self>;
 	type RuntimeMemory = ConstU32<{ 128 * 1024 * 1024 }>;
 	type PVFMemory = ConstU32<{ 512 * 1024 * 1024 }>;
-	type UnsafeUnstableInterface = ConstBool<false>;
-	type UploadOrigin = EnsureSigned<Self::AccountId>;
-	type InstantiateOrigin = EnsureSigned<Self::AccountId>;
+	type UnsafeUnstableInterface = ConstBool<true>;
+	type UploadOrigin = EnsureRootWithSuccess<AccountId, TreasuryAccount>;
+	type InstantiateOrigin = EnsureRootWithSuccess<AccountId, TreasuryAccount>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
 	type ChainId = ChainId;

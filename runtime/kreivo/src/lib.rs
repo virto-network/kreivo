@@ -293,7 +293,7 @@ mod runtime {
 	pub type Contracts = pallet_contracts;
 	#[runtime::pallet_index(81)]
 	pub type ContractsStore = pallet_contracts_store;
-	#[runtime::pallet_index(90)]
+	#[runtime::pallet_index(82)]
 	pub type Revive = pallet_revive;
 }
 
