@@ -4,6 +4,8 @@ set shell := ["nu", "-c"]
 
 podman := `(which podman) ++ (which docker) | (first).path`
 ver := `open chain-spec-generator/Cargo.toml | get package.version`
+psdk_ver := `open polkadot-sdk-version`
+psdk_dir := ".polkadot-sdk"
 image := "ghcr.io/virto-network/virto"
 chain := "kreivo"
 runtime := "target/release/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm"
@@ -28,8 +30,8 @@ _task-selector:
 @version:
     echo {{ ver }}
 
-@list-crates:
-    open Cargo.toml | get workspace.members | each { open ($in + /Cargo.toml) | get package.name } | str join "\n"
+@list-crates dir='.':
+    cd {{ dir }}; open Cargo.toml | get workspace.members | each { open ($in + /Cargo.toml) | get package.name } | str join "\n"
 
 @_check_deps:
     rustup component add clippy
@@ -117,18 +119,26 @@ zombienet network="": build-local
 
 get-zombienet-dependencies: (_get-latest "zombienet" "zombienet-" + _zufix) (_get-latest "cumulus" "polkadot-parachain") compile-polkadot-for-zombienet
 
-compile-polkadot-for-zombienet:
+checkout-psdk ver=psdk_ver dir=psdk_dir:
+    #!/usr/bin/env nu
+    let since = ((date now) - 280day | format date "%Y-%m-%d") # ~9 months
+    if ('{{ dir }}' | path exists) {
+        cd {{ dir }}; git fetch --shallow-since $since origin {{ ver }}
+        git checkout {{ ver }}
+    } else {
+        git clone --branch {{ ver }} --shallow-since $since git@github.com:paritytech/polkadot-sdk.git {{ dir }}
+        cd {{ dir }}; git remote set-branches origin '*'
+    }
+
+compile-polkadot-for-zombienet: checkout-psdk
     #!/usr/bin/env nu
     mkdir bin
     # Compile polkadot with fast-runtime feature
-    let polkadot = (open Cargo.toml | get workspace.dependencies.sp-core)
-    let dir = (mktemp -d polkadot-sdk.XXX)
-    git clone --branch $polkadot.branch --depth 1 $polkadot.git $dir
-    echo $"(ansi defb)Compiling Polkadot(ansi reset) \(($polkadot.git):($polkadot.branch)\)"
-    cargo build --manifest-path ($dir | path join Cargo.toml) --locked --profile testnet --features fast-runtime --bin polkadot --bin polkadot-prepare-worker --bin polkadot-execute-worker
-    mv -f ($dir | path join target/testnet/polkadot) bin/
-    mv -f ($dir | path join target/testnet/polkadot-prepare-worker) bin/
-    mv -f ($dir | path join target/testnet/polkadot-execute-worker) bin/
+    echo $"(ansi defb)Compiling Polkadot(ansi reset) \({{ psdk_ver }}\)"
+    cargo build --manifest-path ("{{ psdk_dir }}" | path join Cargo.toml) --locked --profile testnet --features fast-runtime --bin polkadot --bin polkadot-prepare-worker --bin polkadot-execute-worker
+    mv -f ("{{ psdk_dir }}" | path join target/testnet/polkadot) bin/
+    mv -f ("{{ psdk_dir }}" | path join target/testnet/polkadot-prepare-worker) bin/
+    mv -f ("{{ psdk_dir }}" | path join target/testnet/polkadot-execute-worker) bin/
 
 _get-latest repo bin:
     #!/usr/bin/env nu
@@ -139,3 +149,20 @@ _get-latest repo bin:
     | where name =~ {{ bin }} | first | get browser_download_url
     | http get $in --raw | save bin/{{ bin }} --progress --force
     chmod u+x bin/{{ bin }}
+
+compare-psdk-versions: checkout-psdk
+    #!/usr/bin/env nu
+    def dependencies [repo] {
+        open ($repo + /Cargo.toml) | get workspace.dependencies | items {|dep, x| {
+            name: $dep,
+            ver: (if ($x | describe) == "string" { $x } else { $x | default '' version | get version })
+        }}
+    }
+    def workspace_crates [repo] {
+        open ($repo + /Cargo.toml) | get workspace.members | each {
+            open $'($repo)/($in)/Cargo.toml' | {name: $in.package.name, ver: $in.package.version}
+        }
+    }
+    (dependencies .) | join (workspace_crates {{ psdk_dir }} | rename name ver_psdk) name
+    | insert matches {|x| $x.ver == $x.ver_psdk}
+    | sort-by name
