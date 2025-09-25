@@ -60,6 +60,7 @@ pallet-preimage.workspace = true
 pallet-proxy.workspace = true
 pallet-ranked-collective.workspace = true
 pallet-referenda.workspace = true
+pallet-revive.workspace = true
 pallet-scheduler.workspace = true
 pallet-session.workspace = true
 pallet-skip-feeless-payment.workspace = true
@@ -170,6 +171,7 @@ std = [
 	"pallet-ranked-collective/std",
 	"pallet-referenda/std",
 	"pallet-referenda-tracks/std",
+	"pallet-revive/std",
 	"pallet-scheduler/std",
 	"pallet-session/std",
 	"pallet-skip-feeless-payment/std",
@@ -251,6 +253,7 @@ runtime-benchmarks = [
 	"pallet-ranked-collective/runtime-benchmarks",
 	"pallet-referenda/runtime-benchmarks",
 	"pallet-referenda-tracks/runtime-benchmarks",
+	"pallet-revive/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
 	"pallet-skip-feeless-payment/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
@@ -282,6 +285,7 @@ runtime-benchmarks = [
 ]
 
 try-runtime = [
+	"assets-common/try-runtime",
 	"cumulus-pallet-aura-ext/try-runtime",
 	"cumulus-pallet-parachain-system/try-runtime",
 	"cumulus-pallet-xcm/try-runtime",
@@ -291,19 +295,24 @@ try-runtime = [
 	"frame-support/try-runtime",
 	"frame-try-runtime/try-runtime",
 	"pallet-assets-freezer/try-runtime",
+	"pallet-assets-holder/try-runtime",
 	"pallet-asset-tx-payment/try-runtime",
 	"pallet-assets/try-runtime",
 	"pallet-aura/try-runtime",
 	"pallet-authorship/try-runtime",
 	"pallet-balances/try-runtime",
+	"pallet-black-hole/try-runtime",
 	"pallet-contracts/try-runtime",
+	"pallet-contracts-store/try-runtime",
 	"pallet-communities-manager/try-runtime",
 	"pallet-communities/try-runtime",
 	"pallet-collator-selection/try-runtime",
 	"pallet-gas-transaction-payment/try-runtime",
+	"pallet-listings/try-runtime",
 	"pallet-message-queue/try-runtime",
 	"pallet-nfts/try-runtime",
 	"pallet-multisig/try-runtime",
+	"pallet-orders/try-runtime",
 	"pallet-pass/try-runtime",
 	"pallet-payments/try-runtime",
 	"pallet-preimage/try-runtime",
@@ -311,6 +320,7 @@ try-runtime = [
 	"pallet-ranked-collective/try-runtime",
 	"pallet-referenda/try-runtime",
 	"pallet-referenda-tracks/try-runtime",
+	"pallet-revive/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-session/try-runtime",
 	"pallet-skip-feeless-payment/try-runtime",
@@ -319,19 +329,13 @@ try-runtime = [
 	"pallet-transaction-payment/try-runtime",
 	"pallet-treasury/try-runtime",
 	"pallet-utility/try-runtime",
+	"pallet-vesting/try-runtime",
 	"pallet-xcm/try-runtime",
-	"pass-webauthn/try-runtime",
+	"parachains-common/try-runtime",
 	"parachain-info/try-runtime",
+	"pass-substrate-keys/try-runtime",
+	"pass-webauthn/try-runtime",
 	"polkadot-runtime-common/try-runtime",
 	"runtime-common/try-runtime",
-	"sp-runtime/try-runtime",
-	"pallet-listings/try-runtime",
-	"pallet-vesting/try-runtime",
-	"pallet-assets-holder/try-runtime",
-	"pallet-orders/try-runtime",
-	"pallet-contracts-store/try-runtime",
-	"pass-substrate-keys/try-runtime",
-	"pallet-black-hole/try-runtime",
-	"assets-common/try-runtime",
-	"parachains-common/try-runtime"
+	"sp-runtime/try-runtime"
 ]
