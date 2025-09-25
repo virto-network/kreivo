@@ -1,6 +1,5 @@
 use super::*;
 use frame_system::EnsureRootWithSuccess;
-use pallet_assets::precompiles::{InlineIdConfig, ERC20};
 
 parameter_types! {
 	pub const DepositPerItem: Balance = deposit(1, 0);
@@ -8,8 +7,6 @@ parameter_types! {
 	pub CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(30);
 	pub const ChainId: u64 = 2281;
 }
-
-pub type PoolAssetsInstance = pallet_assets::Instance1;
 
 impl pallet_revive::Config for Runtime {
 	type Time = Timestamp;
@@ -20,10 +17,7 @@ impl pallet_revive::Config for Runtime {
 	type DepositPerByte = DepositPerByte;
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = pallet_revive::weights::SubstrateWeight<Self>;
-	type Precompiles = (
-		ERC20<Self, InlineIdConfig<0x120>, KreivoAssetsInstance>,
-		ERC20<Self, InlineIdConfig<0x320>, PoolAssetsInstance>,
-	);
+	type Precompiles = ();
 	type AddressMapper = pallet_revive::AccountId32Mapper<Self>;
 	type RuntimeMemory = ConstU32<{ 128 * 1024 * 1024 }>;
 	type PVFMemory = ConstU32<{ 512 * 1024 * 1024 }>;
