@@ -2,7 +2,7 @@
 
 use super::*;
 
-use cumulus_pallet_parachain_system::{DefaultCoreSelector, RelayNumberMonotonicallyIncreases};
+use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use frame_contrib_traits::authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
 use frame_support::traits::{AsEnsureOriginWithArg, LinearStoragePrice};
 use frame_support::{
@@ -128,7 +128,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Self>;
 	type ConsensusHook = ConsensusHook;
-	type SelectCore = DefaultCoreSelector<Self>;
 	type RelayParentOffset = ConstU32<0>;
 }
 

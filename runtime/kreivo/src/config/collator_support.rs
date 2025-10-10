@@ -48,6 +48,7 @@ impl pallet_collator_selection::Config for Runtime {
 parameter_types! {
 	pub const Period: u32 = 6 * HOURS;
 	pub const Offset: u32 = 0;
+	pub const KeyDeposit: u64 = 0;
 }
 
 impl pallet_session::Config for Runtime {
@@ -63,6 +64,8 @@ impl pallet_session::Config for Runtime {
 	type Keys = SessionKeys;
 	type DisablingStrategy = ();
 	type WeightInfo = weights::pallet_session::WeightInfo<Self>;
+	type Currency = pallet_balances::Pallet<Runtime>;
+	type KeyDeposit = KeyDeposit;
 }
 
 // #[runtime::pallet_index(23)]

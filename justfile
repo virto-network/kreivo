@@ -2,9 +2,9 @@
 
 set shell := ["nu", "-c"]
 
-podman := `(which podman) ++ (which docker) | (first).path`
-ver := `open chain-spec-generator/Cargo.toml | get package.version`
-psdk_ver := `open polkadot-sdk-version`
+podman := `nu -c '(which podman) ++ (which docker) | first | get path'`
+ver := `nu -c 'open chain-spec-generator/Cargo.toml | get package.version'`
+psdk_ver := `nu -c 'open polkadot-sdk-version' | str trim`
 psdk_dir := ".polkadot-sdk"
 image := "ghcr.io/virto-network/virto"
 chain := "kreivo"
@@ -107,7 +107,7 @@ bump mode="minor":
 
 _zufix := os() + if os() == "linux" { "-x64" } else { "" }
 
-zombienet network="": build-local
+zombienet network="" features="zombienet": (build-local features)
     #!/usr/bin/env nu
     # Run zombienet with a profile from the `zombienet/` folder chosen interactively
     mut net = "{{ network }}"
@@ -117,7 +117,7 @@ zombienet network="": build-local
     }
     bin/zombienet-{{ _zufix }} -p native spawn $"zombienet/($net).toml"
 
-get-zombienet-dependencies: (_get-latest "zombienet" "zombienet-" + _zufix) (_get-latest "cumulus" "polkadot-parachain") compile-polkadot-for-zombienet
+get-zombienet-dependencies: (_get-latest "zombienet" "zombienet-" + _zufix) (_get-latest "polkadot-sdk" "polkadot-parachain") compile-polkadot-for-zombienet
 
 checkout-psdk ver=psdk_ver dir=psdk_dir:
     #!/usr/bin/env nu

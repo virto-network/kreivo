@@ -267,10 +267,10 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	pub(crate) fn try_register(
-		maybe_deposit: Option<(NativeBalanceOf<T>, T::AccountId, T::AccountId)>,
+		maybe_deposit: Option<(NativeBalanceOf<T>, AccountIdOf<T>, AccountIdOf<T>)>,
 		community_id: CommunityIdOf<T>,
 		community_name: &str,
-		admin: &T::AccountId,
+		admin: &AccountIdOf<T>,
 		maybe_decision_method: Option<DecisionMethodFor<T>>,
 		maybe_track_info: Option<TrackInfoOf<T>>,
 		maybe_rank: Option<u16>,
