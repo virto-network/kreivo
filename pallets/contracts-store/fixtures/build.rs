@@ -148,7 +148,7 @@ fn create_cargo_toml<'a>(
 fn invoke_cargo_fmt<'a>(config_path: &Path, files: impl Iterator<Item = &'a Path>, contract_dir: &Path) -> Result<()> {
 	// If rustfmt is not installed, skip the check.
 	if !Command::new("rustup")
-		.args(["nightly-2025-01-30", "run", "rustfmt", "--version"])
+		.args(["nightly-2025-10-10", "run", "rustfmt", "--version"])
 		.output()
 		.is_ok_and(|o| o.status.success())
 	{
@@ -156,7 +156,7 @@ fn invoke_cargo_fmt<'a>(config_path: &Path, files: impl Iterator<Item = &'a Path
 	}
 
 	let fmt_res = Command::new("rustup")
-		.args(["nightly-2025-01-30", "run", "rustfmt", "--check", "--config-path"])
+		.args(["nightly-2025-10-10", "run", "rustfmt", "--check", "--config-path"])
 		.arg(config_path)
 		.args(files)
 		.output()
@@ -171,7 +171,7 @@ fn invoke_cargo_fmt<'a>(config_path: &Path, files: impl Iterator<Item = &'a Path
 	eprintln!("{}\n{}", stdout, stderr);
 	eprintln!(
 		"Fixtures files are not formatted.\n
-		Please run `rustup nightly-2025-01-30 run rustfmt --config-path {} {}/*.rs`",
+		Please run `rustup nightly-2025-10-10 run rustfmt --config-path {} {}/*.rs`",
 		config_path.display(),
 		contract_dir.display()
 	);

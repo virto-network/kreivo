@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NIGHTLY_VERSION: 'nightly-2025-07-14'
+  NIGHTLY_VERSION: 'nightly-2025-10-10'
   EXTRA_ARGS: ''
 
 jobs:
