@@ -85,6 +85,9 @@ sp-transaction-pool.workspace = true
 sp-version.workspace = true
 sp-weights.workspace = true
 
+# Precompiles
+pallet-assets-precompiles = { workspace = true }
+
 # Polkadot
 runtime-constants.workspace = true
 pallet-xcm.workspace = true
@@ -152,6 +155,7 @@ std = [
 	"log/std",
 	"runtime-constants/std",
 	"pallet-assets-freezer/std",
+	"pallet-assets-precompiles/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-assets/std",
 	"pallet-aura/std",
@@ -236,6 +240,7 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"hex-literal",
 	"pallet-assets-freezer/runtime-benchmarks",
+	"pallet-assets-precompiles/runtime-benchmarks",
 	"pallet-asset-tx-payment/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
@@ -299,6 +304,7 @@ try-runtime = [
 	"pallet-assets-holder/try-runtime",
 	"pallet-asset-tx-payment/try-runtime",
 	"pallet-assets/try-runtime",
+	"pallet-assets-precompiles/try-runtime",
 	"pallet-aura/try-runtime",
 	"pallet-authorship/try-runtime",
 	"pallet-balances/try-runtime",
