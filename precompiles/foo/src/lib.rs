@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
 // #[cfg(not(feature = "zombienet"))]
 // use frame_system::EnsureRootWithSuccess;
 // #[cfg(feature = "zombienet")]
@@ -21,7 +23,6 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-// use codec::{DecodeAll, DecodeLimit};
 use pallet_balances::*;
 use core::{fmt, marker::PhantomData, num::NonZero};
 use pallet_revive::{
@@ -29,8 +30,9 @@ use pallet_revive::{
 		alloy::{self},
 		AddressMatcher, Error, Ext, Precompile,
 	},
-	Origin,
+	AddressMapper, Origin,
 };
+use sp_runtime::traits::StaticLookup;
 use tracing::error;
 use pallet_balances::pallet::Config;
 
@@ -54,7 +56,7 @@ where
 	Runtime: Config + pallet_revive::Config,
 {
 	type T = Runtime;
-	const MATCHER: AddressMatcher = AddressMatcher::Fixed(NonZero::new(69).unwrap());
+	const MATCHER: AddressMatcher = AddressMatcher::Fixed(NonZero::new(15).unwrap());
 	const HAS_CONTRACT_INFO: bool = false;
 	type Interface = IFoo::IFooCalls;
 
@@ -74,11 +76,14 @@ where
 			IFooCalls::transfer(IFoo::transferCall { to, value }) => {
 				env.charge(<Runtime as Config>::WeightInfo::transfer_keep_alive())?;
 
-				let dest = <Runtime as pallet_revive::Config>::AddressMapper::to_account_id(to.into_array().into());
+				let dest = <Runtime as pallet_revive::Config>::AddressMapper::to_account_id(&to.into_array().into());
+
+				let value = <Runtime as pallet_balances::Config>::Balance::try_from(value.as_limbs()[0])
+					.map_err(|_| revert(&"Value conversion failed", "Value too large"))?;
 
 				pallet_balances::Pallet::<Runtime>::transfer_keep_alive(
 					frame_origin,
-					dest,
+					<Runtime as frame_system::Config>::Lookup::unlookup(dest),
 					value
 				)
 				.map_err(|error| {
@@ -87,6 +92,7 @@ where
 						"Failed transfering dat assets",
 					)
 				})
+				.map(|_| Vec::new())
 			},
 			IFooCalls::dontPanic(IFoo::dontPanicCall { }) => {
 				Ok("42".into())

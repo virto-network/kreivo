@@ -26,7 +26,6 @@ rand_core = { workspace = true, optional = true }
 
 # Local
 kreivo-apis = { workspace = true, features = ["runtime"] }
-
 pallet-communities = { workspace = true, features = ["xcm"] }
 pallet-communities-manager.workspace = true
 pallet-contracts-store.workspace = true
@@ -36,6 +35,9 @@ runtime-common.workspace = true
 virto-common = { workspace = true, default-features = false, features = [
   "runtime",
 ] }
+
+# Local: Precompiles
+pallet-foo-precompiles = { workspace = true }
 
 # Substrate
 assets-common.workspace = true
@@ -165,6 +167,7 @@ std = [
 	"pallet-communities-manager/std",
 	"pallet-communities/std",
 	"pallet-collator-selection/std",
+	"pallet-foo-precompiles/std",
 	"pallet-gas-transaction-payment/std",
 	"pallet-message-queue/std",
 	"pallet-multisig/std",
@@ -248,6 +251,7 @@ runtime-benchmarks = [
 	"pallet-communities-manager/runtime-benchmarks",
 	"pallet-communities/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
+	"pallet-foo-precompiles/runtime-benchmarks",
 	"pallet-gas-transaction-payment/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
@@ -314,6 +318,7 @@ try-runtime = [
 	"pallet-communities-manager/try-runtime",
 	"pallet-communities/try-runtime",
 	"pallet-collator-selection/try-runtime",
+	"pallet-foo-precompiles/try-runtime",
 	"pallet-gas-transaction-payment/try-runtime",
 	"pallet-listings/try-runtime",
 	"pallet-message-queue/try-runtime",
