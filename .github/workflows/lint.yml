@@ -1,0 +1,43 @@
+name: Lint
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NIGHTLY_VERSION: 'nightly'
+  EXTRA_ARGS: ''
+
+jobs:
+  zepter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install `zepter` CLI
+        run: |
+          cargo install zepter -f --locked
+
+      - name: run checks
+        run: |
+          zepter run check
+
+  fmt:
+    runs-on: ubuntu-latest
+    container:
+      image: pandres95/kreivo-ci
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          command: fmt
+          args: --all -- --check

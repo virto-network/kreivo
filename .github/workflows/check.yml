@@ -1,4 +1,4 @@
-name: Lint, check, clippy and test
+name: Checks
 
 on:
   push:
@@ -6,42 +6,20 @@ on:
   pull_request:
     types: [ opened, synchronize, reopened, ready_for_review ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NIGHTLY_VERSION: 'nightly'
+  EXTRA_ARGS: ''
+
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Use Nightly with `rustfmt`
-        uses: actions-rs/toolchain@v1
-        with:
-            profile: minimal
-            toolchain: nightly
-            components: rustfmt
-
-      - uses: actions/checkout@v4
-
-      - name: Check formatting
-        uses: actions-rs/cargo@v1
-        with:
-          toolchain: nightly
-          command: fmt
-          args: --all -- --check
-
   check:
-    needs: lint
     runs-on: ubuntu-latest
+    container:
+      image: pandres95/kreivo-ci
     steps:
-      - name: Setup Ubuntu dependencies
-        shell: bash
-        run: sudo apt update && sudo apt install -y protobuf-compiler
-
-      - name: Use Nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          target: wasm32-unknown-unknown
-          components: rust-src
-
       - uses: actions/checkout@v4
 
       - name: Rust Cache
@@ -55,28 +33,18 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          toolchain: nightly
-          args: --release --locked --all-features --workspace
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
 
   clippy:
-    needs: lint
     runs-on: ubuntu-latest
+    container:
+      image: pandres95/kreivo-ci
     permissions:
       checks: write
     env:
       SKIP_WASM_BUILD: 1
     steps:
-      - name: Setup Ubuntu dependencies
-        shell: bash
-        run: sudo apt update && sudo apt install -y protobuf-compiler
-
-      - name: Use Nightly with `clippy`
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          components: clippy,rust-src
-
       - uses: actions/checkout@v4
 
       - name: Rust Cache
@@ -90,26 +58,16 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          toolchain: nightly
-          args: --release --locked --all-features --workspace
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
 
   test:
-    needs: lint
     runs-on: ubuntu-latest
+    container:
+      image: pandres95/kreivo-ci
     env:
       SKIP_WASM_BUILD: 1
     steps:
-      - name: Setup Ubuntu dependencies
-        shell: bash
-        run: sudo apt update && sudo apt install -y protobuf-compiler
-
-      - name: Use Nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          components: rust-src
-
       - uses: actions/checkout@v4
 
       - name: Rust Cache
@@ -123,5 +81,5 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          toolchain: nightly
-          args: --lib --release --locked --all-features --workspace
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          args: --lib --locked --all-features --workspace ${{ env.EXTRA_ARGS }}

@@ -24,4 +24,5 @@ impl pallet_referenda::Config<KreivoReferendaInstance> for Runtime {
 	type AlarmInterval = ConstU32<1>;
 	type Tracks = tracks::TracksInfo;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }

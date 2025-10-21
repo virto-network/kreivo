@@ -3,6 +3,10 @@ name: Benchmarks
 on:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,39 +30,119 @@ jobs:
         with:
           cache-on-failure: true
           cache-all-crates: true
-          key: build
+          key: benchmarking
 
-      - name: Release build with runtime-benchmarks
+      - name: Release build with `runtime-benchmarks`
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --features runtime-benchmarks
+          args: --profile production --features ${{ github.ref_name == 'dev' && 'paseo,runtime-benchmarks' || 'runtime-benchmarks' }} --locked -p kreivo-runtime
 
       - name: Upload runtime to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.run_number }}-runtime
-          path: ./target/release/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
+          name: ${{ github.run_id }}-runtime
+          path: ./target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
+
+  provision:
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      label: ${{ steps.set-label.outputs.label }}
+      token: ${{ steps.get_token.outputs.token }}
+    steps:
+      - name: Set dynamic runner label
+        id: set-label
+        run: echo "label=vm-${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+      - name: Get GitHub runner token
+        id: get_token
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.PAT_VM_RUNNERS }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/runners/registration-token \
+            > token.json
+          cat token.json
+          echo "token=$(jq -r .token token.json)" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: '.github/scripts/render-cloud-init.sh'
+
+      - name: Generate cloud-init
+        run: |
+          ./.github/scripts/render-cloud-init.sh "${{ steps.get_token.outputs.token }}" \
+            "https://github.com/${{ github.repository }}" \
+            "vm-${{ github.run_id }}" > cloud-init.txt
+          cat cloud-init.txt
+
+      - name: Azure Login
+        run: |
+          az login --service-principal \
+            --username "${{ secrets.AZURE_CLIENT_ID }}" \
+            --password "${{ secrets.AZURE_CLIENT_SECRET }}" \
+            --tenant "${{ secrets.AZURE_TENANT_ID }}"
+          az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+      - name: Launch Azure VM
+        run: |
+          az vm create \
+            --name gh-vm-${{ github.run_id }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --public-ip-address "" \
+            --image Ubuntu2404 \
+            --generate-ssh-keys \
+            --size Standard_D16s_v5 \
+            --os-disk-size-gb 32 \
+            --admin-username azureuser \
+            --custom-data cloud-init.txt \
+            --tags "github_label=vm-${{ github.run_id }}"
+
+      - name: Wait for VM to come online
+        run: sleep 60
 
   benchmark:
     name: Run Benchmarks
-    needs: build
-    runs-on: [self-hosted, benchmarks]
+    runs-on: [ self-hosted, "${{ needs.provision.outputs.label }}" ]
+    needs: provision
     permissions:
       contents: write
       pull-requests: write
     steps:
+      - name: Say hello
+        run: |
+          echo "Running on Azure VM with label ${{ needs.provision.outputs.label }}"
+
       - uses: actions/checkout@v4
 
       - name: Create `target/release` folder
         run: |
-          mkdir -p .benchmarking-logs target/release
+          mkdir -p .benchmarking-logs target/release/wbuild/kreivo-runtime
 
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.ref }}-runtime
-          path: ./target/release
+          name: ${{ github.run_id }}-runtime
+          path: ./target/release/wbuild/kreivo-runtime
+
+      - name: Use Stable
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          components: rust-src
+
+      - name: Download CLI
+        run: |
+          curl -sL https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2506-1/frame-omni-bencher -o frame-omni-bencher
+          chmod +x ./frame-omni-bencher
+          echo "Using frame-omni-bencher version:"
+          ./frame-omni-bencher --version
+          
+          echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
 
       - run: |
           just benchmarks
@@ -69,13 +153,99 @@ jobs:
           path: ./.benchmarking-logs
 
       - uses: peter-evans/create-pull-request@v6
+        if: success() || failure()
         with:
           add-paths: runtime/kreivo/src/weights
           commit-message: '[ci] calculate weights'
           branch: benchmarks
           branch-suffix: short-commit-hash
-          title: "Benchmarking: Calculate weights for ${{ github.sha }}"
+          title: "chore: Calculate weights for `${{ github.sha }}`"
           body: |
             This Pull Request is automatically raised when pushing over `master`
             and should be resolved and reviewed manually.
           assignees: ${{ github.actor_id }}
+
+  cleanup:
+    name: Destroy VM
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [ provision, benchmark ]
+    steps:
+      - name: Azure Login
+        run: |
+          az login --service-principal \
+            --username "${{ secrets.AZURE_CLIENT_ID }}" \
+            --password "${{ secrets.AZURE_CLIENT_SECRET }}" \
+            --tenant "${{ secrets.AZURE_TENANT_ID }}"
+          az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+      - name: Remove runner from GitHub
+        run: |
+          curl -O -L https://github.com/actions/runner/releases/download/v2.324.0/actions-runner-linux-x64-2.324.0.tar.gz &&
+          tar xzf ./actions-runner-linux-x64-2.324.0.tar.gz &&
+          ./config.sh remove --token $TOKEN || echo "⚠️  Could not remove GitHub Runner"
+
+      - name: Delete VM and associated resources
+        run: |
+          set -euo pipefail
+
+          RESOURCE_GROUP=${{ secrets.AZURE_RESOURCE_GROUP }}
+          VM_NAME=gh-vm-${{ github.run_id }}
+
+          echo "🧹 Deleting VM: $VM_NAME"
+          
+          # ─── Retrieve NIC ─────────────────────────────────────────
+          NIC_ID=$(az vm show --resource-group "$RESOURCE_GROUP" --name "$VM_NAME" --query 'networkProfile.networkInterfaces[0].id' -o tsv || echo "")
+          NIC_NAME=""
+          if [ -n "$NIC_ID" ]; then
+            NIC_NAME=$(basename "$NIC_ID")
+          else
+            echo "⚠️  NIC ID not found"
+            NIC_NAME=""
+          fi
+
+          # ─── Retrieve OS Disk ─────────────────────────────────────
+          DISK_NAME=$(az vm show --resource-group "$RESOURCE_GROUP" --name "$VM_NAME" --query 'storageProfile.osDisk.name' -o tsv || echo "⚠️  OS Disk not found")
+
+          # ─── Retrieve NSG ─────────────────────────────────────────
+          NSG_ID=$(az network nic show --resource-group "$RESOURCE_GROUP" --name "$NIC_NAME" --query 'networkSecurityGroup.id' -o tsv || echo "")
+          NSG_NAME=$(basename "$NSG_ID")
+
+          # ─── Retrieve VNet from NIC ───────────────────────────────
+          VNET_NAME=""
+          if [ -n "$NIC_NAME" ]; then
+            SUBNET_ID=$(az network nic show --resource-group "$RESOURCE_GROUP" --name "$NIC_NAME" --query 'ipConfigurations[0].subnet.id' -o tsv || echo "")
+            if [ -n "$SUBNET_ID" ]; then
+              VNET_NAME=$(echo "$SUBNET_ID" | cut -d'/' -f9)
+            fi
+          fi
+
+          # Delete VM
+          echo "🗑️  Deleting VM..."
+          az vm delete --resource-group "$RESOURCE_GROUP" --name "$VM_NAME" --yes || echo "⚠️  VM already deleted or not found"
+
+          # Delete NIC
+          if [ -n "$NIC_NAME" ]; then
+            echo "🗑️  Deleting NIC: $NIC_NAME"
+            az network nic delete --resource-group "$RESOURCE_GROUP" --name "$NIC_NAME" || echo "⚠️  NIC not found"
+          fi
+
+          # Delete OS disk
+          if [ -n "$DISK_NAME" ]; then
+            echo "🗑️  Deleting OS disk: $DISK_NAME"
+            az disk delete --resource-group "$RESOURCE_GROUP" --name "$DISK_NAME" --yes || echo "⚠️  Disk not found"
+          fi
+
+          # Delete NSG
+          if [ -n "$NSG_NAME" ]; then
+            echo "🗑️  Deleting NSG: $NSG_NAME"
+            az network nsg delete --resource-group "$RESOURCE_GROUP" --name "$NSG_NAME" || echo "⚠️  NSG not found"
+          fi
+
+          # Delete VNet
+          if [ -n "$VNET_NAME" ]; then
+            echo "🗑️  Deleting VNet: $VNET_NAME"
+            az network vnet delete --resource-group "$RESOURCE_GROUP" --name "$VNET_NAME" || echo "⚠️  VNet not found or shared"
+          fi
+
+          echo "✅ Cleanup complete."

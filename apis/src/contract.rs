@@ -1,10 +1,14 @@
 use super::*;
+use frame_contrib_traits::memberships::GenericRank;
 
+use crate::contract::config::{ListingsConfig, MembershipsConfig};
 use contract::config::{AssetsConfig, Config};
 use ink::env::{DefaultEnvironment, Environment};
 
+mod api_impls;
 mod chain_extension;
 pub mod config;
+pub use api_impls::KreivoApi;
 
 #[derive(Clone)]
 pub struct KreivoApiEnvironment<E: Clone = DefaultEnvironment>(E);
@@ -29,11 +33,21 @@ where
 }
 
 impl<E: Environment> Config for KreivoApiEnvironment<E> {
-	type AccountId = E::AccountId;
+	type AccountId = ink::primitives::AccountId;
 	type Balance = E::Balance;
-	type Assets = Self;
 }
 
 impl<E: Environment> AssetsConfig for KreivoApiEnvironment<E> {
 	type AssetId = virto_common::FungibleAssetLocation;
+	type Balance = E::Balance;
+}
+
+impl<E: Environment> ListingsConfig for KreivoApiEnvironment<E> {
+	type InventoryId = virto_common::listings::InventoryId;
+	type ItemId = virto_common::listings::ItemId;
+}
+
+impl<E: Environment> MembershipsConfig for KreivoApiEnvironment<E> {
+	type Membership = virto_common::MembershipId;
+	type Rank = GenericRank;
 }

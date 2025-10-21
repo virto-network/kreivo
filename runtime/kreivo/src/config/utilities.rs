@@ -1,7 +1,8 @@
 use super::*;
 
-use frame_support::traits::{fungible::HoldConsideration, LinearStoragePrice};
-use sp_runtime::traits::BlakeTwo256;
+use frame_support::traits::{fungible::HoldConsideration, LinearStoragePrice, MapSuccess};
+use pallet_communities::origin::AsSignedByCommunity;
+use sp_runtime::traits::{BlakeTwo256, ReplaceWithDefault};
 
 // #[runtime::pallet_index(42)]
 // pub type Multisig
@@ -20,6 +21,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = ConstU32<100>;
 	type WeightInfo = weights::pallet_multisig::WeightInfo<Self>;
+	type BlockNumberProvider = RelaychainData;
 }
 
 // #[runtime::pallet_index(43)]
@@ -35,7 +37,7 @@ impl pallet_utility::Config for Runtime {
 // pub type Proxy
 parameter_types! {
 	// One storage item; key size 32, value size 8; .
-	pub const ProxyDepositBase: Balance = deposit(1, 40);
+	pub const ProxyDepositBase: Balance = deposit(0, 100);
 	// Additional storage item size of 33 bytes.
 	pub const ProxyDepositFactor: Balance = deposit(0, 33);
 	pub const MaxProxies: u16 = 32;
@@ -58,6 +60,7 @@ impl pallet_proxy::Config for Runtime {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+	type BlockNumberProvider = RelaychainData;
 }
 
 // #[runtime::pallet_index(45)]
@@ -82,11 +85,13 @@ impl pallet_scheduler::Config for Runtime {
 	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
 	type MaximumWeight = MaximumSchedulerWeight;
-	type ScheduleOrigin = EnsureRoot<AccountId>;
+	type ScheduleOrigin =
+		EitherOf<EnsureRoot<AccountId>, MapSuccess<AsSignedByCommunity<Runtime>, ReplaceWithDefault<()>>>;
 	type OriginPrivilegeCmp = EqualOrGreatestRootCmp;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = weights::pallet_scheduler::WeightInfo<Self>;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 // #[runtime::pallet_index(46)]

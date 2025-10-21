@@ -1,30 +1,18 @@
 use super::*;
 
+mod indices;
+
 use frame_support::traits::EitherOf;
 use frame_system::EnsureSigned;
 use pallet_communities::origin::AsSignedByCommunity;
-use parity_scale_codec::Encode;
 use sp_runtime::traits::AccountIdConversion;
+
+pub use indices::pallet_payment_indices;
 
 parameter_types! {
 	pub const MaxRemarkLength: u8 = 50;
 	pub const IncentivePercentage: Percent = Percent::from_percent(INCENTIVE_PERCENTAGE);
 	pub const PaymentPalletId: PalletId = PalletId(*b"payments");
-}
-
-#[cfg(feature = "runtime-benchmarks")]
-pub struct PaymentsBenchmarkHelper;
-#[cfg(feature = "runtime-benchmarks")]
-impl pallet_payments::BenchmarkHelper<AccountId, FungibleAssetLocation, Balance> for PaymentsBenchmarkHelper {
-	fn create_asset(id: FungibleAssetLocation, admin: AccountId, is_sufficient: bool, min_balance: Balance) {
-		<Assets as frame_support::traits::tokens::fungibles::Create<AccountId>>::create(
-			id,
-			admin,
-			is_sufficient,
-			min_balance,
-		)
-		.unwrap();
-	}
 }
 
 pub struct KreivoFeeHandler;
@@ -43,7 +31,7 @@ impl FeeHandler<Runtime> for KreivoFeeHandler {
 		_remark: Option<&[u8]>,
 	) -> Fees<Runtime> {
 		let min = <Assets as fungibles::Inspect<AccountId>>::minimum_balance(*asset);
-		let pallet_id = crate::config::communities::CommunityPalletId::get();
+		let pallet_id = communities::CommunityPalletId::get();
 		let default_fee = |fee: Percent| (TreasuryAccount::get(), min.max(fee.mul_floor(*amount)), MANDATORY_FEE);
 		let is_community =
 			|who| matches!(PalletId::try_from_sub_account::<CommunityId>(who), Some((pid, _)) if pallet_id == pid );
@@ -64,35 +52,28 @@ impl FeeHandler<Runtime> for KreivoFeeHandler {
 	}
 }
 
-impl pallet_payments::PaymentId<Runtime> for virto_common::PaymentId {
-	fn next(_: &AccountId, beneficiary: &AccountId) -> Option<Self> {
-		let block: u32 = System::block_number();
-		let idx = System::extrinsic_index()?;
-		Some((block, idx, beneficiary.encode().as_slice()).into())
-	}
-}
+impl pallet_payment_indices::Config for Runtime {}
 
 impl pallet_payments::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Assets = Assets;
-	type AssetsBalance = Balance;
-	type PaymentId = virto_common::PaymentId;
-	type FeeHandler = KreivoFeeHandler;
-	type IncentivePercentage = IncentivePercentage;
-	type MaxRemarkLength = MaxRemarkLength;
+	type PalletsOrigin = OriginCaller;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WeightInfo = weights::pallet_payments::WeightInfo<Self>;
 	type SenderOrigin = EitherOf<AsSignedByCommunity<Self>, EnsureSigned<AccountId>>;
 	type BeneficiaryOrigin = EnsureSigned<AccountId>;
 	type DisputeResolver = frame_system::EnsureRootWithSuccess<AccountId, TreasuryAccount>;
-	type PalletId = PaymentPalletId;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type MaxDiscounts = ConstU32<10>;
-	type MaxFees = ConstU32<50>;
-	type RuntimeCall = RuntimeCall;
+	type PaymentId = virto_common::PaymentId;
+	type Assets = Assets;
+	type AssetsHold = AssetsHolder;
+	type BlockNumberProvider = System;
+	type FeeHandler = KreivoFeeHandler;
 	type Scheduler = Scheduler;
 	type Preimages = Preimage;
-	type CancelBufferBlockLength = ConstU32<14400>; // 2 days
-	type PalletsOrigin = OriginCaller;
-	type WeightInfo = crate::weights::pallet_payments::WeightInfo<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = PaymentsBenchmarkHelper;
+	type OnPaymentStatusChanged = Orders;
+	type GeneratePaymentId = PaymentIndices;
+	type PalletId = PaymentPalletId;
+	type IncentivePercentage = IncentivePercentage;
+	type MaxRemarkLength = MaxRemarkLength;
+	type MaxFees = ConstU32<50>;
+	type MaxDiscounts = ConstU32<10>;
+	type CancelBufferBlockLength = ConstU32<{ 2 * DAYS }>;
 }

@@ -7,6 +7,9 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+extern crate alloc;
+extern crate core;
+
 #[cfg(test)]
 mod tests;
 
@@ -24,13 +27,12 @@ mod xcm_config;
 use apis::*;
 use config::*;
 
-use sp_std::prelude::*;
-
+use alloc::{borrow::Cow::Borrowed, boxed::Box, string::String, vec, vec::Vec};
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use sp_core::crypto::KeyTypeId;
 
 pub use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	generic, impl_opaque_keys,
 	traits::{Block as BlockT, ConvertInto},
 	MultiAddress, Perbill, Percent,
 };
@@ -60,12 +62,13 @@ use xcm_config::{LocationConvertedConcreteId, RelayLocation, XcmOriginToTransact
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
-// Polkadot imports
-pub use weights::{BlockExecutionWeight, ExtrinsicBaseWeight};
-
 use pallet_asset_tx_payment::ChargeAssetTxPayment;
 use pallet_gas_transaction_payment::ChargeTransactionPayment as ChargeGasTxPayment;
-use pallet_pass::ChargeTransactionToPassAccount as ChargeTxToPassAccount;
+
+#[cfg(not(feature = "zombienet"))]
+use pallet_pass::PassAuthenticate;
+
+#[cfg(not(feature = "zombienet"))]
 use pallet_skip_feeless_payment::SkipCheckIfFeeless;
 
 // XCM Imports
@@ -91,29 +94,68 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 
 pub type ChargeTransaction = ChargeGasTxPayment<Runtime, ChargeAssetTxPayment<Runtime>>;
 
-/// The SignedExtension to the basic transaction logic.
-pub type SignedExtra = (
+/// The TransactionExtensions to the basic transaction logic.
+#[cfg(not(feature = "zombienet"))]
+pub type TransactionExtensions = (
+	PassAuthenticate<Runtime>,
 	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
 	frame_system::CheckGenesis<Runtime>,
 	frame_system::CheckEra<Runtime>,
-	SkipCheckIfFeeless<Runtime, frame_system::CheckNonce<Runtime>>,
+	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
-	SkipCheckIfFeeless<Runtime, ChargeTxToPassAccount<ChargeTransaction, Runtime, ()>>,
+	SkipCheckIfFeeless<Runtime, ChargeTransaction>,
+);
+
+/// The TransactionExtensions to the basic transaction logic.
+#[cfg(feature = "zombienet")]
+pub type TransactionExtensions = (
+	frame_system::CheckNonZeroSender<Runtime>,
+	frame_system::CheckSpecVersion<Runtime>,
+	frame_system::CheckTxVersion<Runtime>,
+	frame_system::CheckGenesis<Runtime>,
+	frame_system::CheckEra<Runtime>,
+	frame_system::CheckNonce<Runtime>,
+	frame_system::CheckWeight<Runtime>,
 );
 
 /// Unchecked extrinsic type as expected by this runtime.
-pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, TransactionExtensions>;
 
-pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
+pub type SignedPayload = generic::SignedPayload<RuntimeCall, TransactionExtensions>;
 
 /// Extrinsic type that has already been checked.
-pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
+pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, TransactionExtensions>;
+
+/// A list of migrations that need to undergo.
+pub type Migrations = (
+	// Unreleased
+	pallet_collator_selection::migration::v2::MigrationToV2<Runtime>,
+	pallet_session::migrations::v1::MigrateV0ToV1<
+		Runtime,
+		pallet_session::migrations::v1::InitOffenceSeverity<Runtime>,
+	>,
+	cumulus_pallet_aura_ext::migration::MigrateV0ToV1<Runtime>,
+	cumulus_pallet_xcmp_queue::migration::v4::MigrationToV4<Runtime>,
+	cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,
+	// Permanent
+	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,
+);
+
+impl cumulus_pallet_xcmp_queue::migration::v5::V5Config for Runtime {
+	type ChannelList = ParachainSystem;
+}
 
 /// Executive: handles dispatch to the various modules.
-pub type Executive =
-	frame_executive::Executive<Runtime, Block, frame_system::ChainContext<Runtime>, Runtime, AllPalletsWithSystem>;
+pub type Executive = frame_executive::Executive<
+	Runtime,
+	Block,
+	frame_system::ChainContext<Runtime>,
+	Runtime,
+	AllPalletsWithSystem,
+	Migrations,
+>;
 
 impl_opaque_keys! {
 	pub struct SessionKeys {
@@ -123,14 +165,14 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("kreivo-parachain"),
-	impl_name: create_runtime_str!("kreivo-parachain"),
+	spec_name: Borrowed("kreivo-parachain"),
+	impl_name: Borrowed("kreivo-parachain"),
 	authoring_version: 1,
-	spec_version: 116,
+	spec_version: 122,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 10,
-	state_version: 1,
+	transaction_version: 12,
+	system_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled
@@ -190,6 +232,8 @@ mod runtime {
 	pub type SkipFeeless = pallet_skip_feeless_payment;
 	#[runtime::pallet_index(17)]
 	pub type GasTxPayment = pallet_gas_transaction_payment;
+	#[runtime::pallet_index(18)]
+	pub type AssetsHolder = pallet_assets_holder<Instance1>;
 
 	// Collator support. The order of these 4 are important and shall not change.
 	#[runtime::pallet_index(20)]
@@ -228,6 +272,8 @@ mod runtime {
 	// Governance
 	#[runtime::pallet_index(50)]
 	pub type Treasury = pallet_treasury;
+	#[runtime::pallet_index(53)]
+	pub type BlackHole = pallet_black_hole;
 
 	// Governance: Collective
 	#[runtime::pallet_index(51)]
@@ -238,6 +284,14 @@ mod runtime {
 	// Virto Tooling
 	#[runtime::pallet_index(60)]
 	pub type Payments = pallet_payments;
+	#[runtime::pallet_index(61)]
+	pub type Listings = pallet_listings<Instance1>;
+	#[runtime::pallet_index(62)]
+	pub type ListingsCatalog = pallet_nfts<Instance1>;
+	#[runtime::pallet_index(63)]
+	pub type Orders = pallet_orders<Instance1>;
+	#[runtime::pallet_index(64)]
+	pub type PaymentIndices = pallet_payment_indices;
 
 	// Communities at Kreivo
 	#[runtime::pallet_index(71)]
@@ -254,6 +308,10 @@ mod runtime {
 	// Contracts
 	#[runtime::pallet_index(80)]
 	pub type Contracts = pallet_contracts;
+	#[runtime::pallet_index(81)]
+	pub type ContractsStore = pallet_contracts_store;
+	#[runtime::pallet_index(82)]
+	pub type Revive = pallet_revive;
 }
 
 cumulus_pallet_parachain_system::register_validate_block! {

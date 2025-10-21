@@ -1,8 +1,8 @@
 use super::*;
 
+use core::marker::PhantomData;
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureRootWithSuccess};
 use pallet_communities::RuntimeOriginFor;
-use sp_std::marker::PhantomData;
 
 use pallet_referenda::{BalanceOf, PalletsOriginOf, TrackIdOf, TracksInfo};
 
@@ -32,14 +32,13 @@ impl EnsureOriginWithArg<RuntimeOrigin, TrackIdOf<Runtime, CommunityTracksInstan
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn try_successful_origin(id: &TrackIdOf<Runtime, CommunityTracksInstance>) -> Result<RuntimeOrigin, ()> {
-		Ok(pallet_communities::Origin::<Runtime>::new(id.clone()).into())
+		Ok(pallet_communities::Origin::<Runtime>::new(*id).into())
 	}
 }
 
 impl pallet_referenda_tracks::Config<CommunityTracksInstance> for Runtime {
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type UpdateOrigin = EnsureOriginToTrack;
-	type RuntimeEvent = RuntimeEvent;
 	type TrackId = CommunityId;
 	type MaxTracks = ConstU32<65536>;
 	type WeightInfo = weights::pallet_referenda_tracks::WeightInfo<Self>;
@@ -66,7 +65,7 @@ where
 		o: RuntimeOriginFor<T>,
 		track_origin: &PalletsOriginOf<T>,
 	) -> Result<Self::Success, RuntimeOriginFor<T>> {
-		use fc_traits_memberships::Inspect;
+		use frame_contrib_traits::memberships::Inspect;
 		use frame_system::RawOrigin::Signed;
 		let community_id = T::Tracks::track_for(track_origin).map_err(|_| o.clone())?;
 
@@ -110,6 +109,7 @@ impl pallet_referenda::Config<CommunityReferendaInstance> for Runtime {
 	type AlarmInterval = AlarmInterval;
 	type Tracks = CommunityTracks;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

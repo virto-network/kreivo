@@ -8,7 +8,7 @@ use frame_support::{
 use polkadot_runtime_common::SlowAdjustingFeeUpdate;
 use runtime_common::impls::AssetsToBlockAuthor;
 
-use fc_traits_gas_tank::{NonFungibleGasTank, SelectNonFungibleItem};
+use frame_contrib_traits::gas_tank::{NonFungibleGasTank, SelectNonFungibleItem};
 use pallet_asset_tx_payment::FungiblesAdapter;
 use pallet_assets::BalanceToAssetBalance;
 use pallet_transaction_payment::FungibleAdapter;
@@ -42,6 +42,7 @@ impl pallet_balances::Config for Runtime {
 	type MaxLocks = ConstU32<50>;
 	type MaxReserves = ConstU32<50>;
 	type MaxFreezes = ConstU32<256>;
+	type DoneSlashHandler = ();
 }
 
 // #[runtime::pallet_index(11)]
@@ -58,6 +59,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = ConstU8<5>;
+	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Self>;
 }
 
 // #[runtime::pallet_index(12)]
@@ -97,7 +99,6 @@ impl pallet_assets::Config<KreivoAssetsInstance> for Runtime {
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type CreateOrigin = EnsureSigned<AccountId>;
-	type RuntimeHoldReason = RuntimeHoldReason;
 	type ForceOrigin = AssetsForceOrigin;
 	type AssetDeposit = AssetDeposit;
 	type AssetAccountDeposit = AssetAccountDeposit;
@@ -105,8 +106,8 @@ impl pallet_assets::Config<KreivoAssetsInstance> for Runtime {
 	type MetadataDepositPerByte = MetadataDepositPerByte;
 	type ApprovalDeposit = ApprovalDeposit;
 	type StringLimit = AssetsStringLimit;
-	type MaxHolds = frame_support::traits::ConstU32<50>;
 	type Freezer = AssetsFreezer;
+	type Holder = AssetsHolder;
 	type Extra = ();
 	type CallbackHandle = ();
 	type WeightInfo = weights::pallet_assets::WeightInfo<Self>;
@@ -123,6 +124,9 @@ impl pallet_asset_tx_payment::Config for Runtime {
 		BalanceToAssetBalance<Balances, Runtime, ConvertInto, KreivoAssetsInstance>,
 		AssetsToBlockAuthor<Runtime, KreivoAssetsInstance>,
 	>;
+	type WeightInfo = weights::pallet_asset_tx_payment::WeightInfo<Self>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = benchmarks::AssetsTxPaymentBenchmarkHelper;
 }
 
 // #[runtime::pallet_index(15)]
@@ -140,7 +144,7 @@ impl pallet_vesting::Config for Runtime {
 	type MinVestedTransfer = MinVestedTransfer;
 	type WeightInfo = weights::pallet_vesting::WeightInfo<Self>;
 	type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 	const MAX_VESTING_SCHEDULES: u32 = 28;
 }
 
@@ -167,9 +171,73 @@ parameter_types! {
 }
 
 pub type MembershipsGasTank =
-	NonFungibleGasTank<Runtime, CommunityMemberships, pallet_nfts::ItemConfig, MembershipIsNotExpired>;
+	NonFungibleGasTank<Runtime, RelaychainData, CommunityMemberships, pallet_nfts::ItemConfig, MembershipIsNotExpired>;
 
 impl pallet_gas_transaction_payment::Config for Runtime {
+	type WeightInfo = weights::pallet_gas_transaction_payment::WeightInfo<Self>;
+	type GasTank = MembershipsGasTank;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = benchmarks::GasTransactionPaymentBenchmarkHelper;
+}
+
+impl pallet_assets_holder::Config<KreivoAssetsInstance> for Runtime {
+	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeEvent = RuntimeEvent;
-	type GasBurner = MembershipsGasTank;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarks {
+	use super::*;
+	use crate::config::communities::{CommunityBenchmarkHelper, MembershipsCollectionId};
+	use frame_contrib_traits::gas_tank::MakeTank;
+	use frame_support::dispatch::DispatchResult;
+	use frame_support::traits::{
+		fungible::Mutate as FnMutate,
+		fungibles::{Create, Inspect, Mutate},
+		nonfungibles_v2::Mutate as NonTunsMutate,
+	};
+	use pallet_communities::BenchmarkHelper;
+	use sp_runtime::DispatchError;
+
+	pub struct AssetsTxPaymentBenchmarkHelper;
+
+	impl pallet_asset_tx_payment::BenchmarkHelperTrait<AccountId, FungibleAssetLocation, FungibleAssetLocation>
+		for AssetsTxPaymentBenchmarkHelper
+	{
+		fn create_asset_id_parameter(id: u32) -> (FungibleAssetLocation, FungibleAssetLocation) {
+			let id = id.into();
+			if !Assets::asset_exists(id) {
+				<Assets as Create<_>>::create(id, TreasuryAccount::get(), true, EXISTENTIAL_DEPOSIT)
+					.expect("create an asset class is expected to succeed; qed");
+			}
+			(id, id)
+		}
+
+		fn setup_balances_and_pool(asset_id: FungibleAssetLocation, account: AccountId) {
+			Balances::mint_into(&account, UNITS).expect("minting is expected to succeed; qed");
+			Assets::set_balance(asset_id, &account, UNITS);
+		}
+	}
+
+	pub struct GasTransactionPaymentBenchmarkHelper;
+
+	impl pallet_gas_transaction_payment::BenchmarkHelper<Runtime> for GasTransactionPaymentBenchmarkHelper {
+		type Ext = ChargeAssetTxPayment<Runtime>;
+
+		fn ext() -> ChargeGasTxPayment<Runtime, Self::Ext> {
+			ChargeGasTxPayment::new(ChargeAssetTxPayment::<Runtime>::from(0, None))
+		}
+
+		fn setup_account(who: &AccountId, gas: Weight) -> DispatchResult {
+			CommunityBenchmarkHelper::initialize_memberships_collection().map_err(|_| DispatchError::Exhausted)?;
+			<CommunityMemberships as NonTunsMutate<_, _>>::mint_into(
+				&MembershipsCollectionId::get(),
+				&0,
+				who,
+				&Default::default(),
+				true,
+			)?;
+			MembershipsGasTank::make_tank(&(MembershipsCollectionId::get(), 0), Some(gas), None)
+		}
+	}
 }

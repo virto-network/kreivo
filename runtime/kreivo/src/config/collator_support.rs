@@ -2,6 +2,7 @@ use super::*;
 
 use frame_support::traits::EitherOfDiverse;
 use pallet_xcm::IsVoiceOfBody;
+pub use runtime_constants::async_backing_params::RELAY_CHAIN_SLOT_DURATION_MILLIS;
 
 // #[runtime::pallet_index(20)]
 // pub type Authorship
@@ -47,6 +48,7 @@ impl pallet_collator_selection::Config for Runtime {
 parameter_types! {
 	pub const Period: u32 = 6 * HOURS;
 	pub const Offset: u32 = 0;
+	pub const KeyDeposit: u64 = 0;
 }
 
 impl pallet_session::Config for Runtime {
@@ -60,7 +62,10 @@ impl pallet_session::Config for Runtime {
 	// Essentially just Aura, but let's be pedantic.
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
+	type DisablingStrategy = ();
 	type WeightInfo = weights::pallet_session::WeightInfo<Self>;
+	type Currency = pallet_balances::Pallet<Runtime>;
+	type KeyDeposit = KeyDeposit;
 }
 
 // #[runtime::pallet_index(23)]
@@ -70,36 +75,27 @@ impl pallet_session::Config for Runtime {
 /// up by `pallet_aura` to implement `fn slot_duration()`.
 ///
 /// Change this to adjust the block time.
-pub const MILLISECONDS_PER_BLOCK: u64 = 6_000;
-pub const SLOT_DURATION: u64 = MILLISECONDS_PER_BLOCK;
-
 impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
 	type MaxAuthorities = ConstU32<100_000>;
 	type DisabledValidators = ();
 	type AllowMultipleBlocksPerSlot = ConstBool<true>;
-	type SlotDuration = ConstU64<SLOT_DURATION>;
+	type SlotDuration = ConstU64<{ RELAY_CHAIN_SLOT_DURATION_MILLIS }>;
 }
 
 // #[runtime::pallet_index(24)]
 // pub type AuraExt
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
-mod async_backing_params {
-	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
-	/// included into the relay chain.
-	pub(crate) const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
-	/// How many parachain blocks are processed by the relay chain per parent.
-	/// Limits the number of blocks authored per slot.
-	pub(crate) const BLOCK_PROCESSING_VELOCITY: u32 = 1;
-	/// Relay chain slot duration, in milliseconds.
-	pub(crate) const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6_000;
-}
+pub(crate) use runtime_constants::async_backing_params::*;
 
 /// Aura consensus hook
 pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
 	Runtime,
-	{ async_backing_params::RELAY_CHAIN_SLOT_DURATION_MILLIS },
-	{ async_backing_params::BLOCK_PROCESSING_VELOCITY },
-	{ async_backing_params::UNINCLUDED_SEGMENT_CAPACITY },
+	{ RELAY_CHAIN_SLOT_DURATION_MILLIS as u32 },
+	BLOCK_PROCESSING_VELOCITY,
+	UNINCLUDED_SEGMENT_CAPACITY,
 >;
+
+#[cfg(feature = "runtime-benchmarks")]
+impl cumulus_pallet_session_benchmarking::Config for Runtime {}
