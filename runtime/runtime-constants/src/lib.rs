@@ -54,15 +54,17 @@ pub mod currency {
 }
 
 pub mod async_backing_params {
+	/// Build with an offset of 1 behind the relay chain best block.
+	pub const RELAY_PARENT_OFFSET: u32 = 1;
 	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
 	/// included into the relay chain.
-	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 2 * BLOCK_PROCESSING_VELOCITY + 1;
+	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = (2 + RELAY_PARENT_OFFSET) * BLOCK_PROCESSING_VELOCITY + 1;
 	/// How many parachain blocks are processed by the relay chain per parent.
 	/// Limits the number of blocks authored per slot.
 	#[cfg(feature = "paseo")]
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
 	#[cfg(not(feature = "paseo"))]
-	pub const BLOCK_PROCESSING_VELOCITY: u32 = 6;
+	pub const BLOCK_PROCESSING_VELOCITY: u32 = 12;
 }
 
 /// Time and blocks.

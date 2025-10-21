@@ -17,6 +17,7 @@ use pallet_communities::origin::AsSignedByCommunity;
 use pallet_pass::FirstItemIsFree;
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
+pub use runtime_constants::async_backing_params::RELAY_PARENT_OFFSET;
 use sp_core::{blake2_256, ConstU128};
 use sp_runtime::{
 	traits::{AccountIdConversion, LookupError, StaticLookup},
@@ -128,7 +129,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Self>;
 	type ConsensusHook = ConsensusHook;
-	type RelayParentOffset = ConstU32<0>;
+	type RelayParentOffset = ConstU32<RELAY_PARENT_OFFSET>;
 }
 
 // #[runtime::pallet_index(2)]
