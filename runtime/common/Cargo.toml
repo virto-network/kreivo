@@ -148,7 +148,8 @@ runtime-benchmarks = [
 	"xcm-builder/runtime-benchmarks",
 	"xcm-executor/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
-	"xcm/runtime-benchmarks"
+	"xcm/runtime-benchmarks",
+	"pallet-session/runtime-benchmarks"
 ]
 
 try-runtime = [

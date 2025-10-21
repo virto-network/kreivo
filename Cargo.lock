@@ -5195,7 +5195,7 @@ dependencies = [
  "polkadot-core-primitives",
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
- "rand_core 0.9.3",
+ "rand_core 0.6.4",
  "runtime-common",
  "runtime-constants",
  "scale-info",
