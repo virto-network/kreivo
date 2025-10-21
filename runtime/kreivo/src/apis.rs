@@ -49,7 +49,7 @@ pallet_revive::impl_runtime_apis_plus_revive! {
 	EthExtraImpl,
 	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
 		fn slot_duration() -> sp_consensus_aura::SlotDuration {
-			sp_consensus_aura::SlotDuration::from_millis(SLOT_DURATION)
+			sp_consensus_aura::SlotDuration::from_millis(RELAY_CHAIN_SLOT_DURATION_MILLIS)
 		}
 
 		fn authorities() -> Vec<AuraId> {

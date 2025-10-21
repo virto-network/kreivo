@@ -54,26 +54,30 @@ pub mod currency {
 }
 
 pub mod async_backing_params {
+	use polkadot_primitives::Moment;
+
 	/// Build with an offset of 1 behind the relay chain best block.
-	pub const RELAY_PARENT_OFFSET: u32 = 1;
+	pub const RELAY_PARENT_OFFSET: u32 = 0;
 	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
 	/// included into the relay chain.
 	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = (2 + RELAY_PARENT_OFFSET) * BLOCK_PROCESSING_VELOCITY + 1;
-	/// How many parachain blocks are processed by the relay chain per parent.
-	/// Limits the number of blocks authored per slot.
+	/// The upper limit of how many parachain blocks are processed by the relay chain per
+	/// parent. Limits the number of blocks authored per slot. This determines the minimum
+	/// block time of the parachain:
 	#[cfg(feature = "paseo")]
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
 	#[cfg(not(feature = "paseo"))]
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 12;
+	/// Relay chain slot duration, in milliseconds.
+	pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: Moment = 6_000;
 }
 
 /// Time and blocks.
 pub mod time {
-	use crate::async_backing_params::BLOCK_PROCESSING_VELOCITY;
+	use crate::async_backing_params::{BLOCK_PROCESSING_VELOCITY, RELAY_CHAIN_SLOT_DURATION_MILLIS};
 	use polkadot_primitives::{BlockNumber, Moment};
 
-	pub const MILLISECS_PER_BLOCK: Moment = SLOT_DURATION / BLOCK_PROCESSING_VELOCITY as u64;
-	pub const SLOT_DURATION: Moment = 6_000;
+	pub const MILLISECS_PER_BLOCK: Moment = RELAY_CHAIN_SLOT_DURATION_MILLIS / BLOCK_PROCESSING_VELOCITY as u64;
 	// These time units are defined in number of blocks.
 	pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 	pub const HOURS: BlockNumber = MINUTES * 60;

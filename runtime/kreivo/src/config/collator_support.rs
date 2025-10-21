@@ -2,7 +2,7 @@ use super::*;
 
 use frame_support::traits::EitherOfDiverse;
 use pallet_xcm::IsVoiceOfBody;
-pub use runtime_constants::time::SLOT_DURATION;
+pub use runtime_constants::async_backing_params::RELAY_CHAIN_SLOT_DURATION_MILLIS;
 
 // #[runtime::pallet_index(20)]
 // pub type Authorship
@@ -80,7 +80,7 @@ impl pallet_aura::Config for Runtime {
 	type MaxAuthorities = ConstU32<100_000>;
 	type DisabledValidators = ();
 	type AllowMultipleBlocksPerSlot = ConstBool<true>;
-	type SlotDuration = ConstU64<{ SLOT_DURATION }>;
+	type SlotDuration = ConstU64<{ RELAY_CHAIN_SLOT_DURATION_MILLIS }>;
 }
 
 // #[runtime::pallet_index(24)]
@@ -92,7 +92,7 @@ pub(crate) use runtime_constants::async_backing_params::*;
 /// Aura consensus hook
 pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
 	Runtime,
-	{ SLOT_DURATION as u32 },
+	{ RELAY_CHAIN_SLOT_DURATION_MILLIS as u32 },
 	BLOCK_PROCESSING_VELOCITY,
 	UNINCLUDED_SEGMENT_CAPACITY,
 >;
