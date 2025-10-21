@@ -64,7 +64,11 @@ pub use sp_runtime::BuildStorage;
 
 use pallet_asset_tx_payment::ChargeAssetTxPayment;
 use pallet_gas_transaction_payment::ChargeTransactionPayment as ChargeGasTxPayment;
+
+#[cfg(not(feature = "zombienet"))]
 use pallet_pass::PassAuthenticate;
+
+#[cfg(not(feature = "zombienet"))]
 use pallet_skip_feeless_payment::SkipCheckIfFeeless;
 
 // XCM Imports
@@ -91,6 +95,7 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 pub type ChargeTransaction = ChargeGasTxPayment<Runtime, ChargeAssetTxPayment<Runtime>>;
 
 /// The TransactionExtensions to the basic transaction logic.
+#[cfg(not(feature = "zombienet"))]
 pub type TransactionExtensions = (
 	PassAuthenticate<Runtime>,
 	frame_system::CheckNonZeroSender<Runtime>,
@@ -101,6 +106,18 @@ pub type TransactionExtensions = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	SkipCheckIfFeeless<Runtime, ChargeTransaction>,
+);
+
+/// The TransactionExtensions to the basic transaction logic.
+#[cfg(feature = "zombienet")]
+pub type TransactionExtensions = (
+	frame_system::CheckNonZeroSender<Runtime>,
+	frame_system::CheckSpecVersion<Runtime>,
+	frame_system::CheckTxVersion<Runtime>,
+	frame_system::CheckGenesis<Runtime>,
+	frame_system::CheckEra<Runtime>,
+	frame_system::CheckNonce<Runtime>,
+	frame_system::CheckWeight<Runtime>,
 );
 
 /// Unchecked extrinsic type as expected by this runtime.

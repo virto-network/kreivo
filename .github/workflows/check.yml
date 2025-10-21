@@ -11,33 +11,15 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NIGHTLY_VERSION: 'nightly-2025-07-14'
+  NIGHTLY_VERSION: 'nightly'
   EXTRA_ARGS: ''
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    container:
+      image: pandres95/kreivo-ci
     steps:
-      - name: Setup Ubuntu dependencies
-        shell: bash
-        run: sudo apt update && sudo apt install -y protobuf-compiler
-
-      - name: Use minimal stable (w/ `wasm32-unknown-unknown`)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          components: rust-src
-
-      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` (w/ `wasm32-unknown-unknown`)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ env.NIGHTLY_VERSION }}
-          target: wasm32-unknown-unknown
-          components: rust-src
-
       - uses: actions/checkout@v4
 
       - name: Rust Cache
@@ -56,31 +38,13 @@ jobs:
 
   clippy:
     runs-on: ubuntu-latest
+    container:
+      image: pandres95/kreivo-ci
     permissions:
       checks: write
     env:
       SKIP_WASM_BUILD: 1
     steps:
-      - name: Setup Ubuntu dependencies
-        shell: bash
-        run: sudo apt update && sudo apt install -y protobuf-compiler
-
-      - name: Use minimal stable (w/ `wasm32-unknown-unknown`)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          components: rust-src
-
-      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` (w/ `wasm32-unknown-unknown`)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ env.NIGHTLY_VERSION }}
-          target: wasm32-unknown-unknown
-          components: rust-src, clippy
-
       - uses: actions/checkout@v4
 
       - name: Rust Cache
@@ -99,29 +63,11 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    container:
+      image: pandres95/kreivo-ci
     env:
       SKIP_WASM_BUILD: 1
     steps:
-      - name: Setup Ubuntu dependencies
-        shell: bash
-        run: sudo apt update && sudo apt install -y protobuf-compiler
-
-      - name: Use minimal stable (w/ `wasm32-unknown-unknown`)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          components: rust-src
-
-      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` (w/ `wasm32-unknown-unknown`)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ env.NIGHTLY_VERSION }}
-          target: wasm32-unknown-unknown
-          components: rust-src
-
       - uses: actions/checkout@v4
 
       - name: Rust Cache

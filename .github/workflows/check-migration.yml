@@ -12,19 +12,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: pandres95/kreivo-ci
     steps:
-      - name: Setup Ubuntu dependencies
-        shell: bash
-        run: sudo apt update && sudo apt install -y protobuf-compiler
-
-      - name: Use Stable
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: wasm32-unknown-unknown
-          components: rust-src
-
       - uses: actions/checkout@v4
 
       - name: Rust Cache

@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NIGHTLY_VERSION: 'nightly-2025-07-14'
+  NIGHTLY_VERSION: 'nightly'
   EXTRA_ARGS: ''
 
 jobs:
@@ -30,14 +30,9 @@ jobs:
 
   fmt:
     runs-on: ubuntu-latest
+    container:
+      image: pandres95/kreivo-ci
     steps:
-      - name: Use minimal `${{ env.NIGHTLY_VERSION }}` + `rustfmt`
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ env.NIGHTLY_VERSION }}
-          components: rustfmt
-
       - uses: actions/checkout@v4
 
       - name: Check formatting
