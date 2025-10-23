@@ -33,7 +33,7 @@ use pallet_revive::{
 	AddressMapper, Origin,
 };
 use sp_runtime::traits::StaticLookup;
-use tracing::error;
+use tracing::{error, info};
 use pallet_balances::pallet::Config;
 
 alloy::sol!("src/precompiles/IFoo.sol");
@@ -94,8 +94,11 @@ where
 				})
 				.map(|_| Vec::new())
 			},
-			IFooCalls::dontPanic(IFoo::dontPanicCall { }) => {
-				Ok("42".into())
+			IFooCalls::fortytwo(IFoo::fortytwoCall { }) => {
+				
+				let fortytwo = 42u128.to_le_bytes().to_vec();
+				info!("Called fortytwo, the answer is: {:?}", fortytwo);
+				Ok(fortytwo)
 			}
 
 		}

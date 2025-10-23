@@ -8,5 +8,5 @@ address constant FOO_PRECOMPILE_ADDRESS = address(0xF0000);
 /// @notice A foo interface
 interface IFoo {
     function transfer(address to, uint256 value) external returns (bool);
-    function dontPanic() external view returns (uint256);
+    function fortytwo() external view returns (uint128);
 }
