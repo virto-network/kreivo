@@ -339,5 +339,6 @@ try-runtime = [
 	"pass-webauthn/try-runtime",
 	"polkadot-runtime-common/try-runtime",
 	"runtime-common/try-runtime",
-	"sp-runtime/try-runtime"
+	"sp-runtime/try-runtime",
+	"runtime-constants/try-runtime"
 ]

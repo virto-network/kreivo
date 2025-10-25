@@ -3,7 +3,7 @@ timeout = 1000
 
 [relaychain]
 chain = "kusama-local"
-chain_spec_command = "./bin/relay_chainspec_builder {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./bin/runtimes/polkadot/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 default_args = ["-lparachain=debug", "-lxcm=trace"]
 default_command = "./bin/polkadot"
 
@@ -57,7 +57,7 @@ rpc_port = 13000
 [[parachains]]
 id = 2281
 chain = "local"
-chain_spec_command = "./target/release/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./target/production/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 cumulus_based = true
 add_to_genesis = true
 onboard_as_parachain = true

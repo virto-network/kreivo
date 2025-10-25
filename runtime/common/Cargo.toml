@@ -176,5 +176,6 @@ try-runtime = [
 	"parachain-info/try-runtime",
 	"polkadot-runtime-common/try-runtime",
 	"sp-runtime/try-runtime",
-	"parachains-common/try-runtime"
+	"parachains-common/try-runtime",
+	"runtime-constants/try-runtime"
 ]
