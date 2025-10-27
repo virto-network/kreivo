@@ -3,25 +3,23 @@ use super::*;
 
 use frame_benchmarking::v2::*;
 
-use frame_support::traits::fungible::Mutate;
+use frame_support::{dispatch::DispatchResult, traits::fungible::Mutate};
 use frame_system::RawOrigin;
 use sp_runtime::SaturatedConversion;
-
-type RuntimeEventFor<T> = <T as Config>::RuntimeEvent;
 
 // Since `periodicity` is arbitrary, we assume `DAYS` is a nominal day for 6s
 // block.
 const DAYS: u32 = 14_400;
 
 fn block_weight<T: frame_system::Config>() -> Weight {
-	<T as frame_system::Config>::BlockWeights::get().max_block
+	<T as frame_system::Config>::BlockWeights::get().max_block / 2
 }
 
-fn assert_has_event<T: Config>(generic_event: RuntimeEventFor<T>) {
+fn assert_has_event<T: frame_system::Config>(generic_event: T::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_has_event(generic_event.into());
 }
 
-fn setup_account<T: Config>(who: &AccountIdOf<T>) -> Result<(), BenchmarkError>
+fn setup_account<T: Config>(who: &AccountIdOf<T>) -> DispatchResult
 where
 	NativeBalanceOf<T>: From<u64>,
 {
@@ -30,28 +28,12 @@ where
 	Ok(())
 }
 
-fn setup_collection<T: Config>() -> Result<(), BenchmarkError> {
-	T::CreateCollection::create_collection_with_id(
-		T::MembershipsManagerCollectionId::get(),
-		&T::MembershipsManagerOwner::get(),
-		&T::MembershipsManagerOwner::get(),
-		&pallet_nfts::CollectionConfig {
-			settings: Default::default(),
-			max_supply: None,
-			mint_settings: Default::default(),
-		},
-	)?;
-
-	Ok(())
-}
-
 #[benchmarks(
 where
-	RuntimeEventFor<T>: From<pallet_communities::Event<T>>,
+	T::RuntimeEvent: From<pallet_communities::Event<T>>,
 	NativeBalanceOf<T>: From<u64>,
-	BlockNumberFor<T>: From<u32>,
-	CommunityIdOf<T>: From<u16>,
-	<T as Config>::MembershipId: From<u32>,
+	CommunityIdOf<T>: One,
+	T::MembershipId: From<u32>,
 )]
 mod benchmarks {
 	use super::*;
@@ -59,18 +41,17 @@ mod benchmarks {
 	#[benchmark]
 	fn register() -> Result<(), BenchmarkError> {
 		// setup code
-		let first_member: AccountIdOf<T> = frame_benchmarking::account("founder", 0, 0);
+		let first_member: AccountIdOf<T> = account("founder", 0, 0);
 		setup_account::<T>(&first_member)?;
 
-		let community_id: CommunityIdOf<T> = 1.into();
-		let first_admin = T::Lookup::unlookup(first_member.clone());
+		let community_id: CommunityIdOf<T> = One::one();
 
 		#[extrinsic_call]
 		_(
 			RawOrigin::Root,
 			community_id,
 			BoundedVec::truncate_from(b"Test Community".into()),
-			first_admin,
+			T::Lookup::unlookup(first_member.clone()),
 			None,
 			None,
 		);
@@ -82,8 +63,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn create_memberships(q: Linear<1, 1024>) -> Result<(), BenchmarkError> {
-		// setup code
-		setup_collection::<T>()?;
+		setup_account::<T>(&T::MembershipsManagerOwner::get())?;
 
 		#[extrinsic_call]
 		_(
@@ -111,8 +91,9 @@ mod benchmarks {
 
 	#[benchmark]
 	fn set_gas_tank() -> Result<(), BenchmarkError> {
+		setup_account::<T>(&T::MembershipsManagerOwner::get())?;
+
 		// Setup code
-		setup_collection::<T>()?;
 		Pallet::<T>::create_memberships(
 			RawOrigin::Root.into(),
 			1,
@@ -136,9 +117,5 @@ mod benchmarks {
 		Ok(())
 	}
 
-	impl_benchmark_test_suite!(
-		Pallet,
-		sp_io::TestExternalities::new(Default::default()),
-		crate::mock::Test
-	);
+	impl_benchmark_test_suite!(Pallet, sp_io::TestExternalities::new(Default::default()), mock::Test);
 }

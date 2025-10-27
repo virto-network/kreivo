@@ -6,49 +6,67 @@ chain = "kusama-local"
 chain_spec_command = "./bin/runtimes/polkadot/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 default_args = ["-lparachain=debug", "-lxcm=trace"]
 default_command = "./bin/polkadot"
-scheduling_lookahead = 2
 
-[relaychain.async_backing_params]
-max_candidate_depth = 3
-allowed_ancestry_len = 2
+[relaychain.genesis.runtimeGenesis.patch.configuration]
+config = { async_backing_params = { max_candidate_depth = 3, allowed_ancestry_len = 2 }, scheduler_params = { num_cores = 1, lookahead = 3 } }
 
 [[relaychain.nodes]]
-extra_args = ["--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all"]
+extra_args = [
+  "--force-authoring",
+  "-lparachain=debug",
+  "--unsafe-rpc-external",
+  "--rpc-cors=all",
+]
 name = "alice"
 validator = true
-ws_port = 10000
+rpc_port = 10000
 
 [[relaychain.nodes]]
-extra_args = ["--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all"]
+extra_args = [
+  "--force-authoring",
+  "-lparachain=debug",
+  "--unsafe-rpc-external",
+  "--rpc-cors=all",
+]
 name = "bob"
 validator = true
+rpc_port = 11000
 
 [[relaychain.nodes]]
-extra_args = ["--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all"]
+extra_args = [
+  "--force-authoring",
+  "-lparachain=debug",
+  "--unsafe-rpc-external",
+  "--rpc-cors=all",
+]
 name = "charlie"
 validator = true
+rpc_port = 12000
 
 [[relaychain.nodes]]
-extra_args = ["--force-authoring -lparachain=debug --unsafe-rpc-external --rpc-cors=all"]
+extra_args = [
+  "--force-authoring",
+  "-lparachain=debug",
+  "--unsafe-rpc-external",
+  "--rpc-cors=all",
+]
 name = "dave"
 validator = true
+rpc_port = 13000
 
 [[parachains]]
 id = 2281
 chain = "local"
-chain_spec_command = "./target/release/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./target/production/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 cumulus_based = true
 add_to_genesis = true
 onboard_as_parachain = true
 
 [[parachains.collators]]
 command = "./bin/polkadot-parachain"
-args = ["--force-authoring --log=xcm=trace,parachain=trace"]
+args = [
+  "--log=xcm=trace",
+  "--authoring slot-based",
+]
 name = "kreivo1"
-ws_port = 20000
-
-[[parachains.collators]]
-command = "./bin/polkadot-parachain"
-args = ["--force-authoring --log=xcm=trace,parachain=trace"]
-name = "kreivo2"
-ws_port = 21000
+rpc_port = 20000

@@ -26,7 +26,7 @@ pub mod pallet_custom_origins {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
-	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, TypeInfo, RuntimeDebug)]
+	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, DecodeWithMemTracking, TypeInfo, RuntimeDebug)]
 	#[pallet::origin]
 	pub enum Origin {
 		/// Origin for issuing new memberships.
@@ -35,6 +35,8 @@ pub mod pallet_custom_origins {
 		ReferendumCanceller,
 		/// Origin able to kill referenda.
 		ReferendumKiller,
+		/// Origin able to control the black hole event horizon
+		BlackHoleEventHorizon,
 	}
 
 	macro_rules! decl_unit_ensures {
@@ -68,5 +70,10 @@ pub mod pallet_custom_origins {
 		() => {}
 	}
 
-	decl_unit_ensures!(CreateMemberships, ReferendumCanceller, ReferendumKiller);
+	decl_unit_ensures!(
+		CreateMemberships,
+		ReferendumCanceller,
+		ReferendumKiller,
+		BlackHoleEventHorizon
+	);
 }

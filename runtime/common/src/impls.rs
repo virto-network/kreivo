@@ -16,13 +16,13 @@
 //! Auxiliary struct/enums for parachain runtimes.
 //! Taken from polkadot/runtime/common (at a21cd64) and adapted for parachains.
 
+use core::marker::PhantomData;
 use frame_support::traits::{
 	fungible::{DecreaseIssuance, IncreaseIssuance},
 	fungibles::{Balanced, Credit},
 	Currency,
 };
 use pallet_asset_tx_payment::HandleCredit;
-use sp_std::marker::PhantomData;
 
 /// Type alias to conveniently refer to `frame_system`'s `Config::AccountId`.
 pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;

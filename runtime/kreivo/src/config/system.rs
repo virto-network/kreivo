@@ -2,23 +2,33 @@
 
 use super::*;
 
-use frame_support::{derive_impl, dispatch::DispatchClass, traits::EnsureOrigin, PalletId};
-use frame_system::{limits::BlockLength, EnsureRootWithSuccess};
-use sp_runtime::traits::{LookupError, StaticLookup};
-
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+use frame_contrib_traits::authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
+use frame_support::traits::{AsEnsureOriginWithArg, LinearStoragePrice};
+use frame_support::{
+	derive_impl,
+	dispatch::DispatchClass,
+	traits::{fungible::HoldConsideration, Consideration, Footprint},
+	weights::constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_SECOND},
+	PalletId,
+};
+use frame_system::{limits::BlockLength, EnsureRootWithSuccess, EnsureSigned};
+use pallet_communities::origin::AsSignedByCommunity;
+use pallet_pass::FirstItemIsFree;
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
+pub use runtime_constants::async_backing_params::RELAY_PARENT_OFFSET;
+use sp_core::{blake2_256, ConstU128};
+use sp_runtime::{
+	traits::{AccountIdConversion, LookupError, StaticLookup},
+	DispatchError,
+};
 
-use fc_traits_authn::{composite_authenticator, util::AuthorityFromPalletId, Challenge, Challenger};
-use pallet_communities::origin::AsSignedByCommunity;
+const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
 
 // #[runtime::pallet_index(0)]
 // pub type System
-const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
-	sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
-	cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
-);
+const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), MAX_POV_SIZE);
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
@@ -66,7 +76,7 @@ impl StaticLookup for CommunityLookup {
 	}
 }
 
-#[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig as frame_system::DefaultConfig)]
+#[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig)]
 impl frame_system::Config for Runtime {
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
@@ -93,7 +103,7 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 	/// The action to take on a Runtime Upgrade
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
-	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type MaxConsumers = ConstU32<16>;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Self>;
 }
 
@@ -104,6 +114,8 @@ parameter_types! {
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
+
+pub type RelaychainData = cumulus_pallet_parachain_system::RelaychainDataProvider<Runtime>;
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -117,6 +129,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Self>;
 	type ConsensusHook = ConsensusHook;
+	type RelayParentOffset = ConstU32<RELAY_PARENT_OFFSET>;
 }
 
 // #[runtime::pallet_index(2)]
@@ -144,116 +157,302 @@ parameter_types! {
 	pub NeverPays: Option<pallet_pass::DepositInformation<Runtime>> = None;
 }
 
-/// A [`Challenger`][`fc_traits_authn::Challenger`] which verifies the
-/// block hash of a block of a given block that's within the last `PAST_BLOCKS`.
+/// A [`Challenger`][`frame_contrib_traits::authn::Challenger`] which verifies
+/// the block hash of a block of a given block that's within the last
+/// `PAST_BLOCKS`.
 pub struct BlockHashChallenger<const PAST_BLOCKS: BlockNumber>;
 
 impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLOCKS> {
 	type Context = BlockNumber;
 
-	fn generate(cx: &Self::Context) -> Challenge {
-		System::block_hash(cx).0
+	fn generate(cx: &Self::Context, xtc: &impl ExtrinsicContext) -> Challenge {
+		log::trace!(target: "authn", "BlockHashChallenger::generate({cx:?}, {:?})", xtc.as_ref());
+		log::trace!(target: "authn", "\t -> ({:?}",
+			blake2_256(&[&System::block_hash(cx).0, xtc.as_ref()].concat()));
+		blake2_256(&[&System::block_hash(cx).0, xtc.as_ref()].concat())
 	}
 
-	fn check_challenge(cx: &Self::Context, challenge: &[u8]) -> Option<()> {
+	fn check_challenge(cx: &Self::Context, xtc: &impl ExtrinsicContext, challenge: &[u8]) -> Option<()> {
 		(*cx >= System::block_number().saturating_sub(PAST_BLOCKS)).then_some(())?;
-		Self::generate(cx).eq(challenge).then_some(())
+		Self::generate(cx, xtc).eq(challenge).then_some(())
 	}
 }
 
-pub type WebAuthn =
-	pass_webauthn::Authenticator<BlockHashChallenger<{ 30 * MINUTES }>, AuthorityFromPalletId<PassPalletId>>;
-#[cfg(feature = "runtime-benchmarks")]
-pub type Dummy = fc_traits_authn::util::dummy::Dummy<AuthorityFromPalletId<PassPalletId>>;
+pub type KreivoChallenger = BlockHashChallenger<{ 30 * MINUTES }>;
+pub type WebAuthn = pass_webauthn::Authenticator<KreivoChallenger, AuthorityFromPalletId<PassPalletId>>;
+pub type SubstrateKey = pass_substrate_keys::Authenticator<KreivoChallenger, AuthorityFromPalletId<PassPalletId>>;
 
-#[cfg(not(feature = "runtime-benchmarks"))]
 composite_authenticator!(
 	pub Pass<AuthorityFromPalletId<PassPalletId>> {
 		WebAuthn,
+		SubstrateKey,
 	}
 );
 
-#[cfg(feature = "runtime-benchmarks")]
-composite_authenticator!(
-	pub Pass<AuthorityFromPalletId<PassPalletId>> {
-		WebAuthn,
-		Dummy,
-	}
-);
+#[derive(Debug, Eq, PartialEq, Clone, Encode, Decode, DecodeWithMemTracking, MaxEncodedLen, TypeInfo)]
+pub struct SkipConsideration<C>(Option<C>);
 
-/// Communities don't need to pay deposit fees to create a `pass` account
-pub struct CommunitiesDontDeposit;
+const ACCOUNT_IS_ROOT: fn(&AccountId) -> bool = |acct| acct == &TreasuryAccount::get();
+const ACCOUNT_IS_COMMUNITY: fn(&AccountId) -> bool = |acct| {
+	PalletId::try_from_sub_account::<CommunityId>(acct)
+		.is_some_and(|(id, _)| id == communities::CommunityPalletId::get())
+};
 
-impl<OuterOrigin> EnsureOriginWithArg<OuterOrigin, HashedUserId> for CommunitiesDontDeposit
+impl<C> Consideration<AccountId, Footprint> for SkipConsideration<C>
 where
-	OuterOrigin: frame_support::traits::OriginTrait
-		+ From<frame_system::RawOrigin<AccountId>>
-		+ From<pallet_communities::Origin<Runtime>>
-		+ Clone
-		+ Into<Result<frame_system::RawOrigin<AccountId>, OuterOrigin>>
-		+ Into<Result<pallet_communities::Origin<Runtime>, OuterOrigin>>,
+	C: Consideration<AccountId, Footprint>,
 {
-	type Success = Option<pallet_pass::DepositInformation<Runtime>>;
+	fn new(who: &AccountId, new: Footprint) -> Result<Self, DispatchError> {
+		if ACCOUNT_IS_ROOT(who) || ACCOUNT_IS_COMMUNITY(who) {
+			Ok(Self(None))
+		} else {
+			C::new(who, new).map(Some).map(Self)
+		}
+	}
 
-	fn try_origin(o: OuterOrigin, _: &HashedUserId) -> Result<Self::Success, OuterOrigin> {
-		AsSignedByCommunity::<Runtime>::try_origin(o)?;
-		Ok(None)
+	fn update(self, who: &AccountId, new: Footprint) -> Result<Self, DispatchError> {
+		if let Some(c) = self.0 {
+			c.update(who, new).map(Some).map(Self)
+		} else {
+			Ok(self)
+		}
+	}
+
+	fn drop(self, who: &AccountId) -> Result<(), DispatchError> {
+		if let Some(c) = self.0 {
+			c.drop(who)
+		} else {
+			Ok(())
+		}
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	fn try_successful_origin(_: &HashedUserId) -> Result<OuterOrigin, ()> {
-		use pallet_communities::BenchmarkHelper;
-		let community_id = crate::communities::CommunityBenchmarkHelper::community_id();
-		Ok(
-			frame_system::RawOrigin::Signed(pallet_communities::Pallet::<Runtime>::community_account(&community_id))
-				.into(),
-		)
+	fn ensure_successful(who: &AccountId, new: Footprint) {
+		C::ensure_successful(who, new);
 	}
+}
+parameter_types! {
+	pub AccountRegistrationReason: RuntimeHoldReason = RuntimeHoldReason::Pass(pallet_pass::HoldReason::AccountRegistration);
+	pub AccountDevicesReason: RuntimeHoldReason = RuntimeHoldReason::Pass(pallet_pass::HoldReason::AccountDevices);
+	pub SessionKeysReason: RuntimeHoldReason = RuntimeHoldReason::Pass(pallet_pass::HoldReason::SessionKeys);
 }
 
 impl pallet_pass::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type WeightInfo = weights::pallet_pass::WeightInfo<Self>;
-	type Authenticator = PassAuthenticator; // WebAuthn;
 	type PalletsOrigin = OriginCaller;
-	type PalletId = PassPalletId;
-	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
+	type WeightInfo = weights::pallet_pass::WeightInfo<Self>;
 	type RegisterOrigin = EitherOf<
-		// Root never pays
-		EnsureRootWithSuccess<Self::AccountId, NeverPays>,
+		// Root can create pass accounts.
+		EnsureRootWithSuccess<Self::AccountId, TreasuryAccount>,
 		EitherOf<
-			// 	// Communities never pay
-			CommunitiesDontDeposit,
-			// Signed users must deposit ED for creating a pass account
-			pallet_pass::EnsureSignedPays<
-				Runtime,
-				<Runtime as pallet_balances::Config>::ExistentialDeposit,
-				TreasuryAccount,
-			>,
+			// Communities can create pass accounts.
+			AsEnsureOriginWithArg<AsSignedByCommunity<Runtime>>,
+			// Anyone can create pass accounts.
+			AsEnsureOriginWithArg<EnsureSigned<Self::AccountId>>,
 		>,
 	>;
+	type AddressGenerator = ();
+	type Balances = Balances;
+	type Authenticator = PassAuthenticator;
 	type Scheduler = Scheduler;
-
+	type BlockNumberProvider = System;
+	type RegistrarConsideration = SkipConsideration<
+		HoldConsideration<
+			AccountId,
+			Balances,
+			AccountRegistrationReason,
+			LinearStoragePrice<ConstU128<EXISTENTIAL_DEPOSIT>, ConstU128<MILLICENTS>, Balance>,
+		>,
+	>;
+	type DeviceConsideration = FirstItemIsFree<
+		HoldConsideration<
+			AccountId,
+			Balances,
+			AccountDevicesReason,
+			LinearStoragePrice<ConstU128<MILLICENTS>, ConstU128<{ MILLICENTS / 10 }>, Balance>,
+		>,
+	>;
+	type SessionKeyConsideration = FirstItemIsFree<
+		HoldConsideration<
+			AccountId,
+			Balances,
+			SessionKeysReason,
+			LinearStoragePrice<ConstU128<MILLICENTS>, ConstU128<{ MILLICENTS / 10 }>, Balance>,
+		>,
+	>;
+	type PalletId = PassPalletId;
+	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
+	type MaxDevicesPerAccount = ConstU32<100>;
+	type MaxSessionsPerAccount = ConstU32<10>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = PassBenchmarkHelper;
+	type BenchmarkHelper = benchmarks::PassBenchmarkHelper;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-pub struct PassBenchmarkHelper;
+pub mod benchmarks {
+	use super::*;
+	use frame_benchmarking::BenchmarkError;
+	use frame_support::Blake2_256;
+	use pass_substrate_keys::SignedMessage;
+	use rand_core::{CryptoRng, Error, RngCore};
+	use schnorrkel::{context::SigningContext, Keypair, SecretKey};
+	use sp_core::U256;
+	use sp_runtime::MultiSignature;
 
-#[cfg(feature = "runtime-benchmarks")]
-impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
-	fn register_origin() -> frame_system::pallet_prelude::OriginFor<Runtime> {
-		RuntimeOrigin::root()
+	impl frame_system_benchmarking::Config for Runtime {
+		fn setup_set_code_requirements(code: &Vec<u8>) -> Result<(), BenchmarkError> {
+			ParachainSystem::initialize_for_set_code_benchmark(code.len() as u32);
+			Ok(())
+		}
+
+		fn verify_set_code() {
+			System::assert_last_event(
+				cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into(),
+			);
+		}
 	}
 
-	fn device_attestation(_: fc_traits_authn::DeviceId) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
-		PassDeviceAttestation::Dummy(fc_traits_authn::util::dummy::DummyAttestation::new(true))
+	/// This is a map of secret keys, grouped by its derived [`DeviceId`]
+	#[frame_support::storage_alias]
+	type BenchmarkDeviceIdSecretKey =
+		StorageMap<Pass, Blake2_256, DeviceId, [u8; 64], frame_support::pallet_prelude::OptionQuery>;
+
+	#[frame_support::storage_alias]
+	type Rng = StorageValue<Pass, BenchRng, frame_support::pallet_prelude::ValueQuery>;
+
+	/// A hash-based _(not really random)_ "RNG". Marked as [`CryptoRng`] (even
+	/// though it is clearly not) because these are benchmarking tests, and
+	/// don't aim to test for security issues.
+	#[derive(Debug, Eq, PartialEq, Clone, Encode, Decode, DecodeWithMemTracking, MaxEncodedLen, TypeInfo, Default)]
+	pub struct BenchRng([u8; 32], u8);
+	impl BenchRng {
+		fn rotate(&mut self) {
+			if self.1 == 31 {
+				self.0 = blake2_256(&self.0);
+				self.1 = 0;
+			} else {
+				self.1 += 1
+			}
+		}
+	}
+	impl From<U256> for BenchRng {
+		fn from(u256: U256) -> Self {
+			Self(blake2_256(&u256.to_little_endian()), 0)
+		}
+	}
+	impl CryptoRng for BenchRng {}
+	impl RngCore for BenchRng {
+		fn next_u32(&mut self) -> u32 {
+			let mut b = [0u8; 4];
+			for i in 0..4 {
+				b[i] = self.0[i];
+				self.rotate();
+			}
+			u32::from_le_bytes(b)
+		}
+
+		fn next_u64(&mut self) -> u64 {
+			let mut b = [0u8; 8];
+			for i in 0..8 {
+				b[i] = self.0[i];
+				self.rotate();
+			}
+			u64::from_le_bytes(b)
+		}
+
+		fn fill_bytes(&mut self, dest: &mut [u8]) {
+			for byte in dest.iter_mut() {
+				*byte = self.0[self.1 as usize];
+				self.rotate();
+			}
+		}
+
+		fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
+			for byte in dest.iter_mut() {
+				*byte = self.0[self.1 as usize];
+				self.rotate();
+			}
+			Ok(())
+		}
 	}
 
-	fn credential(_: HashedUserId) -> pallet_pass::CredentialOf<Runtime, ()> {
-		PassCredential::Dummy(fc_traits_authn::util::dummy::DummyCredential::new(true))
+	pub struct PassBenchmarkHelper;
+
+	impl PassBenchmarkHelper {
+		fn sign<Cx: Encode>(pair: &Keypair, msg: &SignedMessage<Cx>) -> MultiSignature {
+			Rng::mutate(|rng| {
+				let msg = msg.message();
+				let t = {
+					// The context must be b"substrate", otherwise it'll fail validation.
+					let t = SigningContext::new(b"substrate").bytes(msg.as_ref());
+					schnorrkel::context::attach_rng(t, rng)
+				};
+
+				MultiSignature::Sr25519(pair.sign(t).to_bytes().into())
+			})
+		}
+
+		fn derive() -> Keypair {
+			Rng::mutate(|rng| {
+				let secret = SecretKey::generate_with(rng);
+				secret.to_keypair()
+			})
+		}
+
+		fn pair(id: DeviceId) -> Keypair {
+			let bytes = BenchmarkDeviceIdSecretKey::get(id).expect("pairs handled by benchmarks are saved here; qed");
+			SecretKey::from_bytes(&bytes)
+				.expect("saved using `to_bytes`; qed")
+				.to_keypair()
+		}
+
+		fn set_pair(device_id: DeviceId, keypair: Keypair) {
+			BenchmarkDeviceIdSecretKey::insert(device_id, keypair.secret.to_bytes());
+		}
+	}
+
+	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
+		fn device_attestation(xtc: &impl ExtrinsicContext) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
+			let pair = Self::derive();
+
+			let context = System::block_number();
+			let message = SignedMessage {
+				context,
+				challenge: KreivoChallenger::generate(&context, xtc),
+				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
+			};
+			let public = AccountId::new(pair.public.to_bytes());
+			let signature = Self::sign(&pair, &message);
+
+			let attestation = PassDeviceAttestation::SubstrateKey(pass_substrate_keys::KeyRegistration {
+				message,
+				public,
+				signature,
+			});
+
+			Self::set_pair(*attestation.device_id(), pair);
+			attestation
+		}
+
+		fn credential(
+			user_id: HashedUserId,
+			device_id: DeviceId,
+			xtc: &impl ExtrinsicContext,
+		) -> pallet_pass::CredentialOf<Runtime, ()> {
+			let pair = Self::pair(device_id);
+
+			let context = System::block_number();
+			let message = SignedMessage {
+				context,
+				challenge: KreivoChallenger::generate(&context, xtc),
+				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
+			};
+			let signature = Self::sign(&pair, &message);
+
+			PassCredential::SubstrateKey(pass_substrate_keys::KeySignature {
+				user_id,
+				message,
+				signature,
+			})
+		}
 	}
 }

@@ -15,3 +15,8 @@ pub use multilocation_asset_id::runtime::AsFungibleAssetLocation;
 
 pub type CommunityId = u16;
 pub type MembershipId = u32;
+
+pub mod listings {
+	pub type InventoryId = u32;
+	pub type ItemId = u64;
+}

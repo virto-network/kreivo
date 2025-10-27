@@ -12,6 +12,9 @@
 //! - **[`AssetsAPI`][apis::AssetsAPI]:** These APIs can facilitate transactions
 //!   regarding assets.
 
+extern crate alloc;
+extern crate core;
+
 pub mod apis;
 #[cfg(feature = "contract")]
 mod contract;
@@ -19,6 +22,6 @@ mod contract;
 mod runtime;
 
 #[cfg(feature = "contract")]
-pub use contract::KreivoApiEnvironment;
+pub use contract::{KreivoApi, KreivoApiEnvironment};
 #[cfg(feature = "runtime")]
-pub use runtime::KreivoChainExtensions;
+pub use runtime::{Config, GroupInfo, KreivoChainExtensions, MerchantIdInfo};

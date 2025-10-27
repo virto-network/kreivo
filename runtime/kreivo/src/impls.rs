@@ -19,7 +19,7 @@
 use super::*;
 use core::cmp::Ordering;
 use frame_support::traits::{Contains, InstanceFilter, PrivilegeCmp};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use sp_runtime::RuntimeDebug;
 
 pub struct RuntimeBlackListedCalls;
@@ -38,7 +38,18 @@ impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 
 /// The type used to represent the kinds of proxying allowed.
 #[derive(
-	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, MaxEncodedLen, scale_info::TypeInfo,
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	RuntimeDebug,
+	MaxEncodedLen,
+	scale_info::TypeInfo,
 )]
 pub enum ProxyType {
 	/// Fully permissioned proxy. Can execute any call on behalf of _proxied_.

@@ -1,6 +1,5 @@
 use super::*;
-use fc_traits_gas_tank::NonFungibleGasTank;
-use fc_traits_memberships::NonFungiblesMemberships;
+use frame_contrib_traits::{gas_tank::NonFungibleGasTank, memberships::NonFungiblesMemberships};
 use frame_support::{
 	assert_ok, derive_impl, parameter_types,
 	traits::{AsEnsureOriginWithArg, ConstU16, ConstU32, ConstU64, EitherOf, EqualPrivilegeOnly, VariantCountOf},
@@ -82,17 +81,15 @@ parameter_types! {
 	pub const RootAccount: AccountId = AccountId::new([0xff; 32]);
 }
 
-#[derive_impl(frame_system::config_preludes::TestDefaultConfig as frame_system::DefaultConfig)]
+#[derive_impl(frame_system::config_preludes::TestDefaultConfig)]
 impl frame_system::Config for Test {
 	type Block = Block;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type AccountData = pallet_balances::AccountData<Balance>;
-	type RuntimeEvent = RuntimeEvent;
 }
 
-#[derive_impl(pallet_balances::config_preludes::TestDefaultConfig as pallet_balances::DefaultConfig
-)]
+#[derive_impl(pallet_balances::config_preludes::TestDefaultConfig)]
 impl pallet_balances::Config for Test {
 	type AccountStore = System;
 	type FreezeIdentifier = RuntimeFreezeReason;
@@ -100,7 +97,7 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = VariantCountOf<RuntimeFreezeReason>;
 }
 
-#[derive_impl(pallet_assets::config_preludes::TestDefaultConfig as pallet_assets::DefaultConfig)]
+#[derive_impl(pallet_assets::config_preludes::TestDefaultConfig)]
 impl pallet_assets::Config for Test {
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<Self::AccountId>>;
@@ -109,8 +106,8 @@ impl pallet_assets::Config for Test {
 }
 
 impl pallet_assets_freezer::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type RuntimeEvent = RuntimeEvent;
 }
 
 impl pallet_scheduler::Config for Test {
@@ -124,6 +121,7 @@ impl pallet_scheduler::Config for Test {
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Self>;
 	type Preimages = ();
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -132,9 +130,9 @@ parameter_types! {
 }
 
 impl pallet_referenda::Config for Test {
-	type WeightInfo = ();
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
 	type Scheduler = Scheduler;
 	type Currency = Balances;
 	type SubmitOrigin = EnsureSigned<AccountId>;
@@ -149,10 +147,10 @@ impl pallet_referenda::Config for Test {
 	type AlarmInterval = AlarmInterval;
 	type Tracks = Tracks;
 	type Preimages = ();
+	type BlockNumberProvider = System;
 }
 
 impl pallet_referenda_tracks::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type TrackId = CommunityId;
 	type MaxTracks = MaxTracks;
 	type AdminOrigin = EnsureRoot<AccountId>;
@@ -199,47 +197,44 @@ impl pallet_nfts::Config for Test {
 	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
+	type BlockNumberProvider = System;
 }
 
 impl pallet_communities::Config for Test {
-	type PalletId = CommunitiesPalletId;
-	type CommunityId = CommunityId;
-	type MembershipId = MembershipId;
-	type Assets = Assets;
-	type AssetsFreezer = AssetsFreezer;
-	type Balances = Balances;
-	type ItemConfig = pallet_nfts::ItemConfig;
-	type MemberMgmt = NonFungiblesMemberships<Memberships>;
-	type Polls = Referenda;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type WeightInfo = WeightInfo;
 	type CreateOrigin = EnsureNever<Deposit>;
 	type AdminOrigin = EnsureCommunity<Self>;
 	type MemberMgmtOrigin = EnsureCommunity<Self>;
-	type RuntimeCall = RuntimeCall;
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeFreezeReason = RuntimeFreezeReason;
-	type WeightInfo = WeightInfo;
+	type CommunityId = CommunityId;
+	type MembershipId = MembershipId;
+	type MemberMgmt = NonFungiblesMemberships<Memberships, pallet_nfts::ItemConfig>;
+	type Polls = Referenda;
+	type Assets = Assets;
+	type AssetsFreezer = AssetsFreezer;
+	type Balances = Balances;
+	type BlockNumberProvider = System;
+	type PalletId = CommunitiesPalletId;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = CommunityBenchmarkHelper;
 }
 
 impl Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	// Types to support community creation
 	type CreateCollection = Memberships;
+	type MakeTank = NonFungibleGasTank<Test, System, Memberships, pallet_nfts::ItemConfig>;
 	type Tracks = Tracks;
 	type RankedCollective = Collective;
+	type WeightInfo = WeightInfo;
 	type RegisterOrigin = EnsureRootWithSuccess<AccountId, NoDepositOnRootRegistration>;
+
 	// Types to support memberships creation
 	type CreateMembershipsOrigin = EnsureRoot<AccountId>;
-	type MembershipId = MembershipId;
-
 	type MembershipsManagerCollectionId = MembershipsManagerCollectionId;
 	type MembershipsManagerOwner = RootAccount;
-	type CreateMemberships = Memberships;
-	type MakeTank = NonFungibleGasTank<Test, Memberships, pallet_nfts::ItemConfig>;
+	type ItemConfig = pallet_nfts::ItemConfig;
 
-	type WeightInfo = WeightInfo;
+	type CreateMemberships = Memberships;
 }
 
 pub fn new_test_ext() -> TestExternalities {

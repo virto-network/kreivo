@@ -26,14 +26,25 @@ impl ConvertLocation<AccountId> for PluralityConvertsToCommunityAccountId {
 	}
 }
 
+pub struct HereConvertsTo<Account>(PhantomData<Account>);
+impl<Account: Get<AccountId>, AccountId: From<[u8; 32]>> ConvertLocation<AccountId> for HereConvertsTo<Account> {
+	fn convert_location(location: &Location) -> Option<AccountId> {
+		if location.is_here() {
+			Some(Account::get())
+		} else {
+			None
+		}
+	}
+}
+
 pub struct AccountId32FromRelay<Network, AccountId>(PhantomData<(Network, AccountId)>);
 impl<Network: Get<Option<NetworkId>>, AccountId: From<[u8; 32]> + Into<[u8; 32]> + Clone> ConvertLocation<AccountId>
 	for AccountId32FromRelay<Network, AccountId>
 {
 	fn convert_location(location: &Location) -> Option<AccountId> {
 		let id = match location.unpack() {
-			(1, [AccountId32 { id, network: None }]) => id,
 			(1, [AccountId32 { id, network }]) if *network == Network::get() => id,
+			(1, [AccountId32 { id, .. }]) => id,
 			_ => return None,
 		};
 
