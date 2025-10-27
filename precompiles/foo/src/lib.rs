@@ -22,10 +22,7 @@ use alloc::vec::Vec;
 use core::marker::PhantomData;
 use pallet_balances::pallet::Config;
 use pallet_revive::precompiles::{
-	alloy::{
-		self,
-		sol_types::SolCall,
-	},
+	alloy::{self, sol_types::SolCall},
 	AddressMatcher, Error, Ext, Precompile,
 };
 
@@ -69,7 +66,7 @@ where
 	fn call(_address: &[u8; 20], input: &Self::Interface, _env: &mut impl Ext<T = Self::T>) -> Result<Vec<u8>, Error> {
 		info!("Fortytwo: ☃️☃️☃️☃️☃️");
 		match input {
-			IFooCalls::fortytwo(_) => Self::fortytwo()
+			IFooCalls::fortytwo(_) => Self::fortytwo(),
 		}
 	}
 }
@@ -84,4 +81,3 @@ where
 		return Ok(IFoo::fortytwoCall::abi_encode_returns(&42u128));
 	}
 }
-

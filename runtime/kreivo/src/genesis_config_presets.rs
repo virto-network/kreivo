@@ -76,6 +76,37 @@ mod local {
 				.expect("communities manager is a json object"),
 		);
 
+		let mut initial_assets = serde_json::json!(
+			{
+				"assets": AssetsConfig {
+				assets: vec![
+					(
+						virto_common::FungibleAssetLocation::Here(1),
+						alice(),
+						true,
+						1,
+					),
+				],
+				metadata: vec![
+					(
+						virto_common::FungibleAssetLocation::Here(1),
+						Vec::from("Asset 1"),
+						Vec::from("ASSET1"),
+						18,
+					)
+				],
+				accounts: vec![(virto_common::FungibleAssetLocation::Here(1), alice(), 123456789)],
+				next_asset_id: None
+			}
+			}
+		);
+
+		genesis.append(
+			initial_assets
+				.as_object_mut()
+				.expect("assets is a json object"),
+		);
+
 		serde_json::Value::Object(genesis.clone())
 	}
 }
