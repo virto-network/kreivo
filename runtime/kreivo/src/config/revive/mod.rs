@@ -6,9 +6,9 @@ use frame_system::EnsureRootWithSuccess;
 use frame_system::EnsureSigned;
 
 // Precompiles
+use pallet_assets_precompiles::{InlineIdConfig, ERC20};
+use pallet_foo_precompiles::Foo;
 use pallet_xcm::precompiles::XcmPrecompile;
-use pallet_assets_precompiles::{ERC20,InlineIdConfig};
-use pallet_foo_precompiles::FooPrecompile;
 
 parameter_types! {
 	pub const DepositPerItem: Balance = deposit(1, 0);
@@ -28,8 +28,8 @@ impl pallet_revive::Config for Runtime {
 	type WeightInfo = pallet_revive::weights::SubstrateWeight<Self>;
 	type Precompiles = (
 		ERC20<Self, InlineIdConfig<0x120>, KreivoAssetsInstance>,
-		FooPrecompile<Self>,
-		XcmPrecompile<Self>
+		Foo<Self, pallet_foo_precompiles::InlineIdConfig<0x0F>>,
+		XcmPrecompile<Self>,
 	);
 	type AddressMapper = pallet_revive::AccountId32Mapper<Self>;
 	type RuntimeMemory = ConstU32<{ 128 * 1024 * 1024 }>;
