@@ -10,6 +10,24 @@ const fn percent(x: i32) -> FixedI64 {
 	FixedI64::from_rational(x as u128, 100)
 }
 
+#[cfg(feature = "paseo")]
+mod period {
+	use super::*;
+
+	pub const PREPARE: BlockNumber = 5 * MINUTES;
+	pub const DECISION: BlockNumber = 4 * DAYS;
+	pub const CONFIRM: BlockNumber = 15 * MINUTES;
+}
+
+#[cfg(not(feature = "paseo"))]
+mod period {
+	use super::*;
+
+	pub const PREPARE: BlockNumber = 2 * MINUTES;
+	pub const DECISION: BlockNumber = 1 * DAYS;
+	pub const CONFIRM: BlockNumber = 2 * MINUTES;
+}
+
 pub struct TracksInfo;
 impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 	type Id = TrackId;
@@ -23,9 +41,9 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 					name: s("Root"),
 					max_deciding: 1,
 					decision_deposit: 10 * UNITS,
-					prepare_period: 15 * MINUTES,
-					decision_period: 4 * DAYS,
-					confirm_period: 15 * MINUTES,
+					prepare_period: period::PREPARE,
+					decision_period: period::DECISION,
+					confirm_period: period::CONFIRM,
 					min_enactment_period: 1,
 					min_approval: pallet_referenda::Curve::LinearDecreasing {
 						length: Perbill::from_percent(100),
@@ -45,9 +63,9 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 					name: s("Referendum Canceller"),
 					max_deciding: 1,
 					decision_deposit: UNITS,
-					prepare_period: 15 * MINUTES,
-					decision_period: 4 * DAYS,
-					confirm_period: 15 * MINUTES,
+					prepare_period: period::PREPARE,
+					decision_period: period::DECISION,
+					confirm_period: period::CONFIRM,
 					min_enactment_period: 1,
 					min_approval: pallet_referenda::Curve::LinearDecreasing {
 						length: Perbill::from_percent(100),
@@ -67,9 +85,9 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 					name: s("Referendum Killer"),
 					max_deciding: 1,
 					decision_deposit: UNITS,
-					prepare_period: 15 * MINUTES,
-					decision_period: 4 * DAYS,
-					confirm_period: 15 * MINUTES,
+					prepare_period: period::PREPARE,
+					decision_period: period::DECISION,
+					confirm_period: period::CONFIRM,
 					min_enactment_period: 1,
 					min_approval: pallet_referenda::Curve::LinearDecreasing {
 						length: Perbill::from_percent(100),
@@ -89,9 +107,9 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 					name: s("Create Memberships"),
 					max_deciding: 1,
 					decision_deposit: UNITS,
-					prepare_period: 15 * MINUTES,
-					decision_period: 4 * DAYS,
-					confirm_period: 15 * MINUTES,
+					prepare_period: period::PREPARE,
+					decision_period: period::DECISION,
+					confirm_period: period::CONFIRM,
 					min_enactment_period: 1,
 					min_approval: pallet_referenda::Curve::LinearDecreasing {
 						length: Perbill::from_percent(100),
