@@ -58,7 +58,7 @@ pub mod async_backing_params {
 
 	/// Build with an offset of 1 behind the relay chain best block.
 	#[cfg(not(feature = "try-runtime"))]
-	pub const RELAY_PARENT_OFFSET: u32 = 1;
+	pub const RELAY_PARENT_OFFSET: u32 = 2;
 	#[cfg(feature = "try-runtime")]
 	pub const RELAY_PARENT_OFFSET: u32 = 0;
 	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
