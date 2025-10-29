@@ -10,7 +10,7 @@ const fn percent(x: i32) -> FixedI64 {
 	FixedI64::from_rational(x as u128, 100)
 }
 
-#[cfg(feature = "paseo")]
+#[cfg(not(feature = "paseo"))]
 mod period {
 	use super::*;
 
@@ -19,12 +19,12 @@ mod period {
 	pub const CONFIRM: BlockNumber = 15 * MINUTES;
 }
 
-#[cfg(not(feature = "paseo"))]
+#[cfg(feature = "paseo")]
 mod period {
 	use super::*;
 
 	pub const PREPARE: BlockNumber = 2 * MINUTES;
-	pub const DECISION: BlockNumber = 1 * DAYS;
+	pub const DECISION: BlockNumber = DAYS;
 	pub const CONFIRM: BlockNumber = 2 * MINUTES;
 }
 
