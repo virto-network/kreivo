@@ -46,7 +46,7 @@ impl pallet_collator_selection::Config for Runtime {
 // #[runtime::pallet_index(22)]
 // pub type Session
 parameter_types! {
-	pub const Period: u32 = 6 * HOURS;
+	pub const Period: u32 = 1_000; // Whatever this takes
 	pub const Offset: u32 = 0;
 	pub const KeyDeposit: u64 = 0;
 }
