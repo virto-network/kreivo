@@ -81,7 +81,7 @@ pub type LocationToAccountId = (
 pub type LocationConvertedConcreteId = xcm_builder::MatchedConvertedConcreteId<
 	FungibleAssetLocation,
 	Balance,
-	(StartsWith<AssetHubLocation>, StartsWith<PolkadotLocation>),
+	(StartsWith<AssetHubLocation>, StartsWith<Dot>),
 	AsFungibleAssetLocation,
 	JustTry,
 >;
@@ -182,7 +182,8 @@ pub type AssetTransactors = (FungibleTransactor, FungiblesTransactor);
 
 parameter_types! {
 	pub AssetHubLocation: Location = Location::new(1, [Parachain(ASSET_HUB_ID)]);
-	pub PolkadotLocation: Location = Location::new(2, [GlobalConsensus(NetworkId::Polkadot)]);
+	pub Ksm: Location = Location::new(1, Here);
+	pub Dot: Location = Location::new(2, [GlobalConsensus(Polkadot)]);
 }
 
 //- From PR https://github.com/paritytech/cumulus/pull/936
@@ -195,20 +196,19 @@ fn matches_prefix(prefix: &Location, loc: &Location) -> bool {
 			.zip(loc.interior().iter())
 			.all(|(prefix_junction, junction)| prefix_junction == junction)
 }
-pub struct ReserveAssetsFrom<T>(PhantomData<T>);
-impl<Prefix: Get<Location>> ContainsPair<Asset, Location> for ReserveAssetsFrom<Prefix> {
-	fn contains(asset: &Asset, _origin: &Location) -> bool {
-		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}", Prefix::get(), _origin);
-		matches_prefix(&Prefix::get(), &asset.id.0)
+pub struct ReserveAssetsFrom<O>(PhantomData<O>);
+impl<Origin: Get<Location>> ContainsPair<Asset, Location> for ReserveAssetsFrom<Origin> {
+	fn contains(asset: &Asset, origin: &Location) -> bool {
+		log::trace!(target: "xcm_config::ReserveAssetsFrom", "origin ({origin:?}) should be {:?}, and asset ({asset:?}) match prefix with the origin", Origin::get());
+		&Origin::get() == origin && matches_prefix(&Origin::get(), &asset.id.0)
 	}
 }
-pub struct ReserveForeignAssetsFrom<P, R>(PhantomData<(P, R)>);
-impl<Prefix: Get<Location>, ReserveLocation: Get<Location>> ContainsPair<Asset, Location>
-	for ReserveForeignAssetsFrom<Prefix, ReserveLocation>
-{
+
+pub struct ReserveAssetInOrigin<I, L>(PhantomData<(I, L)>);
+impl<Id: Get<Location>, Origin: Get<Location>> ContainsPair<Asset, Location> for ReserveAssetInOrigin<Id, Origin> {
 	fn contains(asset: &Asset, origin: &Location) -> bool {
-		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}", Prefix::get(), origin);
-		&ReserveLocation::get() == origin && matches_prefix(&Prefix::get(), &asset.id.0)
+		log::trace!(target: "xcm_config::ReserveAssetInOrigin", "origin ({origin:?}) should be {:?}, and asset ({asset:?}) should be {:?}", Origin::get(), Id::get());
+		&Origin::get() == origin && matches!(&asset.id, AssetId(ref id) if id == &Id::get())
 	}
 }
 
@@ -234,7 +234,8 @@ pub type Traders = (
 pub type Reserves = (
 	NativeAsset,
 	ReserveAssetsFrom<AssetHubLocation>,
-	ReserveForeignAssetsFrom<PolkadotLocation, AssetHubLocation>,
+	ReserveAssetInOrigin<Ksm, AssetHubLocation>,
+	ReserveAssetInOrigin<Dot, AssetHubLocation>,
 );
 
 pub struct XcmConfig;
