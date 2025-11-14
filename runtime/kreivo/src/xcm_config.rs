@@ -33,6 +33,8 @@ use xcm_executor::traits::JustTry;
 use xcm_executor::XcmExecutor;
 
 mod communities;
+mod with_external_assets;
+
 use communities::*;
 
 #[cfg(not(feature = "paseo"))]
@@ -101,7 +103,7 @@ pub type FungibleTransactor = FungibleAdapter<
 >;
 
 /// Means for transacting assets besides the native currency on this chain.
-pub type FungiblesTransactor = FungiblesAdapter<
+pub type FungiblesTransactor = with_external_assets::FungiblesAdapterForExternalAssets<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a registered fungible asset matching the given location or name
@@ -116,6 +118,8 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	LocalMint<parachains_common::impls::NonZeroIssuance<AccountId, Assets>>,
 	// The account to use for tracking teleports.
 	CheckingAccount,
+	// The account who owns the newly created assets
+	TreasuryAccount,
 >;
 
 /// This is the type we use to convert an (incoming) XCM origin into a local
