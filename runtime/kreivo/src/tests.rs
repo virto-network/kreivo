@@ -1,18 +1,23 @@
-use super::{Balances, Communities, CommunitiesManager, CommunityMemberships, Runtime, RuntimeOrigin, CENTS, UNITS};
-use crate::config::communities::memberships::CommunityMembershipsInstance;
-use crate::config::system::CommunityLookup;
-use crate::config::TreasuryAccount;
-use crate::constants::currency::EXISTENTIAL_DEPOSIT;
-use frame_support::assert_ok;
-use frame_support::traits::fungible::Mutate;
-use frame_support::traits::nonfungibles_v2::Inspect;
+use super::{
+	config::{communities::memberships::CommunityMembershipsInstance, system::CommunityLookup, TreasuryAccount},
+	constants::currency::EXISTENTIAL_DEPOSIT,
+	xcm_config::*,
+	Balances, Communities, CommunitiesManager, CommunityMemberships, FungibleAssetLocation, Runtime, RuntimeOrigin,
+	CENTS, UNITS,
+};
+
+use frame_support::{
+	assert_ok,
+	traits::{fungible::Mutate, nonfungibles_v2::Inspect},
+};
 use pallet_communities_manager::TankConfig;
+use parachains_common::AccountId;
 use parity_scale_codec::Encode;
 use runtime_constants::time::WEEKS;
 use sp_core::crypto::AccountId32;
 use sp_io::TestExternalities;
-use sp_runtime::traits::StaticLookup;
-use sp_runtime::BoundedVec;
+use sp_runtime::{traits::StaticLookup, BoundedVec};
+use xcm_executor::{WeighedMessage, XcmExecutor};
 
 macro_rules! assert_call_size {
 	($pallet: ident) => {
@@ -149,5 +154,71 @@ fn ensure_copying_membership_attributes_works() {
 
 		let key: Vec<u8> = b"membership_gas".to_vec();
 		assert!(CommunityMemberships::system_attribute(&1, Some(&0), &key.encode()).is_some());
+	})
+}
+
+#[test]
+fn ensure_asset_creation_when_depositing_nonexisting_assets_works() {
+	use frame_support::traits::fungibles::{roles::Inspect as _, Inspect as _};
+	use xcm::latest::prelude::*;
+
+	TestExternalities::default().execute_with(|| {
+		let asset_id = FungibleAssetLocation::Sibling(virto_common::Para {
+			id: 1000,
+			pallet: 50,
+			index: 42,
+		});
+
+		assert!(!super::Assets::asset_exists(asset_id));
+
+		assert!(matches!(
+			XcmExecutor::<XcmConfig>::execute(
+				Location::new(1, [Parachain(1000)]),
+				WeighedMessage::new(
+					Weight::zero(),
+					Xcm(vec![
+						ReserveAssetDeposited(
+							vec![
+								Asset {
+									id: Location::parent().into(),
+									fun: Fungible(10000000000)
+								},
+								Asset {
+									id: Location::new(1, [Parachain(1000), PalletInstance(50), GeneralIndex(42)])
+										.into(),
+									fun: Fungible(10000000000)
+								},
+							]
+							.into()
+						),
+						ClearOrigin,
+						BuyExecution {
+							fees: Asset {
+								id: Location::parent().into(),
+								fun: Fungible(10000000000)
+							},
+							weight_limit: Unlimited,
+						},
+						DepositAsset {
+							assets: Wild(All),
+							beneficiary: Location::new(
+								0,
+								[AccountId32 {
+									network: None,
+									id: [1u8; 32],
+								}]
+							)
+						}
+					])
+				),
+				&mut [0u8; 32],
+				Weight::zero(),
+			),
+			Outcome::Complete { .. }
+		));
+
+		assert!(super::Assets::asset_exists(asset_id));
+		assert_eq!(super::Assets::owner(asset_id), Some(TreasuryAccount::get()));
+		assert_eq!(super::Assets::balance(asset_id, AccountId::new([1u8; 32])), 10000000000);
 	})
 }

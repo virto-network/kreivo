@@ -7,7 +7,7 @@ extern crate alloc;
 mod multilocation_asset_id;
 mod payment_id;
 
-pub use multilocation_asset_id::{FungibleAssetLocation, NetworkId};
+pub use multilocation_asset_id::{FungibleAssetLocation, NetworkId, Para};
 pub use payment_id::PaymentId;
 
 #[cfg(feature = "runtime")]
