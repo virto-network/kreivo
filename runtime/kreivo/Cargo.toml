@@ -6,7 +6,7 @@ homepage.workspace = true
 license.workspace = true
 name = "kreivo-runtime"
 repository.workspace = true
-version = "0.16.5"
+version = "0.16.6"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
