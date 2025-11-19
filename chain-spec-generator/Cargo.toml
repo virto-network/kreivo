@@ -6,7 +6,7 @@ homepage.workspace = true
 license.workspace = true
 name = "chain-spec-generator"
 repository.workspace = true
-version = "0.16.5"
+version = "0.16.6"
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
