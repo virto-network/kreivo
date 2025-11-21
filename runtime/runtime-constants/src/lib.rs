@@ -70,7 +70,7 @@ pub mod async_backing_params {
 	#[cfg(feature = "paseo")]
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
 	#[cfg(not(feature = "paseo"))]
-	pub const BLOCK_PROCESSING_VELOCITY: u32 = 8;
+	pub const BLOCK_PROCESSING_VELOCITY: u32 = 9;
 	/// Relay chain slot duration, in milliseconds.
 	pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: Moment = 6_000;
 }
