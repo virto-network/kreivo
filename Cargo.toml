@@ -1,5 +1,5 @@
 [workspace]
-members = ["apis", "chain-spec-generator", "common", "runtime/kreivo"]
+members = ["apis", "chain-spec-generator", "common", "precompiles/foo", "precompiles/payments", "runtime/kreivo"]
 resolver = "2"
 
 [profile.release]
@@ -43,6 +43,9 @@ serde_json = { version = "1.0.145", default-features = false }
 smallvec = "1.11"
 schnorrkel = { version = "0.11.4", default-features = false }
 
+# Substrate libs
+ethereum-standards = {version = "0.1.2" }
+
 # Local dependencies
 kreivo-runtime = { path = "runtime/kreivo" }
 
@@ -72,6 +75,10 @@ pallet-black-hole = { git = "https://github.com/virto-network/frame-contrib", de
 # Pass Authenticators
 pass-webauthn = { git = "https://github.com/virto-network/pass-authenticators", default-features = false, package = "pass-authenticators-webauthn" }
 pass-substrate-keys = { git = "https://github.com/virto-network/pass-authenticators", default-features = false, package = "pass-authenticators-substrate-keys" }
+
+# Precompiles
+pallet-foo-precompiles = { default-features = false, path = "precompiles/foo" }
+pallet-payments-precompiles = { default-features = false, path = "precompiles/payments" }
 
 # Substrate std
 pallet-transaction-payment-rpc = { version = "46.0.0" }
@@ -135,6 +142,9 @@ pallet-treasury = { version = "42.0.0", default-features = false }
 pallet-utility = { version = "43.0.0", default-features = false }
 pallet-vesting = { version = "43.0.0", default-features = false }
 pallet-revive = { version = "0.10.1", default-features = false }
+
+# FRAME Pallets Precompiles
+pallet-assets-precompiles = { version = "0.2.0", default-features = false }
 
 # Cumulus client dependencies
 cumulus-primitives-aura = { version = "0.20.0", default-features = false }
