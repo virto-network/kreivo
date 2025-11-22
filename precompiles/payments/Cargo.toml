@@ -21,7 +21,6 @@ pallet-revive.workspace = true
 pallet-payments.workspace = true
 
 [dev-dependencies]
-codec = { workspace = true }
 frame-system = { workspace = true, default-features = false }
 scale-info = { workspace = true }
 sp-core = { workspace = true, default-features = false }
@@ -31,7 +30,6 @@ sp-runtime = { workspace = true, default-features = false }
 [features]
 default = ["std"]
 std = [
-    "codec/std",
     "frame-support/std",
     "frame-system/std",
     "pallet-payments/std",

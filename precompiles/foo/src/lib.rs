@@ -26,8 +26,6 @@ use pallet_revive::precompiles::{
 	AddressMatcher, Error, Ext, Precompile,
 };
 
-use tracing::info;
-
 alloy::sol!("src/precompiles/IFoo.sol");
 use IFoo::IFooCalls;
 
@@ -64,7 +62,6 @@ where
 	const HAS_CONTRACT_INFO: bool = false;
 
 	fn call(_address: &[u8; 20], input: &Self::Interface, _env: &mut impl Ext<T = Self::T>) -> Result<Vec<u8>, Error> {
-		info!("Fortytwo: ☃️☃️☃️☃️☃️");
 		match input {
 			IFooCalls::fortytwo(_) => Self::fortytwo(),
 		}
@@ -77,7 +74,6 @@ where
 	Runtime: crate::Config<Instance> + pallet_revive::Config,
 {
 	fn fortytwo() -> Result<Vec<u8>, Error> {
-		info!("Fortytwo: 👾👾👾👾👾👾👾");
 		return Ok(IFoo::fortytwoCall::abi_encode_returns(&42u128));
 	}
 }

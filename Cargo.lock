@@ -5162,6 +5162,7 @@ dependencies = [
  "pallet-assets",
  "pallet-assets-freezer",
  "pallet-assets-holder",
+ "pallet-assets-precompiles",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -5169,6 +5170,7 @@ dependencies = [
  "pallet-communities-manager",
  "pallet-contracts",
  "pallet-contracts-store",
+ "pallet-foo-precompiles",
  "pallet-message-queue",
  "pallet-multisig",
  "pallet-nfts",
@@ -6683,6 +6685,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-assets-precompiles"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c1a426bce581bac76343e67f3d3e5b04574b5ac0ff82007334861e8021d71c5"
+dependencies = [
+ "ethereum-standards",
+ "frame-support",
+ "pallet-assets",
+ "pallet-revive",
+]
+
+[[package]]
 name = "pallet-aura"
 version = "42.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6976,6 +6990,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-foo-precompiles"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "pallet-revive",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+]
+
+[[package]]
 name = "pallet-identity"
 version = "43.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7049,6 +7077,21 @@ dependencies = [
  "frame-system",
  "log",
  "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+]
+
+[[package]]
+name = "pallet-payments-precompile"
+version = "0.1.0"
+dependencies = [
+ "fc-pallet-payments",
+ "frame-support",
+ "frame-system",
+ "pallet-assets",
+ "pallet-revive",
  "scale-info",
  "sp-core",
  "sp-io",
