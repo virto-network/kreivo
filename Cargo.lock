@@ -1503,7 +1503,7 @@ dependencies = [
 
 [[package]]
 name = "chain-spec-generator"
-version = "0.16.8"
+version = "0.16.9"
 dependencies = [
  "clap",
  "kreivo-runtime",
@@ -5127,7 +5127,7 @@ dependencies = [
 
 [[package]]
 name = "kreivo-runtime"
-version = "0.16.8"
+version = "0.16.9"
 dependencies = [
  "assets-common",
  "cumulus-pallet-aura-ext",
