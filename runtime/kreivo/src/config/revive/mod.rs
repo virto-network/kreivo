@@ -28,7 +28,7 @@ impl pallet_revive::Config for Runtime {
 	type WeightInfo = pallet_revive::weights::SubstrateWeight<Self>;
 	type Precompiles = (
 		ERC20<Self, InlineIdConfig<0x120>, KreivoAssetsInstance>,
-		Foo<Self, pallet_foo_precompiles::InlineIdConfig<0x0F>>,
+		Foo<Self, pallet_foo_precompiles::InlineIdConfig<0x0F00>>,
 		XcmPrecompile<Self>,
 	);
 	type AddressMapper = pallet_revive::AccountId32Mapper<Self>;

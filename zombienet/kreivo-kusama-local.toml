@@ -3,7 +3,7 @@ timeout = 1000
 
 [relaychain]
 chain = "kusama-local"
-chain_spec_command = "./bin/relay_chainspec_builder {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 default_args = ["-lparachain=debug", "-lxcm=trace"]
 default_command = "./bin/polkadot"
 
