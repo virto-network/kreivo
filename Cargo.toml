@@ -44,7 +44,7 @@ smallvec = "1.11"
 schnorrkel = { version = "0.11.4", default-features = false }
 
 # Substrate libs
-ethereum-standards = {version = "0.1.2" }
+ethereum-standards = { version = "0.1.2" }
 
 # Local dependencies
 kreivo-runtime = { path = "runtime/kreivo" }

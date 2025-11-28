@@ -67,12 +67,12 @@ where
 	fn call(_address: &[u8; 20], input: &Self::Interface, _env: &mut impl Ext<T = Self::T>) -> Result<Vec<u8>, Error> {
 		match input {
 			IFooCalls::fortytwo(IFoo::fortytwoCall) => Self::fortytwo(),
-			IFooCalls::echo(IFoo::echoCall{mode,message}) => {
+			IFooCalls::echo(IFoo::echoCall { mode, message }) => {
 				if *mode == 0 {
-					return Err(Error::Revert("mode was set to 0".into()))
+					return Err(Error::Revert("mode was set to 0".into()));
 				}
 				Ok(message.abi_encode())
-			},
+			}
 		}
 	}
 }

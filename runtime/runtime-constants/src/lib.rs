@@ -61,18 +61,24 @@ pub mod async_backing_params {
 	pub const RELAY_PARENT_OFFSET: u32 = 1;
 	#[cfg(feature = "try-runtime")]
 	pub const RELAY_PARENT_OFFSET: u32 = 0;
-	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
-	/// included into the relay chain.
-	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = (2 + RELAY_PARENT_OFFSET) * BLOCK_PROCESSING_VELOCITY + 1;
+
 	/// The upper limit of how many parachain blocks are processed by the relay chain per
 	/// parent. Limits the number of blocks authored per slot. This determines the minimum
 	/// block time of the parachain:
 	#[cfg(feature = "paseo")]
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
-	#[cfg(not(feature = "paseo"))]
+	#[cfg(all(not(feature = "paseo"), not(feature = "zombienet")))]
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 9;
+
+	#[cfg(feature = "zombienet")]
+	pub const BLOCK_PROCESSING_VELOCITY: u32 = 6;
+
 	/// Relay chain slot duration, in milliseconds.
 	pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: Moment = 6_000;
+
+	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
+	/// included into the relay chain.
+	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = (2 + RELAY_PARENT_OFFSET) * BLOCK_PROCESSING_VELOCITY + 1;
 }
 
 /// Time and blocks.
