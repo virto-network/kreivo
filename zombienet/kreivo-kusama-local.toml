@@ -8,7 +8,7 @@ default_args = ["-lparachain=debug", "-lxcm=trace"]
 default_command = "./bin/polkadot"
 
 [relaychain.genesis.runtimeGenesis.patch.configuration]
-config = { async_backing_params = { max_candidate_depth = 3, allowed_ancestry_len = 2 }, scheduler_params = { num_cores = 1, lookahead = 3 } }
+config = { async_backing_params = { max_candidate_depth = 20, allowed_ancestry_len = 2 }, scheduler_params = { num_cores = 1, lookahead = 3 } }
 
 [[relaychain.nodes]]
 extra_args = [

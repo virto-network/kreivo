@@ -71,7 +71,7 @@ pub mod async_backing_params {
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 12;
 
 	#[cfg(feature = "zombienet")]
-	pub const BLOCK_PROCESSING_VELOCITY: u32 = 6;
+	pub const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 
 	/// Relay chain slot duration, in milliseconds.
 	pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: Moment = 6_000;
