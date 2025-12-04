@@ -68,7 +68,7 @@ pub mod async_backing_params {
 	#[cfg(feature = "paseo")]
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
 	#[cfg(all(not(feature = "paseo"), not(feature = "zombienet")))]
-	pub const BLOCK_PROCESSING_VELOCITY: u32 = 9;
+	pub const BLOCK_PROCESSING_VELOCITY: u32 = 12;
 
 	#[cfg(feature = "zombienet")]
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 6;
