@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-address constant DEMO_PRECOMPILE_ADDRESS = address(0x0F00);
+address constant DEMO_PRECOMPILE_ADDRESS = address(0xF000);
 
 /// @title Foo Precompile Interface
 /// @notice A foo interface

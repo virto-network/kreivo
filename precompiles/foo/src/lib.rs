@@ -19,6 +19,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use pallet_revive::precompiles::alloy::primitives::Bytes;
 use core::marker::PhantomData;
 use pallet_balances::pallet::Config;
 use pallet_revive::precompiles::{
@@ -28,8 +29,6 @@ use pallet_revive::precompiles::{
 
 alloy::sol!("src/precompiles/IFoo.sol");
 use IFoo::IFooCalls;
-
-// const LOG_TARGET: &str = "custom::foo-precompile";
 
 #[cfg(test)]
 mod mock;
@@ -67,12 +66,7 @@ where
 	fn call(_address: &[u8; 20], input: &Self::Interface, _env: &mut impl Ext<T = Self::T>) -> Result<Vec<u8>, Error> {
 		match input {
 			IFooCalls::fortytwo(IFoo::fortytwoCall) => Self::fortytwo(),
-			IFooCalls::echo(IFoo::echoCall { mode, message }) => {
-				if *mode == 0 {
-					return Err(Error::Revert("mode was set to 0".into()));
-				}
-				Ok(message.abi_encode())
-			}
+			IFooCalls::echo(IFoo::echoCall { mode, message }) => Self::echo(mode, message),
 		}
 	}
 }
@@ -84,5 +78,12 @@ where
 {
 	fn fortytwo() -> Result<Vec<u8>, Error> {
 		return Ok(IFoo::fortytwoCall::abi_encode_returns(&42u128));
+	}
+
+	fn echo(mode:&u8, message: &Bytes) -> Result<Vec<u8>, Error> {
+		if *mode == 0 {
+			return Err(Error::Revert("mode was set to 0".into()));
+		}
+		Ok(message.abi_encode())
 	}
 }
