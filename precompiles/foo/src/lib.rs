@@ -19,9 +19,9 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use pallet_revive::precompiles::alloy::primitives::Bytes;
 use core::marker::PhantomData;
 use pallet_balances::pallet::Config;
+use pallet_revive::precompiles::alloy::primitives::Bytes;
 use pallet_revive::precompiles::{
 	alloy::{self, sol_types::SolCall, sol_types::SolValue},
 	AddressMatcher, Error, Ext, Precompile,
@@ -80,7 +80,7 @@ where
 		return Ok(IFoo::fortytwoCall::abi_encode_returns(&42u128));
 	}
 
-	fn echo(mode:&u8, message: &Bytes) -> Result<Vec<u8>, Error> {
+	fn echo(mode: &u8, message: &Bytes) -> Result<Vec<u8>, Error> {
 		if *mode == 0 {
 			return Err(Error::Revert("mode was set to 0".into()));
 		}
