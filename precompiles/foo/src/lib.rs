@@ -77,7 +77,7 @@ where
 	Runtime: crate::Config<Instance> + pallet_revive::Config,
 {
 	fn fortytwo() -> Result<Vec<u8>, Error> {
-		return Ok(IFoo::fortytwoCall::abi_encode_returns(&42u128));
+		Ok(IFoo::fortytwoCall::abi_encode_returns(&42u128))
 	}
 
 	fn echo(mode: &u8, message: &Bytes) -> Result<Vec<u8>, Error> {

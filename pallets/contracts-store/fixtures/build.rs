@@ -33,7 +33,7 @@ fn file_hash(path: &Path) -> String {
 	hasher.write(&data);
 	hasher.write(include_bytes!("build.rs"));
 	let hash = hasher.finish();
-	format!("{:x}", hash)
+	format!("{hash:x}")
 }
 
 /// A contract entry.
@@ -168,7 +168,7 @@ fn invoke_cargo_fmt<'a>(config_path: &Path, files: impl Iterator<Item = &'a Path
 
 	let stdout = String::from_utf8_lossy(&fmt_res.stdout);
 	let stderr = String::from_utf8_lossy(&fmt_res.stderr);
-	eprintln!("{}\n{}", stdout, stderr);
+	eprintln!("{stdout}\n{stderr}");
 	eprintln!(
 		"Fixtures files are not formatted.\n
 		Please run `rustup nightly-2025-10-10 run rustfmt --config-path {} {}/*.rs`",
@@ -203,13 +203,13 @@ fn invoke_wasm_build(current_dir: &Path) -> Result<()> {
 	}
 
 	let stderr = String::from_utf8_lossy(&build_res.stderr);
-	eprintln!("{}", stderr);
+	eprintln!("{stderr}");
 	bail!("Failed to build wasm contracts");
 }
 
 /// Post-process the compiled wasm contracts.
 fn post_process_wasm(input_path: &Path, output_path: &Path) -> Result<()> {
-	let mut module = deserialize_file(input_path).with_context(|| format!("Failed to read {:?}", input_path))?;
+	let mut module = deserialize_file(input_path).with_context(|| format!("Failed to read {input_path:?}"))?;
 	if let Some(section) = module.export_section_mut() {
 		section.entries_mut().retain(|entry| {
 			matches!(entry.internal(), Internal::Function(_)) && (entry.field() == "call" || entry.field() == "deploy")

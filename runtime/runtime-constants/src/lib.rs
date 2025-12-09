@@ -65,7 +65,7 @@ pub mod async_backing_params {
 	/// The upper limit of how many parachain blocks are processed by the relay chain per
 	/// parent. Limits the number of blocks authored per slot. This determines the minimum
 	/// block time of the parachain:
-	#[cfg(feature = "paseo")]
+	#[cfg(all(feature = "paseo", not(feature = "zombienet")))]
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
 	#[cfg(all(not(feature = "paseo"), not(feature = "zombienet")))]
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 12;

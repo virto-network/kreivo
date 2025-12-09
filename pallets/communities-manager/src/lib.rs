@@ -176,7 +176,7 @@ pub mod pallet {
 			for (starting_at, amount, price, tank_config, maybe_expiration) in &self.memberships {
 				let (capacity, periodicity) = *tank_config;
 				Pallet::<T>::try_create_memberships(
-					starting_at.clone(),
+					*starting_at,
 					*amount,
 					*price,
 					TankConfig { capacity, periodicity },
@@ -249,7 +249,7 @@ pub mod pallet {
 			ensure!(amount <= 1024u16, Error::<T>::CreatingTooManyMemberships);
 			T::CreateMembershipsOrigin::ensure_origin(origin.clone())?;
 
-			Self::try_create_memberships(starting_at.clone(), amount, price, tank_config, maybe_expiration)
+			Self::try_create_memberships(starting_at, amount, price, tank_config, maybe_expiration)
 		}
 
 		#[pallet::call_index(2)]
@@ -352,7 +352,7 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResult {
 		let collection_id = &Self::prepare_memberships_collection()?;
 
-		let mut id = starting_at.clone();
+		let mut id = starting_at;
 		let mut minted = 0u32;
 		for _ in 0..amount {
 			T::CreateMemberships::mint_into(
@@ -363,7 +363,7 @@ impl<T: Config> Pallet<T> {
 				true,
 			)?;
 
-			Self::do_set_gas_tank(&(*collection_id, id.clone()), &tank_config)?;
+			Self::do_set_gas_tank(&(*collection_id, id), &tank_config)?;
 
 			if let Some(expiration) = maybe_expiration {
 				T::CreateMemberships::set_typed_attribute(collection_id, &id, &b"membership_expiration", &expiration)?;
