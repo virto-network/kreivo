@@ -16,7 +16,7 @@ use {
 pub enum FungibleAssetLocation {
 	Here(u32),
 	Sibling(Para),
-	External { network: NetworkId, child: Option<Para> },
+	Polkadot(Option<Para>),
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -91,19 +91,9 @@ pub mod runtime {
 	impl MaybeEquivalence<Location, FungibleAssetLocation> for AsFungibleAssetLocation {
 		fn convert(value: &Location) -> Option<FungibleAssetLocation> {
 			match value.unpack() {
-				(2, [GlobalConsensus(network)]) => Some(FungibleAssetLocation::External {
-					network: (*network).try_into().ok()?,
-					child: None,
-				}),
-				(2, [GlobalConsensus(network), Parachain(id), PalletInstance(pallet), GeneralIndex(index)]) => {
-					Some(FungibleAssetLocation::External {
-						network: (*network).try_into().ok()?,
-						child: Some(Para {
-							id: (*id).try_into().ok()?,
-							pallet: *pallet,
-							index: (*index).try_into().ok()?,
-						}),
-					})
+				(2, [GlobalConsensus(NetworkId::Polkadot)]) => Some(FungibleAssetLocation::Polkadot(None)),
+				(2, [GlobalConsensus(NetworkId::Polkadot), Parachain(id), PalletInstance(pallet), GeneralIndex(index)]) => {
+					Some(FungibleAssetLocation::Polkadot(Some(Para{ id: u16::try_from(*id).ok()?, pallet: *pallet, index: u32::try_from(*index).ok()? })))
 				}
 				(1, [Parachain(id), PalletInstance(pallet), GeneralIndex(index)]) => {
 					Some(FungibleAssetLocation::Sibling(Para {
@@ -130,20 +120,17 @@ pub mod runtime {
 					1,
 					[Parachain(id.into()), PalletInstance(pallet), GeneralIndex(index.into())],
 				)),
-				FungibleAssetLocation::External {
-					network,
-					child: Some(Para { id, pallet, index }),
-				} => Some(Location::new(
+				FungibleAssetLocation::Polkadot(Some(Para { id, pallet, index })) => Some(Location::new(
 					2,
 					[
-						GlobalConsensus(network.into()),
+						GlobalConsensus(NetworkId::Polkadot),
 						Parachain(id.into()),
 						PalletInstance(pallet),
 						GeneralIndex(index.into()),
 					],
 				)),
-				FungibleAssetLocation::External { network, .. } => {
-					Some(Location::new(2, [GlobalConsensus(network.into())]))
+				FungibleAssetLocation::Polkadot(None) => {
+					Some(Location::new(2, [GlobalConsensus(NetworkId::Polkadot)]))
 				}
 			}
 		}
