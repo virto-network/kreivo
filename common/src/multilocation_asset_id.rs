@@ -92,9 +92,14 @@ pub mod runtime {
 		fn convert(value: &Location) -> Option<FungibleAssetLocation> {
 			match value.unpack() {
 				(2, [GlobalConsensus(NetworkId::Polkadot)]) => Some(FungibleAssetLocation::Polkadot(None)),
-				(2, [GlobalConsensus(NetworkId::Polkadot), Parachain(id), PalletInstance(pallet), GeneralIndex(index)]) => {
-					Some(FungibleAssetLocation::Polkadot(Some(Para{ id: u16::try_from(*id).ok()?, pallet: *pallet, index: u32::try_from(*index).ok()? })))
-				}
+				(
+					2,
+					[GlobalConsensus(NetworkId::Polkadot), Parachain(id), PalletInstance(pallet), GeneralIndex(index)],
+				) => Some(FungibleAssetLocation::Polkadot(Some(Para {
+					id: u16::try_from(*id).ok()?,
+					pallet: *pallet,
+					index: u32::try_from(*index).ok()?,
+				}))),
 				(1, [Parachain(id), PalletInstance(pallet), GeneralIndex(index)]) => {
 					Some(FungibleAssetLocation::Sibling(Para {
 						id: (*id).try_into().ok()?,
@@ -129,9 +134,7 @@ pub mod runtime {
 						GeneralIndex(index.into()),
 					],
 				)),
-				FungibleAssetLocation::Polkadot(None) => {
-					Some(Location::new(2, [GlobalConsensus(NetworkId::Polkadot)]))
-				}
+				FungibleAssetLocation::Polkadot(None) => Some(Location::new(2, [GlobalConsensus(NetworkId::Polkadot)])),
 			}
 		}
 	}
