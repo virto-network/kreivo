@@ -16,7 +16,8 @@ use {
 pub enum FungibleAssetLocation {
 	Here(u32),
 	Sibling(Para),
-	Polkadot(Option<Para>),
+	PolkadotNativeDOT,
+	PolkadotParachainAsset(Para),
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -91,15 +92,15 @@ pub mod runtime {
 	impl MaybeEquivalence<Location, FungibleAssetLocation> for AsFungibleAssetLocation {
 		fn convert(value: &Location) -> Option<FungibleAssetLocation> {
 			match value.unpack() {
-				(2, [GlobalConsensus(NetworkId::Polkadot)]) => Some(FungibleAssetLocation::Polkadot(None)),
+				(2, [GlobalConsensus(NetworkId::Polkadot)]) => Some(FungibleAssetLocation::PolkadotNativeDOT),
 				(
 					2,
 					[GlobalConsensus(NetworkId::Polkadot), Parachain(id), PalletInstance(pallet), GeneralIndex(index)],
-				) => Some(FungibleAssetLocation::Polkadot(Some(Para {
+				) => Some(FungibleAssetLocation::PolkadotParachainAsset(Para {
 					id: u16::try_from(*id).ok()?,
 					pallet: *pallet,
 					index: u32::try_from(*index).ok()?,
-				}))),
+				})),
 				(1, [Parachain(id), PalletInstance(pallet), GeneralIndex(index)]) => {
 					Some(FungibleAssetLocation::Sibling(Para {
 						id: (*id).try_into().ok()?,
@@ -125,7 +126,7 @@ pub mod runtime {
 					1,
 					[Parachain(id.into()), PalletInstance(pallet), GeneralIndex(index.into())],
 				)),
-				FungibleAssetLocation::Polkadot(Some(Para { id, pallet, index })) => Some(Location::new(
+				FungibleAssetLocation::PolkadotParachainAsset(Para { id, pallet, index }) => Some(Location::new(
 					2,
 					[
 						GlobalConsensus(NetworkId::Polkadot),
@@ -134,7 +135,9 @@ pub mod runtime {
 						GeneralIndex(index.into()),
 					],
 				)),
-				FungibleAssetLocation::Polkadot(None) => Some(Location::new(2, [GlobalConsensus(NetworkId::Polkadot)])),
+				FungibleAssetLocation::PolkadotNativeDOT => {
+					Some(Location::new(2, [GlobalConsensus(NetworkId::Polkadot)]))
+				}
 			}
 		}
 	}

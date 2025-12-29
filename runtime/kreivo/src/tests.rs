@@ -1,3 +1,5 @@
+use std::{u16, u32, u8};
+
 use super::{
 	config::{communities::memberships::CommunityMembershipsInstance, system::CommunityLookup, TreasuryAccount},
 	constants::currency::EXISTENTIAL_DEPOSIT,
@@ -221,4 +223,31 @@ fn ensure_asset_creation_when_depositing_nonexisting_assets_works() {
 		assert_eq!(super::Assets::owner(asset_id), Some(TreasuryAccount::get()));
 		assert_eq!(super::Assets::balance(asset_id, AccountId::new([1u8; 32])), 10000000000);
 	})
+}
+
+#[test]
+fn ensure_asset_max_size_is_64_bits() {
+	let asset_id = FungibleAssetLocation::Here(u32::MAX);
+	let encoded = asset_id.encode();
+	assert!(encoded.len() <= 8);
+
+	let asset_id = FungibleAssetLocation::Sibling(virto_common::Para {
+		id: u16::MAX,
+		pallet: u8::MAX,
+		index: u32::MAX,
+	});
+	let encoded = asset_id.encode();
+	assert!(encoded.len() <= 8);
+
+	let asset_id = FungibleAssetLocation::PolkadotNativeDOT;
+	let encoded = asset_id.encode();
+	assert!(encoded.len() <= 8);
+
+	let asset_id = FungibleAssetLocation::PolkadotParachainAsset(virto_common::Para {
+		id: u16::MAX,
+		pallet: u8::MAX,
+		index: u32::MAX,
+	});
+	let encoded = asset_id.encode();
+	assert!(encoded.len() <= 8);
 }
