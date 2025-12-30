@@ -1,6 +1,7 @@
 use parity_scale_codec::DecodeWithMemTracking;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use core::convert::TryFrom;
 #[cfg(feature = "scale")]
 use {
 	parity_scale_codec::{Decode, Encode, MaxEncodedLen},
@@ -53,6 +54,26 @@ impl Default for FungibleAssetLocation {
 impl From<u32> for FungibleAssetLocation {
 	fn from(value: u32) -> Self {
 		FungibleAssetLocation::Here(value)
+	}
+}
+
+#[cfg(feature = "scale")]
+impl TryFrom<u64> for FungibleAssetLocation {
+	type Error = &'static str;
+
+	fn try_from(value: u64) -> Result<Self, Self::Error> {
+		let bytes = value.to_le_bytes();
+		Self::decode(&mut &bytes[..]).map_err(|_| "Invalid scale encoding")
+	}
+}
+
+impl FungibleAssetLocation {
+	#[cfg(feature = "scale")]
+	pub fn as_u64(&self) -> u64 {
+		let encoded = self.encode();
+		let mut buf = [0u8; 8];
+		buf[..encoded.len()].copy_from_slice(&encoded);
+		u64::from_le_bytes(buf)
 	}
 }
 
