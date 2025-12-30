@@ -1,7 +1,7 @@
+use core::convert::TryFrom;
 use parity_scale_codec::DecodeWithMemTracking;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use core::convert::TryFrom;
 #[cfg(feature = "scale")]
 use {
 	parity_scale_codec::{Decode, Encode, MaxEncodedLen},
