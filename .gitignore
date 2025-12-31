@@ -36,3 +36,7 @@ zombienet-linux
 # IDEs
 .vscode/
 .idea/
+
+# Testing try-runtime locally
+snapshot.raw
+try-runtime
