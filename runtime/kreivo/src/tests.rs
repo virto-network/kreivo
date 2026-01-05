@@ -222,3 +222,71 @@ fn ensure_asset_creation_when_depositing_nonexisting_assets_works() {
 		assert_eq!(super::Assets::balance(asset_id, AccountId::new([1u8; 32])), 10000000000);
 	})
 }
+
+#[test]
+fn ensure_asset_max_size_is_64_bits() {
+	let asset_id = FungibleAssetLocation::Here(u32::MAX);
+	let encoded = asset_id.encode();
+	assert!(encoded.len() <= 8);
+
+	let asset_id = FungibleAssetLocation::Sibling(virto_common::Para {
+		id: u16::MAX,
+		pallet: u8::MAX,
+		index: u32::MAX,
+	});
+	let encoded = asset_id.encode();
+	assert!(encoded.len() <= 8);
+
+	let asset_id = FungibleAssetLocation::PolkadotNativeDOT;
+	let encoded = asset_id.encode();
+	assert!(encoded.len() <= 8);
+
+	let asset_id = FungibleAssetLocation::PolkadotParachainAsset(virto_common::Para {
+		id: u16::MAX,
+		pallet: u8::MAX,
+		index: u32::MAX,
+	});
+	let encoded = asset_id.encode();
+	assert!(encoded.len() <= 8);
+}
+
+#[test]
+fn fungible_asset_location_as_u64_try_from_round_trip() {
+	let asset = FungibleAssetLocation::Here(42);
+	let u64_val = asset.as_u64();
+	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
+	assert_eq!(asset, back);
+
+	let asset = FungibleAssetLocation::Sibling(virto_common::Para {
+		id: 1000,
+		pallet: 50,
+		index: 42,
+	});
+	let u64_val = asset.as_u64();
+	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
+	assert_eq!(asset, back);
+
+	let asset = FungibleAssetLocation::PolkadotNativeDOT;
+	let u64_val = asset.as_u64();
+	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
+	assert_eq!(asset, back);
+
+	let asset = FungibleAssetLocation::PolkadotParachainAsset(virto_common::Para {
+		id: 2000,
+		pallet: 10,
+		index: 100,
+	});
+	let u64_val = asset.as_u64();
+	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
+	assert_eq!(asset, back);
+}
+
+#[test]
+fn fungible_asset_location_try_from_invalid() {
+	// Here we test invalid values that should not be able to be decoded into a valid
+	let invalid_u64 = 4u64;
+	assert!(FungibleAssetLocation::try_from(invalid_u64).is_err());
+
+	let invalid_u64 = u64::from_le_bytes([255, 0, 0, 0, 0, 0, 0, 0]);
+	assert!(FungibleAssetLocation::try_from(invalid_u64).is_err());
+}
