@@ -10,7 +10,7 @@ edition = "2021"
 [dependencies]
 common = { package = 'pallet-contracts-fixtures-common', path = "" }
 polkavm-derive = { version = "0.23.0" }
-uapi = { workspace = true }
+uapi = { version = "14.0.0", package = 'pallet-contracts-uapi', default-features = false }
 
 [profile.release]
 opt-level = 3

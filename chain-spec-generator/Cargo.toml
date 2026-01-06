@@ -12,7 +12,7 @@ version = "0.16.9"
 clap = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
 kreivo-runtime = { workspace = true, default-features = true }
-sc-chain-spec.workspace = true
+sc-chain-spec = { workspace = true }
 
 [features]
 runtime-benchmarks = ["kreivo-runtime/runtime-benchmarks"]
