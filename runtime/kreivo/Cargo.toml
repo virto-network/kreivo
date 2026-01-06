@@ -26,6 +26,7 @@ rand_core = { workspace = true, optional = true }
 
 # Local
 kreivo-apis = { workspace = true, features = ["runtime"] }
+
 pallet-communities = { workspace = true, features = ["xcm"] }
 pallet-communities-manager.workspace = true
 pallet-contracts-store.workspace = true

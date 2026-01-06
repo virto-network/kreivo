@@ -8,4 +8,4 @@ license.workspace = true
 description = "Common utilities for pallet-contracts-fixtures."
 
 [dependencies]
-uapi = { package = 'pallet-contracts-uapi', version = "14.0.0", default-features = false }
+uapi = { workspace = true }

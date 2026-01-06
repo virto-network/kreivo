@@ -6,7 +6,7 @@ use frame_system::EnsureRootWithSuccess;
 use frame_system::EnsureSigned;
 
 // Precompiles
-use pallet_assets_precompiles::{InlineIdConfig, ERC20};
+use pallet_assets_precompiles::ERC20;
 use pallet_foo_precompiles::Foo;
 use pallet_xcm::precompiles::XcmPrecompile;
 
@@ -16,6 +16,9 @@ parameter_types! {
 	pub CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(30);
 	pub const ChainId: u64 = 2281;
 }
+
+mod erc20_assets;
+use erc20_assets::KreivoAssetsConfig;
 
 impl pallet_revive::Config for Runtime {
 	type Time = Timestamp;
@@ -27,7 +30,7 @@ impl pallet_revive::Config for Runtime {
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = pallet_revive::weights::SubstrateWeight<Self>;
 	type Precompiles = (
-		ERC20<Self, InlineIdConfig<0x120>, KreivoAssetsInstance>,
+		ERC20<Self, KreivoAssetsConfig<0x120>, KreivoAssetsInstance>,
 		Foo<Self, pallet_foo_precompiles::InlineIdConfig<0xF000>>,
 		XcmPrecompile<Self>,
 	);

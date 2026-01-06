@@ -142,6 +142,7 @@ pallet-treasury = { version = "42.0.0", default-features = false }
 pallet-utility = { version = "43.0.0", default-features = false }
 pallet-vesting = { version = "43.0.0", default-features = false }
 pallet-revive = { version = "0.10.1", default-features = false }
+uapi = { package = 'pallet-contracts-uapi', version = "14.0.0", default-features = false }
 
 # FRAME Pallets Precompiles
 pallet-assets-precompiles = { version = "0.2.0", default-features = false }
@@ -152,7 +153,7 @@ cumulus-primitives-aura = { version = "0.20.0", default-features = false }
 # Cumulus runtime dependencies
 assets-common = { version = "0.25.0", default-features = false }
 cumulus-pallet-aura-ext = { version = "0.23.0", default-features = false }
-cumulus-pallet-parachain-system = { version = "0.23.1", default-features = false }
+cumulus-pallet-parachain-system = { version = "0.23.2", default-features = false }
 cumulus-pallet-session-benchmarking = { version = "24.0.0", default-features = false }
 cumulus-pallet-xcm = { version = "0.22.0", default-features = false }
 cumulus-pallet-xcmp-queue = { version = "0.23.0", default-features = false }
