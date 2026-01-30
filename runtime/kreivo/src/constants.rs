@@ -33,9 +33,8 @@ pub mod currency {
 
 /// Fee-related.
 pub mod fee {
-	use frame_support::weights::{constants::ExtrinsicBaseWeight, WeightToFeePolynomial};
+	use frame_support::weights::constants::ExtrinsicBaseWeight;
 	use polkadot_core_primitives::Balance;
-	pub use sp_runtime::Perbill;
 
 	/// `pallet_revive` requires this specific `WeightToFee` implementation.
 	///
