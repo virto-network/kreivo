@@ -30,9 +30,14 @@ jobs:
 
   fmt:
     runs-on: ubuntu-latest
-    container:
-      image: pandres95/kreivo-ci
     steps:
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          components: rustfmt
+
       - uses: actions/checkout@v4
 
       - name: Check formatting

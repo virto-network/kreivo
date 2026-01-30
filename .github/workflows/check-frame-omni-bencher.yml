@@ -18,16 +18,42 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: pandres95/kreivo-ci
     steps:
+      - name: Install solidity dependencies
+        run: |
+          # Install official Solidity compiler binary
+          curl -L -o /usr/local/bin/solc https://github.com/ethereum/solidity/releases/download/v0.8.33/solc-static-linux \
+            && chmod +x /usr/local/bin/solc
+          # Install Parity resolc binary
+          curl -L -o /usr/local/bin/resolc https://github.com/paritytech/revive/releases/download/v1.0.0/resolc-x86_64-unknown-linux-musl \
+            && chmod +x /usr/local/bin/resolc
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: wasm32v1-none
+          components: rust-src
+
+      - name: Install 1.91 toolchain (for revive fixtures)
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.91
+          target: wasm32-unknown-unknown
+          components: rust-src
+
       - uses: actions/checkout@v4
 
       - name: Release build with `runtime-benchmarks`
         uses: actions-rs/cargo@v1
         with:
           command: build
+          toolchain: stable
           args: --profile production --features ${{ github.ref_name == 'dev' && 'paseo,runtime-benchmarks' || 'runtime-benchmarks' }} --locked -p kreivo-runtime
+        env:
+          PALLET_REVIVE_FIXTURES_RUSTUP_TOOLCHAIN: 1.91
 
       - name: Upload runtime to artifacts
         uses: actions/upload-artifact@v4
