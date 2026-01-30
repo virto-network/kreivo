@@ -19,7 +19,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: 1.89
           target: wasm32-unknown-unknown
           components: rust-src
 
@@ -131,7 +131,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: 1.89
           target: wasm32-unknown-unknown
           components: rust-src
 

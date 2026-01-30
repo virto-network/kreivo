@@ -39,7 +39,7 @@ RUN curl -L -o /usr/local/bin/solc https://github.com/ethereum/solidity/releases
     chmod +x /usr/local/bin/solc
 
 # Install Parity resolc binary
-RUN curl -L -o /usr/local/bin/resolc https://github.com/paritytech/revive/releases/download/v0.4.1/resolc-x86_64-unknown-linux-musl && \
+RUN curl -L -o /usr/local/bin/resolc https://github.com/paritytech/revive/releases/download/v1.0.0/resolc-x86_64-unknown-linux-musl && \
     chmod +x /usr/local/bin/resolc
 
 # Set up environment for WASM builds
