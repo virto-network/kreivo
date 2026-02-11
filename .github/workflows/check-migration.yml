@@ -76,7 +76,7 @@ jobs:
 
       - name: Download CLI
         run: |
-          curl -sL https://github.com/paritytech/try-runtime-cli/releases/download/v0.8.0/try-runtime-x86_64-unknown-linux-musl -o try-runtime
+          curl -sL https://github.com/paritytech/try-runtime-cli/releases/download/v0.10.1/try-runtime-x86_64-unknown-linux-musl -o try-runtime
           chmod +x ./try-runtime
           echo "Using try-runtime-cli version:"
           ./try-runtime --version
@@ -98,7 +98,7 @@ jobs:
         if: ${{ hashFiles('snapshot.raw') == '' }}
         run: |
           echo "Creating new snapshot for today (${{ steps.get-date.outputs.today }})"
-          ./try-runtime create-snapshot --uri wss://kreivo.io snapshot.raw
+          ./try-runtime create-snapshot --uri wss://kreivo.kippu.rocks snapshot.raw
 
       - run: |
           ./try-runtime --runtime kreivo_runtime.compact.compressed.wasm \
