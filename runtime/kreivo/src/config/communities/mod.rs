@@ -67,7 +67,8 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for CommunityTracksWrapp
 	type Id = CommunityId;
 	type RuntimeOrigin = <RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin;
 
-	fn tracks() -> impl Iterator<Item = alloc::borrow::Cow<'static, pallet_referenda::Track<Self::Id, Balance, BlockNumber>>> {
+	fn tracks(
+	) -> impl Iterator<Item = alloc::borrow::Cow<'static, pallet_referenda::Track<Self::Id, Balance, BlockNumber>>> {
 		<CommunityTracks as pallet_referenda::TracksInfo<Balance, BlockNumber>>::tracks()
 	}
 

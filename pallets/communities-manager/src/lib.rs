@@ -43,7 +43,11 @@ pub use weights::*;
 pub trait MutateTracks<Balance, BlockNumber> {
 	type Id;
 	type RuntimeOrigin;
-	fn insert(id: Self::Id, info: TrackInfo<Balance, BlockNumber>, origin: Self::RuntimeOrigin) -> sp_runtime::DispatchResult;
+	fn insert(
+		id: Self::Id,
+		info: TrackInfo<Balance, BlockNumber>,
+		origin: Self::RuntimeOrigin,
+	) -> sp_runtime::DispatchResult;
 }
 
 type TrackInfoOf<T> = TrackInfo<NativeBalanceOf<T>, BlockNumberFor<T>>;

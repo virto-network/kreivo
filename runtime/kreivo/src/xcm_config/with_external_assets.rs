@@ -1,12 +1,9 @@
 use super::*;
 use core::fmt::Debug;
-use frame_support::traits::{
-	fungibles,
-	tokens::imbalance::ImbalanceAccounting,
-};
+use frame_support::traits::{fungibles, tokens::imbalance::ImbalanceAccounting};
 use xcm_builder::AssetChecking;
-use xcm_executor::AssetsInHolding;
 use xcm_executor::traits::{ConvertLocation, MatchesFungibles, TransactAsset};
+use xcm_executor::AssetsInHolding;
 
 pub struct FungiblesAdapterForExternalAssets<
 	Assets,
@@ -82,14 +79,19 @@ where
 		)
 	}
 
-	fn deposit_asset(what: AssetsInHolding, who: &Location, context: Option<&XcmContext>) -> Result<(), (AssetsInHolding, XcmError)> {
+	fn deposit_asset(
+		what: AssetsInHolding,
+		who: &Location,
+		context: Option<&XcmContext>,
+	) -> Result<(), (AssetsInHolding, XcmError)> {
 		// Try to extract the asset info to check if we need to create it first.
 		// We peek at the assets before passing ownership to the inner adapter.
-		let maybe: Option<<Assets as fungibles::Inspect<AccountId>>::AssetId> = what.fungible_assets_iter().next().and_then(|asset| {
-			Matcher::matches_fungibles(&asset)
-				.map(|(asset_id, _amount)| asset_id)
-				.ok()
-		});
+		let maybe: Option<<Assets as fungibles::Inspect<AccountId>>::AssetId> =
+			what.fungible_assets_iter().next().and_then(|asset| {
+				Matcher::matches_fungibles(&asset)
+					.map(|(asset_id, _amount)| asset_id)
+					.ok()
+			});
 
 		if let Some(asset_id) = maybe {
 			if !Assets::asset_exists(asset_id.clone()) {

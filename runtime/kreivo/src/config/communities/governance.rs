@@ -44,10 +44,7 @@ pub struct EnsureGroupManager;
 impl EnsureOriginWithArg<RuntimeOrigin, PalletsOriginOf<Runtime>> for EnsureGroupManager {
 	type Success = GroupIdOf;
 
-	fn try_origin(
-		o: RuntimeOrigin,
-		_origin: &PalletsOriginOf<Runtime>,
-	) -> Result<Self::Success, RuntimeOrigin> {
+	fn try_origin(o: RuntimeOrigin, _origin: &PalletsOriginOf<Runtime>) -> Result<Self::Success, RuntimeOrigin> {
 		match o.clone().into() {
 			Ok(frame_system::RawOrigin::Root) => Ok(GroupIdOf::default()),
 			_ => Err(o),

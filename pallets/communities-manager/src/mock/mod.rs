@@ -7,10 +7,11 @@ use frame_support::{
 };
 use frame_system::{EnsureNever, EnsureRoot, EnsureRootWithSuccess, EnsureSigned};
 use pallet_communities::{origin::EnsureCommunity, Tally, VoteWeight};
+use pallet_referenda_tracks::SplitId;
 use sp_io::TestExternalities;
 use sp_runtime::{
 	traits::{IdentifyAccount, IdentityLookup, Verify},
-	MultiSignature,
+	DispatchResult, MultiSignature,
 };
 pub use virto_common::{CommunityId, MembershipId};
 
@@ -28,6 +29,66 @@ use runtime_benchmarks::*;
 type Block = frame_system::mocking::MockBlock<Test>;
 pub type BlockNumber = BlockNumberFor<Test>;
 type WeightInfo = ();
+
+/// An EnsureOriginWithArg that checks for root, ignoring the arg.
+pub struct EnsureRootArg;
+impl<Arg> frame_support::traits::EnsureOriginWithArg<RuntimeOrigin, Arg> for EnsureRootArg {
+	type Success = ();
+
+	fn try_origin(o: RuntimeOrigin, _arg: &Arg) -> Result<Self::Success, RuntimeOrigin> {
+		match o.clone().into() {
+			Ok(frame_system::RawOrigin::Root) => Ok(()),
+			_ => Err(o),
+		}
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin(_arg: &Arg) -> Result<RuntimeOrigin, ()> {
+		Ok(RuntimeOrigin::root())
+	}
+}
+
+/// An origin check that always succeeds as root, returning group id 0.
+pub struct EnsureGroupManagerCreate;
+impl
+	frame_support::traits::EnsureOriginWithArg<
+		RuntimeOrigin,
+		<RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin,
+	> for EnsureGroupManagerCreate
+{
+	type Success = <CommunityId as SplitId>::Half;
+
+	fn try_origin(
+		o: RuntimeOrigin,
+		_arg: &<RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin,
+	) -> Result<Self::Success, RuntimeOrigin> {
+		match o.clone().into() {
+			Ok(frame_system::RawOrigin::Root) => Ok(Default::default()),
+			_ => Err(o),
+		}
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin(
+		_arg: &<RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin,
+	) -> Result<RuntimeOrigin, ()> {
+		Ok(RuntimeOrigin::root())
+	}
+}
+
+/// Implement `MutateTracks` for the pallet_referenda_tracks Pallet in tests.
+impl MutateTracks<Balance, BlockNumber> for Tracks {
+	type Id = CommunityId;
+	type RuntimeOrigin = <RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin;
+
+	fn insert(
+		id: Self::Id,
+		info: pallet_referenda::TrackInfo<Balance, BlockNumber>,
+		origin: Self::RuntimeOrigin,
+	) -> DispatchResult {
+		pallet_referenda_tracks::Pallet::<Test>::do_insert(id, info, origin)
+	}
+}
 
 pub type AccountPublic = <MultiSignature as Verify>::Signer;
 pub type AccountId = <AccountPublic as IdentifyAccount>::AccountId;
@@ -153,8 +214,10 @@ impl pallet_referenda::Config for Test {
 impl pallet_referenda_tracks::Config for Test {
 	type TrackId = CommunityId;
 	type MaxTracks = MaxTracks;
-	type AdminOrigin = EnsureRoot<AccountId>;
-	type UpdateOrigin = EnsureRoot<AccountId>;
+	type CreateOrigin = EnsureRootArg;
+	type GroupManagerCreateOrigin = EnsureGroupManagerCreate;
+	type GroupManagerOrigin = EnsureRootArg;
+	type RemoveGroupOrigin = EnsureRootArg;
 	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = TracksBenchmarkHelper;

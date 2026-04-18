@@ -351,11 +351,11 @@ mod benchmarks {
 
 	use crate::{
 		config::{ExistentialDeposit, PriceForParentDelivery},
-		vec, Vec, UNITS,
+		vec, UNITS,
 	};
 	use frame_benchmarking::BenchmarkError;
-	use pallet_xcm_benchmarks::asset_instance_from;
 	use xcm::prelude::Assets as XcmAssets;
+	use xcm_executor::AssetsInHolding;
 
 	parameter_types! {
 		pub ExistentialDepositAsset: Option<Asset> = Some((
@@ -377,33 +377,8 @@ mod benchmarks {
 			Ok(RelayLocation::get())
 		}
 
-		fn worst_case_holding(depositable_count: u32) -> XcmAssets {
-			// A mix of fungible, non-fungible, and concrete assets.
-			let holding_non_fungibles = MaxAssetsIntoHolding::get() / 2 - depositable_count;
-			let holding_fungibles = holding_non_fungibles.saturating_sub(1);
-			let fungibles_amount: u128 = 100;
-
-			(0..holding_fungibles)
-				.map(|i| {
-					Asset {
-						id: AssetId(GeneralIndex(i as u128).into()),
-						fun: Fungible(fungibles_amount * (i + 1) as u128), // non-zero amount
-					}
-				})
-				.chain(core::iter::once(Asset {
-					id: AssetId(Here.into()),
-					fun: Fungible(u128::MAX),
-				}))
-				.chain(core::iter::once(Asset {
-					id: AssetId(RelayLocation::get()),
-					fun: Fungible(1_000_000 * UNITS),
-				}))
-				.chain((0..holding_non_fungibles).map(|i| Asset {
-					id: AssetId(GeneralIndex(i as u128).into()),
-					fun: NonFungible(asset_instance_from(i)),
-				}))
-				.collect::<Vec<_>>()
-				.into()
+		fn worst_case_holding(depositable_count: u32) -> AssetsInHolding {
+			pallet_xcm_benchmarks::generate_holding_assets(MaxAssetsIntoHolding::get() - depositable_count)
 		}
 	}
 
