@@ -33,21 +33,38 @@ pub mod currency {
 
 /// Fee-related.
 pub mod fee {
-	use frame_support::weights::constants::ExtrinsicBaseWeight;
+	use frame_support::weights::{
+		constants::ExtrinsicBaseWeight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+	};
 	use polkadot_core_primitives::Balance;
+	use smallvec::smallvec;
+	use sp_runtime::Perbill;
 
-	/// `pallet_revive` requires this specific `WeightToFee` implementation.
+	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
+	/// node's balance type.
 	///
-	/// This is needed because we make certain assumptions about how weight
-	/// is mapped to fees. Enforced at compile time.
-	pub type WeightToFee = pallet_revive::evm::fees::BlockRatioFee<
-		// p
-		{ super::currency::CENTS },
-		// q
-		{ 100 * ExtrinsicBaseWeight::get().ref_time() as u128 },
-		crate::Runtime,
-		Balance,
-	>;
+	/// This should typically create a mapping between the following ranges:
+	///   - `[0, MAXIMUM_BLOCK_WEIGHT]`
+	///   - `[Balance::min, Balance::max]`
+	///
+	/// Yet, it can be used for any other sort of change to weight-fee. Some examples being:
+	///   - Setting it to `0` will essentially disable the weight fee.
+	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
+	pub struct WeightToFee;
+	impl WeightToFeePolynomial for WeightToFee {
+		type Balance = Balance;
+		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+			// In `CENTS / 100`, map `ExtrinsicBaseWeight` to `CENTS / 100`.
+			let p = super::currency::CENTS;
+			let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
+			smallvec![WeightToFeeCoefficient {
+				degree: 1,
+				negative: false,
+				coeff_frac: Perbill::from_rational(p % q, q),
+				coeff_integer: p / q,
+			}]
+		}
+	}
 }
 
 pub mod locations {

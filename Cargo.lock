@@ -5315,7 +5315,6 @@ dependencies = [
  "pallet-proxy",
  "pallet-ranked-collective",
  "pallet-referenda",
- "pallet-revive",
  "pallet-scheduler",
  "pallet-session",
  "pallet-skip-feeless-payment",

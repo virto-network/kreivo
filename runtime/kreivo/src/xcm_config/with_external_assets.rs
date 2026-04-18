@@ -79,6 +79,19 @@ where
 		)
 	}
 
+	fn mint_asset(what: &Asset, context: &XcmContext) -> Result<AssetsInHolding, XcmError> {
+		// Create the asset if it doesn't exist yet before minting.
+		if let Ok((asset_id, _amount)) = Matcher::matches_fungibles(what) {
+			if !Assets::asset_exists(asset_id.clone()) {
+				Assets::create(asset_id, NewAssetsOwner::get(), false, 1u32.into())
+					.map_err(|_| XcmError::AssetNotFound)?;
+			}
+		}
+		FungiblesAdapter::<Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount>::mint_asset(
+			what, context,
+		)
+	}
+
 	fn deposit_asset(
 		what: AssetsInHolding,
 		who: &Location,

@@ -22,12 +22,6 @@ jobs:
         run: |
           # Install `protoc`
           sudo apt install -y protobuf-compiler
-          # Install official Solidity compiler binary
-          curl -L -o /usr/local/bin/solc https://github.com/ethereum/solidity/releases/download/v0.8.30/solc-static-linux \
-            && chmod +x /usr/local/bin/solc
-          # Install Parity resolc binary
-          curl -L -o /usr/local/bin/resolc https://github.com/paritytech/revive/releases/download/v1.0.0/resolc-x86_64-unknown-linux-musl \
-            && chmod +x /usr/local/bin/resolc
 
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
@@ -35,13 +29,6 @@ jobs:
           profile: minimal
           toolchain: ${{ env.NIGHTLY_VERSION }}
           target: wasm32-unknown-unknown
-          components: rust-src
-
-      - name: Install 1.91 toolchain (for revive fixtures)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.91
           components: rust-src
 
       - uses: actions/checkout@v4
@@ -59,8 +46,6 @@ jobs:
           command: check
           toolchain: ${{ env.NIGHTLY_VERSION }}
           args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
-        env:
-          PALLET_REVIVE_FIXTURES_RUSTUP_TOOLCHAIN: 1.91
 
   clippy:
     runs-on: ubuntu-latest
@@ -73,12 +58,6 @@ jobs:
         run: |
           # Install `protoc`
           sudo apt install -y protobuf-compiler
-          # Install official Solidity compiler binary
-          curl -L -o /usr/local/bin/solc https://github.com/ethereum/solidity/releases/download/v0.8.30/solc-static-linux \
-            && chmod +x /usr/local/bin/solc
-          # Install Parity resolc binary
-          curl -L -o /usr/local/bin/resolc https://github.com/paritytech/revive/releases/download/v1.0.0/resolc-x86_64-unknown-linux-musl \
-            && chmod +x /usr/local/bin/resolc
 
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
@@ -87,13 +66,6 @@ jobs:
           toolchain: ${{ env.NIGHTLY_VERSION }}
           target: wasm32-unknown-unknown
           components: rust-src,clippy
-
-      - name: Install 1.91 toolchain (for revive fixtures)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.91
-          components: rust-src
 
       - uses: actions/checkout@v4
 
@@ -110,8 +82,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           toolchain: ${{ env.NIGHTLY_VERSION }}
           args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
-        env:
-          PALLET_REVIVE_FIXTURES_RUSTUP_TOOLCHAIN: 1.91
 
   test:
     runs-on: ubuntu-latest
@@ -122,12 +92,6 @@ jobs:
         run: |
           # Install `protoc`
           sudo apt install -y protobuf-compiler
-          # Install official Solidity compiler binary
-          curl -L -o /usr/local/bin/solc https://github.com/ethereum/solidity/releases/download/v0.8.30/solc-static-linux \
-            && chmod +x /usr/local/bin/solc
-          # Install Parity resolc binary
-          curl -L -o /usr/local/bin/resolc https://github.com/paritytech/revive/releases/download/v1.0.0/resolc-x86_64-unknown-linux-musl \
-            && chmod +x /usr/local/bin/resolc
 
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
@@ -135,13 +99,6 @@ jobs:
           profile: minimal
           toolchain: ${{ env.NIGHTLY_VERSION }}
           target: wasm32-unknown-unknown
-          components: rust-src
-
-      - name: Install 1.91 toolchain (for revive fixtures)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.91
           components: rust-src
 
       - uses: actions/checkout@v4
@@ -159,5 +116,3 @@ jobs:
           command: test
           toolchain: ${{ env.NIGHTLY_VERSION }}
           args: --lib --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
-        env:
-          PALLET_REVIVE_FIXTURES_RUSTUP_TOOLCHAIN: 1.91

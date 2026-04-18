@@ -1,7 +1,5 @@
 use super::*;
 use pallet_contracts::{CollectEvents, DebugInfo, Determinism};
-use pallet_revive::evm::runtime::EthExtra;
-use pallet_revive::impl_runtime_apis_plus_revive_traits;
 use sp_api::impl_runtime_apis;
 use sp_core::OpaqueMetadata;
 use sp_runtime::{
@@ -14,42 +12,7 @@ use sp_version::RuntimeVersion;
 type EventRecord =
 	frame_system::EventRecord<<Runtime as frame_system::Config>::RuntimeEvent, <Runtime as frame_system::Config>::Hash>;
 
-/// Default extensions applied to Ethereum transactions.
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct EthExtraImpl;
-
-impl EthExtra for EthExtraImpl {
-	type Config = Runtime;
-	type Extension = TransactionExtensions;
-
-	fn get_eth_extension(nonce: u32, tip: Balance) -> Self::Extension {
-		#[cfg(feature = "zombienet")]
-		let _ = tip;
-		(
-			#[cfg(not(feature = "zombienet"))]
-			PassAuthenticate::default(),
-			frame_system::CheckNonZeroSender::<Runtime>::new(),
-			frame_system::CheckSpecVersion::<Runtime>::new(),
-			frame_system::CheckTxVersion::<Runtime>::new(),
-			frame_system::CheckGenesis::<Runtime>::new(),
-			frame_system::CheckMortality::from(generic::Era::Immortal),
-			frame_system::CheckNonce::<Runtime>::from(nonce),
-			frame_system::CheckWeight::<Runtime>::new(),
-			#[cfg(not(feature = "zombienet"))]
-			SkipCheckIfFeeless::from(ChargeGasTxPayment::new(ChargeAssetTxPayment::from(
-				tip,
-				Default::default(),
-			))),
-		)
-	}
-}
-
-impl_runtime_apis_plus_revive_traits! {
-	Runtime,
-	Revive,
-	Executive,
-	EthExtraImpl,
-
+impl_runtime_apis! {
 	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
 		fn slot_duration() -> sp_consensus_aura::SlotDuration {
 			sp_consensus_aura::SlotDuration::from_millis(RELAY_CHAIN_SLOT_DURATION_MILLIS)

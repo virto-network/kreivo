@@ -60,7 +60,6 @@ pallet-preimage.workspace = true
 pallet-proxy.workspace = true
 pallet-ranked-collective.workspace = true
 pallet-referenda.workspace = true
-pallet-revive.workspace = true
 pallet-scheduler.workspace = true
 pallet-session.workspace = true
 pallet-skip-feeless-payment.workspace = true
@@ -172,7 +171,6 @@ std = [
   "pallet-ranked-collective/std",
   "pallet-referenda/std",
   "pallet-referenda-tracks/std",
-  "pallet-revive/std",
   "pallet-scheduler/std",
   "pallet-session/std",
   "pallet-skip-feeless-payment/std",
@@ -254,7 +252,6 @@ runtime-benchmarks = [
   "pallet-ranked-collective/runtime-benchmarks",
   "pallet-referenda/runtime-benchmarks",
   "pallet-referenda-tracks/runtime-benchmarks",
-  "pallet-revive/runtime-benchmarks",
   "pallet-scheduler/runtime-benchmarks",
   "pallet-skip-feeless-payment/runtime-benchmarks",
   "pallet-sudo/runtime-benchmarks",
@@ -322,7 +319,6 @@ try-runtime = [
   "pallet-ranked-collective/try-runtime",
   "pallet-referenda/try-runtime",
   "pallet-referenda-tracks/try-runtime",
-  "pallet-revive/try-runtime",
   "pallet-scheduler/try-runtime",
   "pallet-session/try-runtime",
   "pallet-skip-feeless-payment/try-runtime",

@@ -134,7 +134,6 @@ pallet-transaction-payment-rpc-runtime-api = { version = "46.0.0", default-featu
 pallet-treasury = { version = "45.0.0", default-features = false }
 pallet-utility = { version = "46.0.0", default-features = false }
 pallet-vesting = { version = "46.0.0", default-features = false }
-pallet-revive = { version = "0.13.0", default-features = false }
 
 # Cumulus client dependencies
 cumulus-primitives-aura = { version = "0.22.0", default-features = false }

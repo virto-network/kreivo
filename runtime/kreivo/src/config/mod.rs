@@ -15,8 +15,6 @@ pub mod governance;
 pub mod contracts;
 mod listings_orders;
 pub mod payments;
-pub mod revive;
-
 pub use {
 	collator_support::{ConsensusHook, RELAY_CHAIN_SLOT_DURATION_MILLIS},
 	communities::Memberships,
