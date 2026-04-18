@@ -36,31 +36,43 @@ use core::marker::PhantomData;
 /// Weight functions for `pallet_referenda_tracks`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_referenda_tracks::WeightInfo for WeightInfo<T> {
-	/// Storage: `CommunityTracks::Tracks` (r:1 w:1)
-	/// Proof: `CommunityTracks::Tracks` (`max_values`: None, `max_size`: Some(129), added: 2604, mode: `MaxEncodedLen`)
-	/// Storage: `CommunityTracks::TracksIds` (r:1 w:1)
-	/// Proof: `CommunityTracks::TracksIds` (`max_values`: Some(1), `max_size`: Some(131076), added: 131571, mode: `MaxEncodedLen`)
-	/// Storage: `CommunityTracks::OriginToTrackId` (r:0 w:1)
-	/// Proof: `CommunityTracks::OriginToTrackId` (`max_values`: None, `max_size`: Some(622), added: 3097, mode: `MaxEncodedLen`)
-	fn insert() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `133107`
-		//  Estimated: `132561`
-		// Minimum execution time: 123_784_000 picoseconds.
+	fn new_group_with_track() -> Weight {
 		Weight::from_parts(141_861_000, 0)
 			.saturating_add(Weight::from_parts(0, 132561))
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(3))
 	}
-	/// Storage: `CommunityTracks::OriginToTrackId` (r:1 w:0)
-	/// Proof: `CommunityTracks::OriginToTrackId` (`max_values`: None, `max_size`: Some(622), added: 3097, mode: `MaxEncodedLen`)
-	/// Storage: `CommunityTracks::Tracks` (r:1 w:1)
-	/// Proof: `CommunityTracks::Tracks` (`max_values`: None, `max_size`: Some(129), added: 2604, mode: `MaxEncodedLen`)
-	fn update() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `2192`
-		//  Estimated: `4087`
-		// Minimum execution time: 69_790_000 picoseconds.
+	fn add_sub_track() -> Weight {
+		Weight::from_parts(141_861_000, 0)
+			.saturating_add(Weight::from_parts(0, 132561))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(3))
+	}
+	fn set_decision_deposit() -> Weight {
+		Weight::from_parts(74_267_000, 0)
+			.saturating_add(Weight::from_parts(0, 4087))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	fn set_periods() -> Weight {
+		Weight::from_parts(74_267_000, 0)
+			.saturating_add(Weight::from_parts(0, 4087))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	fn set_curves() -> Weight {
+		Weight::from_parts(74_267_000, 0)
+			.saturating_add(Weight::from_parts(0, 4087))
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
+	}
+	fn remove_group(_n: u32) -> Weight {
+		Weight::from_parts(285_903_000, 0)
+			.saturating_add(Weight::from_parts(0, 132561))
+			.saturating_add(T::DbWeight::get().reads(3))
+			.saturating_add(T::DbWeight::get().writes(3))
+	}
+	fn set_max_deciding() -> Weight {
 		Weight::from_parts(74_267_000, 0)
 			.saturating_add(Weight::from_parts(0, 4087))
 			.saturating_add(T::DbWeight::get().reads(2))

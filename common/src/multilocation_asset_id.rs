@@ -109,6 +109,13 @@ pub mod runtime {
 		}
 	}
 
+	impl From<FungibleAssetLocation> for Location {
+		fn from(value: FungibleAssetLocation) -> Location {
+			AsFungibleAssetLocation::convert_back(&value)
+				.expect("all FungibleAssetLocation variants have a valid Location representation; qed")
+		}
+	}
+
 	pub struct AsFungibleAssetLocation;
 	impl MaybeEquivalence<Location, FungibleAssetLocation> for AsFungibleAssetLocation {
 		fn convert(value: &Location) -> Option<FungibleAssetLocation> {

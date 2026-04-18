@@ -279,10 +279,14 @@ impl pallet_pass::Config for Runtime {
 			LinearStoragePrice<ConstU128<MILLICENTS>, ConstU128<{ MILLICENTS / 10 }>, Balance>,
 		>,
 	>;
+	type SpendMatcher = ();
+	type CallMatcher = pallet_pass::ScaleCallMatcher;
 	type PalletId = PassPalletId;
 	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
 	type MaxDevicesPerAccount = ConstU32<100>;
 	type MaxSessionsPerAccount = ConstU32<10>;
+	type MaxFilteredCalls = ConstU32<16>;
+	type MaxFilteredAssets = ConstU32<16>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmarks::PassBenchmarkHelper;
 }

@@ -36,9 +36,52 @@ impl EnsureOriginWithArg<RuntimeOrigin, TrackIdOf<Runtime, CommunityTracksInstan
 	}
 }
 
+use pallet_referenda_tracks::SplitId;
+
+type GroupIdOf = <CommunityId as SplitId>::Half;
+
+pub struct EnsureGroupManager;
+impl EnsureOriginWithArg<RuntimeOrigin, PalletsOriginOf<Runtime>> for EnsureGroupManager {
+	type Success = GroupIdOf;
+
+	fn try_origin(
+		o: RuntimeOrigin,
+		_origin: &PalletsOriginOf<Runtime>,
+	) -> Result<Self::Success, RuntimeOrigin> {
+		match o.clone().into() {
+			Ok(frame_system::RawOrigin::Root) => Ok(GroupIdOf::default()),
+			_ => Err(o),
+		}
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin(_origin: &PalletsOriginOf<Runtime>) -> Result<RuntimeOrigin, ()> {
+		Ok(RuntimeOrigin::root())
+	}
+}
+
+pub struct EnsureGroupRemoval;
+impl EnsureOriginWithArg<RuntimeOrigin, GroupIdOf> for EnsureGroupRemoval {
+	type Success = ();
+
+	fn try_origin(o: RuntimeOrigin, _group: &GroupIdOf) -> Result<Self::Success, RuntimeOrigin> {
+		match o.clone().into() {
+			Ok(frame_system::RawOrigin::Root) => Ok(()),
+			_ => Err(o),
+		}
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin(_group: &GroupIdOf) -> Result<RuntimeOrigin, ()> {
+		Ok(RuntimeOrigin::root())
+	}
+}
+
 impl pallet_referenda_tracks::Config<CommunityTracksInstance> for Runtime {
-	type AdminOrigin = EnsureRoot<AccountId>;
-	type UpdateOrigin = EnsureOriginToTrack;
+	type CreateOrigin = EnsureGroupManager;
+	type GroupManagerCreateOrigin = EnsureGroupManager;
+	type GroupManagerOrigin = EnsureOriginToTrack;
+	type RemoveGroupOrigin = EnsureGroupRemoval;
 	type TrackId = CommunityId;
 	type MaxTracks = ConstU32<65536>;
 	type WeightInfo = weights::pallet_referenda_tracks::WeightInfo<Self>;

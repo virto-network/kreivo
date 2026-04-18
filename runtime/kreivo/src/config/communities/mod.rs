@@ -62,10 +62,40 @@ impl pallet_communities::Config for Runtime {
 	type BenchmarkHelper = CommunityBenchmarkHelper;
 }
 
+pub struct CommunityTracksWrapper;
+impl pallet_referenda::TracksInfo<Balance, BlockNumber> for CommunityTracksWrapper {
+	type Id = CommunityId;
+	type RuntimeOrigin = <RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin;
+
+	fn tracks() -> impl Iterator<Item = alloc::borrow::Cow<'static, pallet_referenda::Track<Self::Id, Balance, BlockNumber>>> {
+		<CommunityTracks as pallet_referenda::TracksInfo<Balance, BlockNumber>>::tracks()
+	}
+
+	fn track_for(origin: &Self::RuntimeOrigin) -> Result<Self::Id, ()> {
+		<CommunityTracks as pallet_referenda::TracksInfo<Balance, BlockNumber>>::track_for(origin)
+	}
+
+	fn track_ids() -> impl Iterator<Item = Self::Id> {
+		<CommunityTracks as pallet_referenda::TracksInfo<Balance, BlockNumber>>::track_ids()
+	}
+}
+impl pallet_communities_manager::MutateTracks<Balance, BlockNumber> for CommunityTracksWrapper {
+	type Id = CommunityId;
+	type RuntimeOrigin = <RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin;
+
+	fn insert(
+		id: Self::Id,
+		info: pallet_referenda::TrackInfo<Balance, BlockNumber>,
+		origin: Self::RuntimeOrigin,
+	) -> sp_runtime::DispatchResult {
+		CommunityTracks::do_insert(id, info, origin)
+	}
+}
+
 impl pallet_communities_manager::Config for Runtime {
 	type CreateCollection = CommunityMemberships;
 	type MakeTank = MembershipsGasTank;
-	type Tracks = CommunityTracks;
+	type Tracks = CommunityTracksWrapper;
 	type RankedCollective = KreivoCollective;
 	type WeightInfo = weights::pallet_communities_manager::WeightInfo<Self>;
 	type RegisterOrigin = EitherOf<RootCreatesCommunitiesForFree, AnyoneElsePays>;
@@ -170,7 +200,7 @@ mod benchmarks {
 				},
 			};
 
-			Tracks::<Runtime, CommunityTracksInstance>::insert(RuntimeOrigin::root(), id, info, pallet_origin)?;
+			Tracks::<Runtime, CommunityTracksInstance>::do_insert(id, info, pallet_origin)?;
 
 			Ok(())
 		}

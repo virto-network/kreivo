@@ -1,7 +1,11 @@
 use super::*;
 use core::fmt::Debug;
-use frame_support::traits::fungibles;
+use frame_support::traits::{
+	fungibles,
+	tokens::imbalance::ImbalanceAccounting,
+};
 use xcm_builder::AssetChecking;
+use xcm_executor::AssetsInHolding;
 use xcm_executor::traits::{ConvertLocation, MatchesFungibles, TransactAsset};
 
 pub struct FungiblesAdapterForExternalAssets<
@@ -25,7 +29,11 @@ pub struct FungiblesAdapterForExternalAssets<
 );
 
 impl<
-		Assets: fungibles::Mutate<AccountId> + fungibles::Create<AccountId>,
+		Assets: fungibles::Inspect<AccountId, AssetId: 'static, Balance: 'static>
+			+ fungibles::Mutate<AccountId>
+			+ fungibles::Balanced<AccountId, OnDropCredit: 'static, OnDropDebt: 'static>
+			+ fungibles::Create<AccountId>
+			+ 'static,
 		Matcher: MatchesFungibles<Assets::AssetId, Assets::Balance>,
 		AccountIdConverter: ConvertLocation<AccountId>,
 		AccountId: Eq + Clone + Debug, /* can't get away without it since Currency is generic over it. */
@@ -42,6 +50,13 @@ impl<
 		CheckingAccount,
 		NewAssetsOwner,
 	>
+where
+	fungibles::Imbalance<
+		<Assets as fungibles::Inspect<AccountId>>::AssetId,
+		<Assets as fungibles::Inspect<AccountId>>::Balance,
+		<Assets as fungibles::Balanced<AccountId>>::OnDropCredit,
+		<Assets as fungibles::Balanced<AccountId>>::OnDropDebt,
+	>: ImbalanceAccounting<u128>,
 {
 	fn can_check_in(origin: &Location, what: &Asset, context: &XcmContext) -> XcmResult {
 		FungiblesAdapter::<Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount>::can_check_in(
@@ -67,11 +82,21 @@ impl<
 		)
 	}
 
-	fn deposit_asset(what: &Asset, who: &Location, context: Option<&XcmContext>) -> XcmResult {
-		let (asset_id, _) = Matcher::matches_fungibles(what)?;
+	fn deposit_asset(what: AssetsInHolding, who: &Location, context: Option<&XcmContext>) -> Result<(), (AssetsInHolding, XcmError)> {
+		// Try to extract the asset info to check if we need to create it first.
+		// We peek at the assets before passing ownership to the inner adapter.
+		let maybe: Option<<Assets as fungibles::Inspect<AccountId>>::AssetId> = what.fungible_assets_iter().next().and_then(|asset| {
+			Matcher::matches_fungibles(&asset)
+				.map(|(asset_id, _amount)| asset_id)
+				.ok()
+		});
 
-		if !Assets::asset_exists(asset_id.clone()) {
-			Assets::create(asset_id, NewAssetsOwner::get(), false, 1u32.into()).map_err(|_| XcmError::AssetNotFound)?;
+		if let Some(asset_id) = maybe {
+			if !Assets::asset_exists(asset_id.clone()) {
+				if Assets::create(asset_id, NewAssetsOwner::get(), false, 1u32.into()).is_err() {
+					return Err((what, XcmError::AssetNotFound));
+				}
+			}
 		}
 
 		FungiblesAdapter::<Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount>::deposit_asset(
@@ -83,7 +108,7 @@ impl<
 		what: &Asset,
 		who: &Location,
 		maybe_context: Option<&XcmContext>,
-	) -> Result<xcm_executor::AssetsInHolding, XcmError> {
+	) -> Result<AssetsInHolding, XcmError> {
 		FungiblesAdapter::<Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount>::withdraw_asset(
 			what,
 			who,
@@ -96,7 +121,7 @@ impl<
 		from: &Location,
 		to: &Location,
 		context: &XcmContext,
-	) -> Result<xcm_executor::AssetsInHolding, XcmError> {
+	) -> Result<Asset, XcmError> {
 		FungiblesAdapter::<Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount>::internal_transfer_asset(
 			what, from, to, context
 		)

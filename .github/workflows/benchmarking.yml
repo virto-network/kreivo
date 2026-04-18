@@ -157,7 +157,7 @@ jobs:
 
       - name: Download CLI
         run: |
-          curl -sL https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2506-1/frame-omni-bencher -o frame-omni-bencher
+          curl -sL https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2603/frame-omni-bencher -o frame-omni-bencher
           chmod +x ./frame-omni-bencher
           echo "Using frame-omni-bencher version:"
           ./frame-omni-bencher --version

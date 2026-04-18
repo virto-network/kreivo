@@ -12,7 +12,8 @@ use frame_support::traits::LinearStoragePrice;
 use frame_support::{
 	parameter_types,
 	traits::{
-		tokens::imbalance::ResolveTo, ConstU32, Contains, ContainsPair, Everything, Get, Nothing, PalletInfoAccess,
+		tokens::imbalance::{ResolveAssetTo, ResolveTo},
+		ConstU32, Contains, ContainsPair, Everything, Get, Nothing, PalletInfoAccess,
 	},
 	weights::Weight,
 };
@@ -229,7 +230,7 @@ pub type Traders = (
 		AssetFeeAsExistentialDepositMultiplierFeeCharger,
 		LocationConvertedConcreteId,
 		Assets,
-		cumulus_primitives_utility::XcmFeesTo32ByteAccount<FungiblesTransactor, AccountId, XcmAssetFeesReceiver>,
+		ResolveAssetTo<TreasuryAccount, Assets>,
 	>,
 	// Everything else
 	UsingComponents<WeightToFee, RelayLocation, AccountId, Balances, ResolveTo<TreasuryAccount, Balances>>,
@@ -262,7 +263,6 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTrap = PolkadotXcm;
 	type AssetLocker = ();
 	type AssetExchanger = ();
-	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type PalletInstancesInfo = AllPalletsWithSystem;
 	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;

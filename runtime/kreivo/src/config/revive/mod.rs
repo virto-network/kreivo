@@ -30,8 +30,8 @@ impl pallet_revive::Config for Runtime {
 	type DepositPerChildTrieItem = DepositPerChildTrieItem;
 	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
 	type AddressMapper = pallet_revive::AccountId32Mapper<Self>;
-	type UnsafeUnstableInterface = ConstBool<true>;
 	type AllowEVMBytecode = ConstBool<true>;
+	type OnBurn = ();
 	#[cfg(not(feature = "zombienet"))]
 	type UploadOrigin = EnsureRootWithSuccess<AccountId, TreasuryAccount>;
 	#[cfg(feature = "zombienet")]

@@ -20,7 +20,6 @@ use super::*;
 use core::cmp::Ordering;
 use frame_support::traits::{Contains, InstanceFilter, PrivilegeCmp};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
-use sp_runtime::RuntimeDebug;
 
 pub struct RuntimeBlackListedCalls;
 impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
@@ -47,7 +46,7 @@ impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 	Encode,
 	Decode,
 	DecodeWithMemTracking,
-	RuntimeDebug,
+	Debug,
 	MaxEncodedLen,
 	scale_info::TypeInfo,
 )]

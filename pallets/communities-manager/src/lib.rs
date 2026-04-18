@@ -3,7 +3,7 @@
 extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
-use frame_contrib_traits::{gas_tank::MakeTank, tracks::MutateTracks};
+use frame_contrib_traits::gas_tank::MakeTank;
 use frame_support::{
 	pallet_prelude::*,
 	traits::{
@@ -38,6 +38,13 @@ pub use pallet::*;
 
 pub mod weights;
 pub use weights::*;
+
+/// Trait for inserting referenda tracks.
+pub trait MutateTracks<Balance, BlockNumber> {
+	type Id;
+	type RuntimeOrigin;
+	fn insert(id: Self::Id, info: TrackInfo<Balance, BlockNumber>, origin: Self::RuntimeOrigin) -> sp_runtime::DispatchResult;
+}
 
 type TrackInfoOf<T> = TrackInfo<NativeBalanceOf<T>, BlockNumberFor<T>>;
 
