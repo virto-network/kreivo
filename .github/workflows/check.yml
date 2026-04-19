@@ -13,6 +13,7 @@ concurrency:
 env:
   NIGHTLY_VERSION: 'nightly'
   EXTRA_ARGS: ''
+  SKIP_PALLET_REVIVE_FIXTURES: 1
 
 jobs:
   check:

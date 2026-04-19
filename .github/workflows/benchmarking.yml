@@ -7,6 +7,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  SKIP_PALLET_REVIVE_FIXTURES: 1
+
 jobs:
   build:
     runs-on: ubuntu-latest

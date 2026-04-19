@@ -14,6 +14,7 @@ concurrency:
 
 env:
   RUNTIME_NAME: kreivo_runtime.compact.compressed.wasm
+  SKIP_PALLET_REVIVE_FIXTURES: 1
 
 jobs:
   build:
