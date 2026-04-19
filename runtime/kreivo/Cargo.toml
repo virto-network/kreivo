@@ -38,7 +38,6 @@ virto-common = { workspace = true, default-features = false, features = [
 ] }
 
 # Substrate
-assets-common.workspace = true
 frame-benchmarking = { workspace = true, optional = true }
 frame-executive.workspace = true
 frame-support.workspace = true
@@ -130,7 +129,7 @@ default = ["std"]
 paseo = ["runtime-constants/paseo"]
 zombienet = []
 std = [
-  "assets-common/std",
+
   "cumulus-pallet-aura-ext/std",
   "cumulus-pallet-parachain-system/std",
   "cumulus-pallet-session-benchmarking/std",
@@ -222,7 +221,7 @@ std = [
 ]
 
 runtime-benchmarks = [
-  "assets-common/runtime-benchmarks",
+
   "cumulus-pallet-session-benchmarking/runtime-benchmarks",
   "cumulus-pallet-parachain-system/runtime-benchmarks",
   "cumulus-pallet-xcmp-queue/runtime-benchmarks",
@@ -284,7 +283,7 @@ runtime-benchmarks = [
 ]
 
 try-runtime = [
-  "assets-common/try-runtime",
+
   "cumulus-pallet-aura-ext/try-runtime",
   "cumulus-pallet-parachain-system/try-runtime",
   "cumulus-pallet-xcm/try-runtime",

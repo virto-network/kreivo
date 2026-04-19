@@ -115,33 +115,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl assets_common::runtime_api::FungiblesApi<
-		Block,
-		AccountId,
-	> for Runtime
-	{
-		fn query_account_balances(account: AccountId) -> Result<xcm::VersionedAssets, assets_common::runtime_api::FungiblesAccessError> {
-			use assets_common::fungible_conversion::{convert, convert_balance};
-			Ok([
-				// collect pallet_balance
-				{
-					let balance = Balances::free_balance(account.clone());
-					if balance > 0 {
-						vec![convert_balance::<RelayLocation, Balance>(balance)?]
-					} else {
-						vec![]
-					}
-				},
-				// collect pallet_assets (TrustBackedAssets)
-				convert::<_, _, _, _, LocationConvertedConcreteId>(
-					Assets::account_balances(account)
-						.iter()
-						.filter(|(_, balance)| balance > &0)
-				)?,
-				// collect ... e.g. other tokens
-			].concat().into())
-		}
-	}
+
 
 	impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance> for Runtime {
 		fn query_info(

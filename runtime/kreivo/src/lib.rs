@@ -57,7 +57,7 @@ use frame_support::{
 use frame_system::{limits::BlockWeights, EnsureRoot};
 
 use pallet_xcm::EnsureXcm;
-use xcm_config::{LocationConvertedConcreteId, RelayLocation, XcmOriginToTransactDispatchOrigin};
+use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
