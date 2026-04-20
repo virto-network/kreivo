@@ -97,19 +97,13 @@ where
 		who: &Location,
 		context: Option<&XcmContext>,
 	) -> Result<(), (AssetsInHolding, XcmError)> {
-		// Try to extract the asset info to check if we need to create it first.
-		// We peek at the assets before passing ownership to the inner adapter.
-		let maybe: Option<<Assets as fungibles::Inspect<AccountId>>::AssetId> =
-			what.fungible_assets_iter().next().and_then(|asset| {
-				Matcher::matches_fungibles(&asset)
-					.map(|(asset_id, _amount)| asset_id)
-					.ok()
-			});
-
-		if let Some(asset_id) = maybe {
-			if !Assets::asset_exists(asset_id.clone()) {
-				if Assets::create(asset_id, NewAssetsOwner::get(), false, 1u32.into()).is_err() {
-					return Err((what, XcmError::AssetNotFound));
+		// Create any external assets that don't exist yet before depositing.
+		// Note: mint_asset (called by ReserveAssetDeposited) already handles creation,
+		// but deposit_asset may also be called directly via DepositAsset instruction.
+		for asset in what.fungible_assets_iter() {
+			if let Ok((asset_id, _amount)) = Matcher::matches_fungibles(&asset) {
+				if !Assets::asset_exists(asset_id.clone()) {
+					let _ = Assets::create(asset_id, NewAssetsOwner::get(), false, 1u32.into());
 				}
 			}
 		}

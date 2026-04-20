@@ -1,7 +1,7 @@
 use super::{
 	AccountId, AllPalletsWithSystem, Assets, Balance, Balances, FungibleAssetLocation, KreivoAssetsInstance,
 	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeHoldReason, RuntimeOrigin,
-	Treasury, TreasuryAccount, WeightToFee, XcmpQueue,
+	TreasuryAccount, WeightToFee, XcmpQueue,
 };
 use virto_common::AsFungibleAssetLocation;
 
@@ -150,7 +150,6 @@ parameter_types! {
 	pub UnitWeightCost: Weight = Weight::from_parts(1_000_000_000, 64 * 1024);
 	pub const MaxInstructions: u32 = 100;
 	pub const MaxAssetsIntoHolding: u32 = 64;
-	pub XcmAssetFeesReceiver: AccountId = Treasury::account_id();
 }
 
 pub struct ParentOrParentsExecutivePlurality;

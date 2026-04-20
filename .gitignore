@@ -40,3 +40,6 @@ zombienet-linux
 # Testing try-runtime locally
 snapshot.raw
 try-runtime
+
+# Generated chain specs
+chain-spec-generator/spec.json

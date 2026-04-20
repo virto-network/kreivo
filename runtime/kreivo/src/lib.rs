@@ -129,14 +129,31 @@ pub type SignedPayload = generic::SignedPayload<RuntimeCall, TransactionExtensio
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, TransactionExtensions>;
 
 /// Sets CommunityTracks storage version to 1 without data migration.
-/// The existing track data layout is compatible with the new pallet version.
+/// The existing track data layout (flat u16 IDs stored in double maps) is compatible
+/// with the new pallet version which uses SplitId to interpret the same u16 as (group, sub-track).
 pub struct SetCommunityTracksStorageVersion;
 impl frame_support::traits::OnRuntimeUpgrade for SetCommunityTracksStorageVersion {
 	fn on_runtime_upgrade() -> Weight {
 		use config::communities::governance::CommunityTracksInstance;
-		let version = frame_support::traits::StorageVersion::new(1);
-		version.put::<pallet_referenda_tracks::Pallet<Runtime, CommunityTracksInstance>>();
-		Weight::zero()
+		use frame_support::traits::StorageVersion;
+		let on_chain = StorageVersion::get::<pallet_referenda_tracks::Pallet<Runtime, CommunityTracksInstance>>();
+		if on_chain == 0 {
+			StorageVersion::new(1).put::<pallet_referenda_tracks::Pallet<Runtime, CommunityTracksInstance>>();
+			log::info!("CommunityTracks: storage version bumped from 0 to 1");
+			<Runtime as frame_system::Config>::DbWeight::get().writes(1)
+		} else {
+			log::info!("CommunityTracks: already at version {on_chain:?}, skipping");
+			Weight::zero()
+		}
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(_state: alloc::vec::Vec<u8>) -> Result<(), sp_runtime::TryRuntimeError> {
+		use config::communities::governance::CommunityTracksInstance;
+		use frame_support::traits::StorageVersion;
+		let version = StorageVersion::get::<pallet_referenda_tracks::Pallet<Runtime, CommunityTracksInstance>>();
+		frame_support::ensure!(version == 1, "CommunityTracks storage version should be 1");
+		Ok(())
 	}
 }
 
@@ -324,6 +341,7 @@ mod runtime {
 	pub type Contracts = pallet_contracts;
 	#[runtime::pallet_index(81)]
 	pub type ContractsStore = pallet_contracts_store;
+	// NOTE: index 82 reserved (was pallet-revive, removed in stable2603 update)
 }
 
 cumulus_pallet_parachain_system::register_validate_block! {
