@@ -24,11 +24,11 @@ jobs:
           # Install `protoc`
           sudo apt install -y protobuf-compiler
 
-      - name: Install stable toolchain
+      - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: ${{ env.NIGHTLY_VERSION }}
           target: wasm32v1-none
           components: rust-src
 
@@ -45,7 +45,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          toolchain: stable
+          toolchain: ${{ env.NIGHTLY_VERSION }}
           args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
 
   clippy:
