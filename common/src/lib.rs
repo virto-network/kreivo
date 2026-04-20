@@ -13,7 +13,7 @@ pub use payment_id::PaymentId;
 #[cfg(feature = "runtime")]
 pub use multilocation_asset_id::runtime::AsFungibleAssetLocation;
 
-pub type CommunityId = u32;
+pub type CommunityId = u16;
 pub type MembershipId = u32;
 
 pub mod listings {

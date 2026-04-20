@@ -128,6 +128,18 @@ pub type SignedPayload = generic::SignedPayload<RuntimeCall, TransactionExtensio
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, TransactionExtensions>;
 
+/// Sets CommunityTracks storage version to 1 without data migration.
+/// The existing track data layout is compatible with the new pallet version.
+pub struct SetCommunityTracksStorageVersion;
+impl frame_support::traits::OnRuntimeUpgrade for SetCommunityTracksStorageVersion {
+	fn on_runtime_upgrade() -> Weight {
+		use config::communities::governance::CommunityTracksInstance;
+		let version = frame_support::traits::StorageVersion::new(1);
+		version.put::<pallet_referenda_tracks::Pallet<Runtime, CommunityTracksInstance>>();
+		Weight::zero()
+	}
+}
+
 /// A list of migrations that need to undergo.
 pub type Migrations = (
 	// Unreleased
@@ -140,7 +152,7 @@ pub type Migrations = (
 	cumulus_pallet_xcmp_queue::migration::v4::MigrationToV4<Runtime>,
 	cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,
 	cumulus_pallet_xcmp_queue::migration::v6::MigrateV5ToV6<Runtime>,
-	pallet_referenda_tracks::migration::MigrateToV1<Runtime, config::communities::governance::CommunityTracksInstance>,
+	SetCommunityTracksStorageVersion,
 	// Permanent
 	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,
 );

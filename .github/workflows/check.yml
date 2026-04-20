@@ -13,7 +13,6 @@ concurrency:
 env:
   NIGHTLY_VERSION: 'nightly'
   EXTRA_ARGS: ''
-  SKIP_PALLET_REVIVE_FIXTURES: 1
 
 jobs:
   check:
@@ -31,6 +30,9 @@ jobs:
           toolchain: ${{ env.NIGHTLY_VERSION }}
           target: wasm32v1-none
           components: rust-src
+
+      - name: Add wasm32-unknown-unknown target
+        run: rustup target add wasm32-unknown-unknown --toolchain ${{ env.NIGHTLY_VERSION }}
 
       - uses: actions/checkout@v4
 

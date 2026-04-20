@@ -5,9 +5,6 @@ on:
     tags:
       - '*'
 
-env:
-  SKIP_PALLET_REVIVE_FIXTURES: 1
-
 jobs:
   build:
     runs-on: ubuntu-latest
