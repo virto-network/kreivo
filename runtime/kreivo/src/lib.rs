@@ -139,6 +139,8 @@ pub type Migrations = (
 	cumulus_pallet_aura_ext::migration::MigrateV0ToV1<Runtime>,
 	cumulus_pallet_xcmp_queue::migration::v4::MigrationToV4<Runtime>,
 	cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,
+	cumulus_pallet_xcmp_queue::migration::v6::MigrateV5ToV6<Runtime>,
+	pallet_referenda_tracks::migration::MigrateToV1<Runtime, config::communities::governance::CommunityTracksInstance>,
 	// Permanent
 	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,
 );
