@@ -17,6 +17,8 @@ env:
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      SKIP_WASM_BUILD: 1
     steps:
       - name: Install dependencies
         run: |
