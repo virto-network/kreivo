@@ -67,8 +67,7 @@ pallet-orders = { version = "2.0.0", default-features = false, package = "fc-pal
 pallet-payments = { version = "2.0.0", default-features = false, package = "fc-pallet-payments" }
 pallet-pass = { version = "2.0.0", default-features = false, package = "fc-pallet-pass" }
 pallet-referenda-tracks = { version = "2.0.0", default-features = false, package = "fc-pallet-referenda-tracks" }
-# 2.0.0 is not on crates.io yet (crate owned by another account); pinned to the v2.0.0 tag.
-pallet-black-hole = { git = "https://github.com/virto-network/frame-contrib", tag = "v2.0.0", default-features = false, package = "fc-pallet-black-hole" }
+pallet-black-hole = { version = "2.0.0", default-features = false, package = "fc-pallet-black-hole" }
 
 # Pass Authenticators
 pass-webauthn = { git = "https://github.com/virto-network/pass-authenticators", rev = "881ed7eb5005e4b554e26bd848006ff06a038730", default-features = false, package = "pass-authenticators-webauthn" }
