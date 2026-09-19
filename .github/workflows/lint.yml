@@ -46,3 +46,43 @@ jobs:
           toolchain: ${{ env.NIGHTLY_VERSION }}
           command: fmt
           args: --all -- --check
+
+  pinned-git-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure git dependencies are pinned
+        run: |
+          # A git dependency without `tag`/`rev` only stays pinned while Cargo.lock
+          # does: any `cargo update` silently moves the runtime to another commit,
+          # SDK version or pallet API (metadata drift).
+          #
+          # frame-contrib is the exception. pass-authenticators also depends on it
+          # through the bare URL, and Cargo treats `?tag=` as a different source
+          # (duplicate crates). Its pin is enforced on Cargo.lock in the next step.
+          unpinned="$(git grep -nE '^[^#]*git *= *"' -- '*Cargo.toml' \
+            | grep -vE '(tag|rev) *= *"' \
+            | grep -v 'github.com/virto-network/frame-contrib"' || true)"
+          if [ -n "$unpinned" ]; then
+            echo "$unpinned" | while IFS=: read -r file line _; do
+              echo "::error file=$file,line=$line::git dependency must be pinned with tag or rev"
+            done
+            exit 1
+          fi
+
+      - name: Ensure frame-contrib resolves to a single tagged commit
+        run: |
+          repo=https://github.com/virto-network/frame-contrib
+          commits="$(grep -oE "git\+$repo[^#\"]*#[0-9a-f]{40}" Cargo.lock | sed 's/.*#//' | sort -u)"
+          if [ "$(echo "$commits" | grep -c .)" -ne 1 ]; then
+            echo "::error file=Cargo.lock::frame-contrib resolves to more than one commit:"
+            echo "$commits"
+            exit 1
+          fi
+          tags="$(git ls-remote --tags "$repo" | awk -v c="$commits" '$1 == c { sub("refs/tags/", "", $2); sub(/\^\{\}$/, "", $2); print $2 }')"
+          if [ -z "$tags" ]; then
+            echo "::error file=Cargo.lock::frame-contrib is locked to $commits, which is not a tagged release. Update to a tag, e.g. \`cargo update -p fc-pallet-pass --precise <tagged commit>\`."
+            exit 1
+          fi
+          echo "frame-contrib locked to $commits ($(echo $tags | tr ' ' ','))" >> "$GITHUB_STEP_SUMMARY"

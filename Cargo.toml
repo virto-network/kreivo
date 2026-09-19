@@ -70,8 +70,8 @@ pallet-referenda-tracks = { git = "https://github.com/virto-network/frame-contri
 pallet-black-hole = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-black-hole" }
 
 # Pass Authenticators
-pass-webauthn = { git = "https://github.com/virto-network/pass-authenticators", default-features = false, package = "pass-authenticators-webauthn" }
-pass-substrate-keys = { git = "https://github.com/virto-network/pass-authenticators", default-features = false, package = "pass-authenticators-substrate-keys" }
+pass-webauthn = { git = "https://github.com/virto-network/pass-authenticators", rev = "ec1797cda6790de8eb049391aa9f1ffd64af6581", default-features = false, package = "pass-authenticators-webauthn" }
+pass-substrate-keys = { git = "https://github.com/virto-network/pass-authenticators", rev = "ec1797cda6790de8eb049391aa9f1ffd64af6581", default-features = false, package = "pass-authenticators-substrate-keys" }
 
 # Substrate std
 pallet-transaction-payment-rpc = { version = "49.0.0" }
