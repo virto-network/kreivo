@@ -45,7 +45,8 @@ jobs:
   quick-benchmarks-omni:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A full `--all` run takes ~75 min now that the bencher matches the runtime.
+    timeout-minutes: 120
     steps:
       # Only for `polkadot-sdk-version`, which picks the matching bencher release.
       - uses: actions/checkout@v4
