@@ -17,8 +17,10 @@ use {
 pub enum FungibleAssetLocation {
 	Here(u32),
 	Sibling(Para),
-	PolkadotNativeDOT,
-	PolkadotParachainAsset(Para),
+	// NOTE: keep this shape. Mainnet stores the DOT asset id as `External { Polkadot, None }`
+	// (`02 00 00`); a unit variant here would encode as `02` and strand the existing entries.
+	// Changing it needs a storage migration for the `Assets` keys (see kreivo#484).
+	External { network: NetworkId, child: Option<Para> },
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -120,15 +122,20 @@ pub mod runtime {
 	impl MaybeEquivalence<Location, FungibleAssetLocation> for AsFungibleAssetLocation {
 		fn convert(value: &Location) -> Option<FungibleAssetLocation> {
 			match value.unpack() {
-				(2, [GlobalConsensus(NetworkId::Polkadot)]) => Some(FungibleAssetLocation::PolkadotNativeDOT),
-				(
-					2,
-					[GlobalConsensus(NetworkId::Polkadot), Parachain(id), PalletInstance(pallet), GeneralIndex(index)],
-				) => Some(FungibleAssetLocation::PolkadotParachainAsset(Para {
-					id: u16::try_from(*id).ok()?,
-					pallet: *pallet,
-					index: u32::try_from(*index).ok()?,
-				})),
+				(2, [GlobalConsensus(network)]) => Some(FungibleAssetLocation::External {
+					network: (*network).try_into().ok()?,
+					child: None,
+				}),
+				(2, [GlobalConsensus(network), Parachain(id), PalletInstance(pallet), GeneralIndex(index)]) => {
+					Some(FungibleAssetLocation::External {
+						network: (*network).try_into().ok()?,
+						child: Some(Para {
+							id: u16::try_from(*id).ok()?,
+							pallet: *pallet,
+							index: u32::try_from(*index).ok()?,
+						}),
+					})
+				}
 				(1, [Parachain(id), PalletInstance(pallet), GeneralIndex(index)]) => {
 					Some(FungibleAssetLocation::Sibling(Para {
 						id: (*id).try_into().ok()?,
@@ -154,17 +161,20 @@ pub mod runtime {
 					1,
 					[Parachain(id.into()), PalletInstance(pallet), GeneralIndex(index.into())],
 				)),
-				FungibleAssetLocation::PolkadotParachainAsset(Para { id, pallet, index }) => Some(Location::new(
+				FungibleAssetLocation::External {
+					network,
+					child: Some(Para { id, pallet, index }),
+				} => Some(Location::new(
 					2,
 					[
-						GlobalConsensus(NetworkId::Polkadot),
+						GlobalConsensus(network.into()),
 						Parachain(id.into()),
 						PalletInstance(pallet),
 						GeneralIndex(index.into()),
 					],
 				)),
-				FungibleAssetLocation::PolkadotNativeDOT => {
-					Some(Location::new(2, [GlobalConsensus(NetworkId::Polkadot)]))
+				FungibleAssetLocation::External { network, child: None } => {
+					Some(Location::new(2, [GlobalConsensus(network.into())]))
 				}
 			}
 		}

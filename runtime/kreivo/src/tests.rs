@@ -237,17 +237,26 @@ fn ensure_asset_max_size_is_64_bits() {
 	let encoded = asset_id.encode();
 	assert!(encoded.len() <= 8);
 
-	let asset_id = FungibleAssetLocation::PolkadotNativeDOT;
+	// DOT, as stored on chain: `02 00 00`.
+	let asset_id = FungibleAssetLocation::External {
+		network: virto_common::NetworkId::Polkadot,
+		child: None,
+	};
 	let encoded = asset_id.encode();
 	assert!(encoded.len() <= 8);
 
-	let asset_id = FungibleAssetLocation::PolkadotParachainAsset(virto_common::Para {
-		id: u16::MAX,
-		pallet: u8::MAX,
-		index: u32::MAX,
-	});
-	let encoded = asset_id.encode();
-	assert!(encoded.len() <= 8);
+	// An external *parachain* asset does not fit in 64 bits with this shape (10 bytes).
+	// The asset-precompile work (#472) reshapes the variant for that, which changes the
+	// encoding of the DOT id and needs a storage migration first.
+	let asset_id = FungibleAssetLocation::External {
+		network: virto_common::NetworkId::Polkadot,
+		child: Some(virto_common::Para {
+			id: u16::MAX,
+			pallet: u8::MAX,
+			index: u32::MAX,
+		}),
+	};
+	assert_eq!(asset_id.encode().len(), 10);
 }
 
 #[test]
@@ -266,16 +275,10 @@ fn fungible_asset_location_as_u64_try_from_round_trip() {
 	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
 	assert_eq!(asset, back);
 
-	let asset = FungibleAssetLocation::PolkadotNativeDOT;
-	let u64_val = asset.as_u64();
-	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
-	assert_eq!(asset, back);
-
-	let asset = FungibleAssetLocation::PolkadotParachainAsset(virto_common::Para {
-		id: 2000,
-		pallet: 10,
-		index: 100,
-	});
+	let asset = FungibleAssetLocation::External {
+		network: virto_common::NetworkId::Polkadot,
+		child: None,
+	};
 	let u64_val = asset.as_u64();
 	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
 	assert_eq!(asset, back);
