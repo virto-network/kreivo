@@ -37,12 +37,16 @@ impl<Account: Get<AccountId>, AccountId: From<[u8; 32]>> ConvertLocation<Account
 	}
 }
 
-pub struct AccountId32FromRelay<Network, AccountId>(PhantomData<(Network, AccountId)>);
+pub struct AccountId32FromRelayOrAssetHub<Network, AccountId>(PhantomData<(Network, AccountId)>);
 impl<Network: Get<Option<NetworkId>>, AccountId: From<[u8; 32]> + Into<[u8; 32]> + Clone> ConvertLocation<AccountId>
-	for AccountId32FromRelay<Network, AccountId>
+	for AccountId32FromRelayOrAssetHub<Network, AccountId>
 {
 	fn convert_location(location: &Location) -> Option<AccountId> {
 		let id = match location.unpack() {
+			// Locations from AssetHub
+			(2, [Parachain(ASSET_HUB_ID), AccountId32 { id, network }]) if *network == Network::get() => id,
+			(2, [Parachain(ASSET_HUB_ID), AccountId32 { id, .. }]) => id,
+			// Locations from Relay
 			(1, [AccountId32 { id, network }]) if *network == Network::get() => id,
 			(1, [AccountId32 { id, .. }]) => id,
 			_ => return None,
