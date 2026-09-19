@@ -76,7 +76,7 @@ pub type LocationToAccountId = (
 	// Plurality origins convert to community AccountId via the `Communities::community_account`.
 	PluralityConvertsToCommunityAccountId,
 	// For incoming relay `Account32` origins, alias directly to `AccountId`.
-	AccountId32FromRelay<RelayNetwork, AccountId>,
+	AccountId32FromRelayOrAssetHub<RelayNetwork, AccountId>,
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 	AccountId32Aliases<RelayNetwork, AccountId>,
 );
