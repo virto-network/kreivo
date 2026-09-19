@@ -30,7 +30,11 @@ impl pallet_revive::Config for Runtime {
 	type DepositPerChildTrieItem = DepositPerChildTrieItem;
 	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
 	type AddressMapper = pallet_revive::AccountId32Mapper<Self>;
-	type UnsafeUnstableInterface = ConstBool<true>;
+	// Burn the EVM gas rounding remainder, keep deposits in the native currency and
+	// keep explicit `map_account`: the behaviour before these options existed.
+	type OnBurn = ();
+	type Deposit = ();
+	type AutoMap = ConstBool<false>;
 	type AllowEVMBytecode = ConstBool<true>;
 	#[cfg(not(feature = "zombienet"))]
 	type UploadOrigin = EnsureRootWithSuccess<AccountId, TreasuryAccount>;

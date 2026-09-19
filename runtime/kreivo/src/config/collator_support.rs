@@ -98,4 +98,10 @@ pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
 >;
 
 #[cfg(feature = "runtime-benchmarks")]
-impl cumulus_pallet_session_benchmarking::Config for Runtime {}
+impl cumulus_pallet_session_benchmarking::Config for Runtime {
+	fn generate_session_keys_and_proof(owner: AccountId) -> (SessionKeys, Vec<u8>) {
+		use parity_scale_codec::Encode;
+		let generated = SessionKeys::generate(&owner.encode(), None);
+		(generated.keys, generated.proof.encode())
+	}
+}

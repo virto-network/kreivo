@@ -1,8 +1,9 @@
 use super::*;
 use core::fmt::Debug;
-use frame_support::traits::fungibles;
+use frame_support::traits::{fungibles, tokens::imbalance::ImbalanceAccounting};
 use xcm_builder::AssetChecking;
 use xcm_executor::traits::{ConvertLocation, MatchesFungibles, TransactAsset};
+use xcm_executor::AssetsInHolding;
 
 pub struct FungiblesAdapterForExternalAssets<
 	Assets,
@@ -25,7 +26,11 @@ pub struct FungiblesAdapterForExternalAssets<
 );
 
 impl<
-		Assets: fungibles::Mutate<AccountId> + fungibles::Create<AccountId>,
+		Assets: fungibles::Inspect<AccountId, AssetId: 'static, Balance: 'static>
+			+ fungibles::Mutate<AccountId>
+			+ fungibles::Balanced<AccountId, OnDropCredit: 'static, OnDropDebt: 'static>
+			+ fungibles::Create<AccountId>
+			+ 'static,
 		Matcher: MatchesFungibles<Assets::AssetId, Assets::Balance>,
 		AccountIdConverter: ConvertLocation<AccountId>,
 		AccountId: Eq + Clone + Debug, /* can't get away without it since Currency is generic over it. */
@@ -42,6 +47,13 @@ impl<
 		CheckingAccount,
 		NewAssetsOwner,
 	>
+where
+	fungibles::Imbalance<
+		<Assets as fungibles::Inspect<AccountId>>::AssetId,
+		<Assets as fungibles::Inspect<AccountId>>::Balance,
+		<Assets as fungibles::Balanced<AccountId>>::OnDropCredit,
+		<Assets as fungibles::Balanced<AccountId>>::OnDropDebt,
+	>: ImbalanceAccounting<u128>,
 {
 	fn can_check_in(origin: &Location, what: &Asset, context: &XcmContext) -> XcmResult {
 		FungiblesAdapter::<Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount>::can_check_in(
@@ -67,11 +79,33 @@ impl<
 		)
 	}
 
-	fn deposit_asset(what: &Asset, who: &Location, context: Option<&XcmContext>) -> XcmResult {
-		let (asset_id, _) = Matcher::matches_fungibles(what)?;
+	fn mint_asset(what: &Asset, context: &XcmContext) -> Result<AssetsInHolding, XcmError> {
+		// Create the asset if it doesn't exist yet before minting.
+		if let Ok((asset_id, _amount)) = Matcher::matches_fungibles(what) {
+			if !Assets::asset_exists(asset_id.clone()) {
+				Assets::create(asset_id, NewAssetsOwner::get(), false, 1u32.into())
+					.map_err(|_| XcmError::AssetNotFound)?;
+			}
+		}
+		FungiblesAdapter::<Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount>::mint_asset(
+			what, context,
+		)
+	}
 
-		if !Assets::asset_exists(asset_id.clone()) {
-			Assets::create(asset_id, NewAssetsOwner::get(), false, 1u32.into()).map_err(|_| XcmError::AssetNotFound)?;
+	fn deposit_asset(
+		what: AssetsInHolding,
+		who: &Location,
+		context: Option<&XcmContext>,
+	) -> Result<(), (AssetsInHolding, XcmError)> {
+		// Create any external assets that don't exist yet before depositing.
+		// Note: mint_asset (called by ReserveAssetDeposited) already handles creation,
+		// but deposit_asset may also be called directly via DepositAsset instruction.
+		for asset in what.fungible_assets_iter() {
+			if let Ok((asset_id, _amount)) = Matcher::matches_fungibles(&asset) {
+				if !Assets::asset_exists(asset_id.clone()) {
+					let _ = Assets::create(asset_id, NewAssetsOwner::get(), false, 1u32.into());
+				}
+			}
 		}
 
 		FungiblesAdapter::<Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount>::deposit_asset(
@@ -83,7 +117,7 @@ impl<
 		what: &Asset,
 		who: &Location,
 		maybe_context: Option<&XcmContext>,
-	) -> Result<xcm_executor::AssetsInHolding, XcmError> {
+	) -> Result<AssetsInHolding, XcmError> {
 		FungiblesAdapter::<Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount>::withdraw_asset(
 			what,
 			who,
@@ -96,7 +130,7 @@ impl<
 		from: &Location,
 		to: &Location,
 		context: &XcmContext,
-	) -> Result<xcm_executor::AssetsInHolding, XcmError> {
+	) -> Result<Asset, XcmError> {
 		FungiblesAdapter::<Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount>::internal_transfer_asset(
 			what, from, to, context
 		)

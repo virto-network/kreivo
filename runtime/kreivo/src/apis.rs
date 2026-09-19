@@ -20,9 +20,10 @@ pub struct EthExtraImpl;
 
 impl EthExtra for EthExtraImpl {
 	type Config = Runtime;
-	type Extension = TransactionExtensions;
+	type ExtensionV0 = TransactionExtensions;
+	type ExtensionOtherVersions = sp_runtime::traits::InvalidVersion;
 
-	fn get_eth_extension(nonce: u32, tip: Balance) -> Self::Extension {
+	fn get_eth_extension(nonce: u32, tip: Balance) -> Self::ExtensionV0 {
 		#[cfg(feature = "zombienet")]
 		let _ = tip;
 		(
@@ -135,8 +136,8 @@ impl_runtime_apis_plus_revive_traits! {
 	}
 
 	impl sp_session::SessionKeys<Block> for Runtime {
-		fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-			SessionKeys::generate(seed)
+		fn generate_session_keys(owner: Vec<u8>, seed: Option<Vec<u8>>) -> sp_session::OpaqueGeneratedSessionKeys {
+			SessionKeys::generate(&owner, seed).into()
 		}
 
 		fn decode_session_keys(
@@ -314,6 +315,12 @@ impl_runtime_apis_plus_revive_traits! {
 	impl cumulus_primitives_core::RelayParentOffsetApi<Block> for Runtime {
 		fn relay_parent_offset() -> u32 {
 			<Runtime as cumulus_pallet_parachain_system::Config>::RelayParentOffset::get()
+		}
+
+		// V3 scheduling is disabled (`SchedulingSignatureVerifier = ()`); `0` is what
+		// collators assume on the V1/V2 path when the runtime doesn't provide it.
+		fn max_claim_queue_offset() -> u8 {
+			0
 		}
 	}
 
