@@ -4750,6 +4750,7 @@ dependencies = [
  "staging-xcm-executor",
  "substrate-wasm-builder",
  "virto-common",
+ "xcm-runtime-apis",
 ]
 
 [[package]]

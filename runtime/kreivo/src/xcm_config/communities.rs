@@ -43,9 +43,10 @@ impl<Network: Get<Option<NetworkId>>, AccountId: From<[u8; 32]> + Into<[u8; 32]>
 {
 	fn convert_location(location: &Location) -> Option<AccountId> {
 		let id = match location.unpack() {
-			// Locations from AssetHub
-			(2, [Parachain(ASSET_HUB_ID), AccountId32 { id, network }]) if *network == Network::get() => id,
-			(2, [Parachain(ASSET_HUB_ID), AccountId32 { id, .. }]) => id,
+			// Accounts on (Kusama) Asset Hub: same key, same account. This trusts Asset Hub, a
+			// system chain, to represent its users.
+			(1, [Parachain(ASSET_HUB_ID), AccountId32 { id, network }]) if *network == Network::get() => id,
+			(1, [Parachain(ASSET_HUB_ID), AccountId32 { id, .. }]) => id,
 			// Locations from Relay
 			(1, [AccountId32 { id, network }]) if *network == Network::get() => id,
 			(1, [AccountId32 { id, .. }]) => id,

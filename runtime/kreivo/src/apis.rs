@@ -260,6 +260,76 @@ impl_runtime_apis! {
 		}
 	}
 
+	impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
+		fn query_acceptable_payment_assets(
+			xcm_version: xcm::Version,
+		) -> Result<Vec<xcm::VersionedAssetId>, xcm_runtime_apis::fees::Error> {
+			PolkadotXcm::query_acceptable_payment_assets(
+				xcm_version,
+				vec![
+					xcm::latest::AssetId(xcm_config::Ksm::get()),
+					xcm::latest::AssetId(xcm_config::Dot::get()),
+				],
+			)
+		}
+
+		fn query_xcm_weight(message: xcm::VersionedXcm<()>) -> Result<Weight, xcm_runtime_apis::fees::Error> {
+			PolkadotXcm::query_xcm_weight(message)
+		}
+
+		fn query_weight_to_asset_fee(
+			weight: Weight,
+			asset: xcm::VersionedAssetId,
+		) -> Result<u128, xcm_runtime_apis::fees::Error> {
+			PolkadotXcm::query_weight_to_asset_fee::<<xcm_config::XcmConfig as xcm_executor::Config>::Trader>(
+				weight, asset,
+			)
+		}
+
+		fn query_delivery_fees(
+			destination: xcm::VersionedLocation,
+			message: xcm::VersionedXcm<()>,
+			asset_id: xcm::VersionedAssetId,
+		) -> Result<xcm::VersionedAssets, xcm_runtime_apis::fees::Error> {
+			PolkadotXcm::query_delivery_fees::<<xcm_config::XcmConfig as xcm_executor::Config>::AssetExchanger>(
+				destination,
+				message,
+				asset_id,
+			)
+		}
+	}
+
+	impl xcm_runtime_apis::dry_run::DryRunApi<Block, RuntimeCall, RuntimeEvent, OriginCaller> for Runtime {
+		fn dry_run_call(
+			origin: OriginCaller,
+			call: RuntimeCall,
+			result_xcms_version: xcm::Version,
+		) -> Result<xcm_runtime_apis::dry_run::CallDryRunEffects<RuntimeEvent>, xcm_runtime_apis::dry_run::Error> {
+			PolkadotXcm::dry_run_call::<Runtime, xcm_config::XcmRouter, OriginCaller, RuntimeCall>(
+				origin,
+				call,
+				result_xcms_version,
+			)
+		}
+
+		fn dry_run_xcm(
+			origin_location: xcm::VersionedLocation,
+			xcm: xcm::VersionedXcm<RuntimeCall>,
+		) -> Result<xcm_runtime_apis::dry_run::XcmDryRunEffects<RuntimeEvent>, xcm_runtime_apis::dry_run::Error> {
+			PolkadotXcm::dry_run_xcm::<xcm_config::XcmRouter>(origin_location, xcm)
+		}
+	}
+
+	impl xcm_runtime_apis::conversions::LocationToAccountApi<Block, AccountId> for Runtime {
+		fn convert_location(
+			location: xcm::VersionedLocation,
+		) -> Result<AccountId, xcm_runtime_apis::conversions::Error> {
+			xcm_runtime_apis::conversions::LocationToAccountHelper::<AccountId, xcm_config::LocationToAccountId>::convert_location(
+				location,
+			)
+		}
+	}
+
 	#[cfg(feature = "try-runtime")]
 	impl frame_try_runtime::TryRuntime<Block> for Runtime {
 		fn on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -> (Weight, Weight) {
