@@ -47,6 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # Only for `polkadot-sdk-version`, which picks the matching bencher release.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: polkadot-sdk-version
+          sparse-checkout-cone-mode: false
+
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
@@ -54,7 +60,7 @@ jobs:
 
       - name: Download CLI
         run: |
-          curl -sL https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2603/frame-omni-bencher -o frame-omni-bencher
+          curl -sfL "https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$(tr -d '[:space:]' < polkadot-sdk-version)/frame-omni-bencher" -o frame-omni-bencher
           chmod +x ./frame-omni-bencher
           echo "Using frame-omni-bencher version:"
           ./frame-omni-bencher --version
