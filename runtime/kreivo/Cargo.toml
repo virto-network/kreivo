@@ -89,6 +89,7 @@ polkadot-runtime-common.workspace = true
 xcm.workspace = true
 xcm-builder.workspace = true
 xcm-executor.workspace = true
+xcm-runtime-apis.workspace = true
 
 # Cumulus
 cumulus-pallet-aura-ext.workspace = true
@@ -199,6 +200,7 @@ std = [
   "virto-common/std",
   "xcm-builder/std",
   "xcm-executor/std",
+  "xcm-runtime-apis/std",
   "xcm/std",
   "pallet-listings/std",
   "pallet-vesting/std",
@@ -267,6 +269,7 @@ runtime-benchmarks = [
   "sp-runtime/runtime-benchmarks",
   "xcm-builder/runtime-benchmarks",
   "xcm-executor/runtime-benchmarks",
+  "xcm-runtime-apis/runtime-benchmarks",
   "xcm/runtime-benchmarks",
   "virto-common/runtime-benchmarks",
 ]

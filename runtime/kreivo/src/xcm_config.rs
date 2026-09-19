@@ -19,21 +19,25 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
-use parachains_common::xcm_config::AssetFeeAsExistentialDepositMultiplier;
+use parachains_common::xcm_config::{AssetFeeAsExistentialDepositMultiplier, ParentRelayOrSiblingParachains};
 use polkadot_parachain_primitives::primitives::Sibling;
 use sp_runtime::traits::ConvertInto;
 use xcm::latest::prelude::*;
 use xcm_builder::{
-	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom, ConvertedConcreteId,
-	EnsureXcmOrigin, FrameTransactionalProcessor, FungibleAdapter, FungiblesAdapter, IsConcrete, LocalMint,
-	MintLocation, NativeAsset, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
-	StartsWith, TakeWeightCredit, UsingComponents, WeightInfoBounds, WithComputedOrigin,
+	AccountId32Aliases, AliasChildLocation, AliasOriginRootUsingFilter, AllowExplicitUnpaidExecutionFrom,
+	AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, ConvertedConcreteId,
+	EnsureXcmOrigin, ExternalConsensusLocationsConverterFor, FrameTransactionalProcessor, FungibleAdapter,
+	FungiblesAdapter, IsConcrete, LocalMint, MintLocation, NativeAsset, ParentIsPreset, RelayChainAsNative,
+	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
+	SovereignSignedViaLocation, StartsWith, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents, WeightInfoBounds,
+	WithComputedOrigin, WithUniqueTopic,
 };
 use xcm_executor::traits::JustTry;
 use xcm_executor::XcmExecutor;
 
 mod communities;
+#[cfg(test)]
+mod tests;
 mod with_external_assets;
 
 use communities::*;
@@ -54,9 +58,11 @@ parameter_types! {
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub AssetsPalletLocation: Location =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
+	// Kusama (or, on `paseo`, the Paseo relay, which identifies as `Polkadot` like Paseo Asset
+	// Hub does) followed by our para id. Reanchoring, `WithComputedOrigin` and bridged-account
+	// conversion all depend on this being a valid universal location.
 	pub UniversalLocation: InteriorLocation = [
-		GlobalConsensus(Polkadot),
-		GlobalConsensus(Kusama),
+		GlobalConsensus(RelayNetwork::get().expect("RelayNetwork is always set; qed")),
 		Parachain(ParachainInfo::parachain_id().into()),
 	].into();
 
@@ -79,6 +85,10 @@ pub type LocationToAccountId = (
 	AccountId32FromRelayOrAssetHub<RelayNetwork, AccountId>,
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 	AccountId32Aliases<RelayNetwork, AccountId>,
+	// Origins from other consensus systems (e.g. the escrow on Polkadot Asset Hub, reaching us
+	// over the bridge) get a deterministic account, so fees can be refunded and trapped assets
+	// claimed.
+	ExternalConsensusLocationsConverterFor<UniversalLocation, AccountId>,
 );
 
 pub type LocationConvertedConcreteId = xcm_builder::MatchedConvertedConcreteId<
@@ -169,26 +179,49 @@ impl Contains<Location> for ParentOrParentsExecutivePlurality {
 	}
 }
 
-pub type Barrier = (
+pub type Barrier = TrailingSetTopicAsId<(
 	TakeWeightCredit,
+	// Responses to queries we made (e.g. XCM version discovery).
+	AllowKnownQueryResponses<PolkadotXcm>,
 	WithComputedOrigin<
 		(
 			AllowTopLevelPaidExecutionFrom<Everything>,
 			AllowExplicitUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
 			// ^^^ Parent and its exec plurality get free execution
+			// Version subscriptions from the relay and siblings, so they can learn our XCM version.
+			AllowSubscriptionsFrom<ParentRelayOrSiblingParachains>,
 		),
 		UniversalLocation,
 		ConstU32<8>,
 	>,
-);
+)>;
 
 pub type AssetTransactors = (FungibleTransactor, FungiblesTransactor);
 
 parameter_types! {
 	pub AssetHubLocation: Location = Location::new(1, [Parachain(ASSET_HUB_ID)]);
 	pub Ksm: Location = Location::new(1, Here);
+	// NOTE: meaningless on the `paseo` build, where `Polkadot` is our own consensus.
 	pub Dot: Location = Location::new(2, [GlobalConsensus(Polkadot)]);
+	pub PolkadotConsensus: Location = Location::new(2, [GlobalConsensus(Polkadot)]);
 }
+
+/// Locations within the Polkadot consensus system.
+pub struct PolkadotOrigins;
+impl Contains<Location> for PolkadotOrigins {
+	fn contains(location: &Location) -> bool {
+		location.starts_with(&PolkadotConsensus::get())
+	}
+}
+
+/// Origins may alias into their own children, and (Kusama) Asset Hub may hand over an
+/// origin preserved from the Polkadot side of the bridge (`InitiateTransfer {
+/// preserve_origin: true }`), as Kusama Asset Hub itself allows Polkadot Asset Hub to do.
+/// Asset Hub cannot alias arbitrary Kusama origins.
+pub type Aliasers = (
+	AliasChildLocation,
+	AliasOriginRootUsingFilter<AssetHubLocation, PolkadotOrigins>,
+);
 
 //- From PR https://github.com/paritytech/cumulus/pull/936
 fn matches_prefix(prefix: &Location, loc: &Location) -> bool {
@@ -253,7 +286,7 @@ impl xcm_executor::Config for XcmConfig {
 	type IsReserve = Reserves;
 	// Teleporting is disabled.
 	type IsTeleporter = ();
-	type Aliasers = Nothing;
+	type Aliasers = Aliasers;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
 	type Weigher = WeightInfoBounds<crate::weights::xcm::KreivoXcmWeight<RuntimeCall>, RuntimeCall, MaxInstructions>;
@@ -277,7 +310,28 @@ impl xcm_executor::Config for XcmConfig {
 	type XcmRecorder = ();
 }
 
-/// Only communities are allowed to dispatch xcm messages
+parameter_types! {
+	/// Asset ids whose supply on Kreivo is minted against bridged messages, not backed by a
+	/// reserve we hold elsewhere. Extended by the bridge work.
+	pub BridgeBackedAssets: alloc::vec::Vec<Location> = alloc::vec![
+		// USDC and USDT, as minted by Phase 0 and the bridge.
+		Location::new(1, [Parachain(ASSET_HUB_ID), PalletInstance(50), GeneralIndex(1337)]),
+		Location::new(1, [Parachain(ASSET_HUB_ID), PalletInstance(50), GeneralIndex(1984)]),
+	];
+}
+
+/// Rejects reserve transfers that include a [`BridgeBackedAssets`] id. Moving those through
+/// Asset Hub would burn them here and draw on a sovereign balance there that does not back them.
+pub struct NotBridgeBacked;
+impl Contains<(Location, alloc::vec::Vec<Asset>)> for NotBridgeBacked {
+	fn contains((_, assets): &(Location, alloc::vec::Vec<Asset>)) -> bool {
+		let bridge_backed = BridgeBackedAssets::get();
+		!assets.iter().any(|asset| bridge_backed.contains(&asset.id.0))
+	}
+}
+
+/// Only communities are allowed to dispatch xcm messages. Root can always send as `Here`
+/// (`EnsureXcmOrigin` falls back to it).
 pub type CanSendXcmMessages = (
 	pallet_communities::Origin<Runtime>,
 	SignedByCommunityToPlurality<Runtime>,
@@ -291,12 +345,12 @@ pub type CanExecuteXcmTransactions = (
 
 /// The means for routing XCM messages which are not for local execution into
 /// the right message queues.
-pub type XcmRouter = (
+pub type XcmRouter = WithUniqueTopic<(
 	// Two routers - use UMP to communicate with the relay chain:
 	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, (), ()>,
 	// ..and XCMP to communicate with the sibling chains.
 	XcmpQueue,
-);
+)>;
 
 parameter_types! {
 	pub const DepositPerItem: Balance = crate::deposit(1, 0);
@@ -321,7 +375,7 @@ impl pallet_xcm::Config for Runtime {
 	// ^ Disable dispatchable execute on the XCM pallet.
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
-	type XcmReserveTransferFilter = Everything;
+	type XcmReserveTransferFilter = NotBridgeBacked;
 	type Weigher = WeightInfoBounds<crate::weights::xcm::KreivoXcmWeight<RuntimeCall>, RuntimeCall, MaxInstructions>;
 
 	type UniversalLocation = UniversalLocation;
