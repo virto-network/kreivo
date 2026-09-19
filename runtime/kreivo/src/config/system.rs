@@ -18,11 +18,16 @@ use pallet_pass::FirstItemIsFree;
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
 pub use runtime_constants::async_backing_params::RELAY_PARENT_OFFSET;
-use sp_core::{blake2_256, ConstU128};
+use sp_core::ConstU128;
 use sp_runtime::{
 	traits::{AccountIdConversion, LookupError, StaticLookup},
 	DispatchError,
 };
+
+/// BLAKE2-256. `sp_core` no longer re-exports it, and `sp-io` is optional here.
+fn blake2_256(data: &[u8]) -> [u8; 32] {
+	<frame_support::Blake2_256 as frame_support::StorageHasher>::hash(data)
+}
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
 
@@ -130,6 +135,8 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Self>;
 	type ConsensusHook = ConsensusHook;
 	type RelayParentOffset = ConstU32<RELAY_PARENT_OFFSET>;
+	// V3 candidate scheduling stays disabled until collators and the relay chain support it.
+	type SchedulingSignatureVerifier = ();
 }
 
 // #[runtime::pallet_index(2)]
