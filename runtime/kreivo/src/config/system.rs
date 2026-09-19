@@ -197,7 +197,7 @@ composite_authenticator!(
 );
 
 #[derive(Debug, Eq, PartialEq, Clone, Encode, Decode, DecodeWithMemTracking, MaxEncodedLen, TypeInfo)]
-pub struct SkipConsideration<C>(Option<C>);
+pub struct SkipIfRootOrCommunity<C>(Option<C>);
 
 const ACCOUNT_IS_ROOT: fn(&AccountId) -> bool = |acct| acct == &TreasuryAccount::get();
 const ACCOUNT_IS_COMMUNITY: fn(&AccountId) -> bool = |acct| {
@@ -205,7 +205,9 @@ const ACCOUNT_IS_COMMUNITY: fn(&AccountId) -> bool = |acct| {
 		.is_some_and(|(id, _)| id == communities::CommunityPalletId::get())
 };
 
-impl<C> Consideration<AccountId, Footprint> for SkipConsideration<C>
+type SecondItemIsFree<C> = FirstItemIsFree<FirstItemIsFree<C>>;
+
+impl<C> Consideration<AccountId, Footprint> for SkipIfRootOrCommunity<C>
 where
 	C: Consideration<AccountId, Footprint>,
 {
@@ -262,7 +264,7 @@ impl pallet_pass::Config for Runtime {
 	type Authenticator = PassAuthenticator;
 	type Scheduler = Scheduler;
 	type BlockNumberProvider = System;
-	type RegistrarConsideration = SkipConsideration<
+	type RegistrarConsideration = SkipIfRootOrCommunity<
 		HoldConsideration<
 			AccountId,
 			Balances,
@@ -270,7 +272,7 @@ impl pallet_pass::Config for Runtime {
 			LinearStoragePrice<ConstU128<EXISTENTIAL_DEPOSIT>, ConstU128<MILLICENTS>, Balance>,
 		>,
 	>;
-	type DeviceConsideration = FirstItemIsFree<
+	type DeviceConsideration = SecondItemIsFree<
 		HoldConsideration<
 			AccountId,
 			Balances,
@@ -278,7 +280,7 @@ impl pallet_pass::Config for Runtime {
 			LinearStoragePrice<ConstU128<MILLICENTS>, ConstU128<{ MILLICENTS / 10 }>, Balance>,
 		>,
 	>;
-	type SessionKeyConsideration = FirstItemIsFree<
+	type SessionKeyConsideration = SecondItemIsFree<
 		HoldConsideration<
 			AccountId,
 			Balances,
