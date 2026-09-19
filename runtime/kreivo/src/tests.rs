@@ -564,6 +564,14 @@ fn ensure_community_pass_account_funding_covers_proxy_and_second_device() {
 			const ALICE: AccountId32 = AccountId32::new([1; 32]);
 			const CONTROLLER: AccountId32 = AccountId32::new([2; 32]);
 
+			if cfg!(feature = "runtime-benchmarks") {
+				// Memberships carry an item deposit when benchmarking.
+				assert_ok!(Balances::mint_into(
+					&TreasuryAccount::get(),
+					EXISTENTIAL_DEPOSIT + 10 * CENTS
+				));
+			}
+
 			// A community, with ALICE as its admin.
 			assert_ok!(CommunitiesManager::create_memberships(
 				RuntimeOrigin::root(),
