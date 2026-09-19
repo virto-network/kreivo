@@ -709,6 +709,9 @@ fn fungible_asset_location_encoded_sizes() {
 /// charges in KSM. Fees are dominated by length, not weight: `TransactionByteFee`
 /// is `10 * MILLICENTS` per byte and a pass-authenticated extrinsic carries a
 /// ~200-byte `PassAuthenticate` credential.
+// Builds the full `TransactionExtensions` tuple, which has no `PassAuthenticate` (or fee
+// payment) under `zombienet`.
+#[cfg(not(feature = "zombienet"))]
 #[test]
 fn ensure_unfunded_pass_account_transaction_fees_are_as_expected() {
 	use frame_support::dispatch::GetDispatchInfo;
