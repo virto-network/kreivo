@@ -252,6 +252,12 @@ impl_runtime_apis! {
 		fn relay_parent_offset() -> u32 {
 			<Runtime as cumulus_pallet_parachain_system::Config>::RelayParentOffset::get()
 		}
+
+		// V3 scheduling is disabled (`SchedulingSignatureVerifier = ()`); `0` is what
+		// collators assume on the V1/V2 path when the runtime doesn't provide it.
+		fn max_claim_queue_offset() -> u8 {
+			0
+		}
 	}
 
 	#[cfg(feature = "try-runtime")]

@@ -377,7 +377,16 @@ mod benchmarks {
 		}
 
 		fn worst_case_holding(depositable_count: u32) -> AssetsInHolding {
-			pallet_xcm_benchmarks::generate_holding_assets(MaxAssetsIntoHolding::get() - depositable_count)
+			let mut holding =
+				pallet_xcm_benchmarks::generate_holding_assets(MaxAssetsIntoHolding::get() - depositable_count - 1);
+			// The trader benchmarks (`buy_execution`, `pay_fees`, `refund_surplus`) pay in the
+			// relay asset (see `worst_case_for_trader`), which the generic helper doesn't hold:
+			// it fills holding with `Here` and `GeneralIndex` assets only.
+			holding.fungible.insert(
+				AssetId(RelayLocation::get()),
+				alloc::boxed::Box::new(pallet_xcm_benchmarks::MockCredit(u128::MAX)),
+			);
+			holding
 		}
 	}
 

@@ -114,6 +114,7 @@ impl pallet_assets::Config<KreivoAssetsInstance> for Runtime {
 	type Holder = AssetsHolder;
 	type Extra = ();
 	type CallbackHandle = ();
+	type AssetIdAllocator = ();
 	type WeightInfo = weights::pallet_assets::WeightInfo<Self>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
