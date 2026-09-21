@@ -303,9 +303,8 @@ parameter_types! {
 	pub RootLocation: Location = Location::here();
 }
 
-/// Senders that pay no delivery fees.
-///
-/// REVIEW: Root (governance) and local community pluralities, as proposed. Adjust as needed.
+/// Senders that pay no delivery fees: Root (governance) and communities, as their pluralities.
+/// This covers messages Kreivo sends; incoming messages still pay for their execution here.
 pub struct WaivedLocations;
 impl Contains<Location> for WaivedLocations {
 	fn contains(location: &Location) -> bool {

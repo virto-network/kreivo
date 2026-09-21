@@ -59,9 +59,8 @@ impl pallet_message_queue::Config for Runtime {
 
 // Message delivery fees, as the fellowship system chains price them: a base fee plus a
 // per-byte fee, both in KSM and scaled up exponentially while the channel is congested.
-//
-// REVIEW: the base fees below mirror the fellowship's (3 CENTS) as placeholders. Set Kreivo's
-// own levels before this ships; see also `WaivedLocations` in `xcm_config.rs`.
+// The base fees are the fellowship's, 3 CENTS. Root and communities don't pay them; see
+// `WaivedLocations` in `xcm_config.rs`.
 parameter_types! {
 	/// The asset used to pay message delivery fees.
 	pub FeeAssetId: cumulus_primitives_core::AssetId = xcm_config::RelayLocation::get().into();
