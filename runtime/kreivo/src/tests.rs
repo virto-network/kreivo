@@ -372,3 +372,22 @@ fn block_length_is_unchanged() {
 		before.encode()
 	);
 }
+
+#[test]
+fn view_functions_api_dispatches_to_the_pallets() {
+	use frame_support::view_functions::{
+		runtime_api::runtime_decl_for_runtime_view_function::RuntimeViewFunctionV1, ViewFunctionDispatchError,
+		ViewFunctionId,
+	};
+
+	TestExternalities::default().execute_with(|| {
+		let unknown = ViewFunctionId {
+			prefix: [0; 16],
+			suffix: [0; 16],
+		};
+		assert!(matches!(
+			<Runtime as RuntimeViewFunctionV1<crate::Block>>::execute_view_function(unknown, vec![]),
+			Err(ViewFunctionDispatchError::NotFound(_))
+		));
+	})
+}

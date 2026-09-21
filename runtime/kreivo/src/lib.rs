@@ -207,7 +207,8 @@ mod runtime {
 		RuntimeOrigin,
 		RuntimeTask,
 		RuntimeHoldReason,
-		RuntimeFreezeReason
+		RuntimeFreezeReason,
+		RuntimeViewFunction
 	)]
 	pub struct Runtime;
 
