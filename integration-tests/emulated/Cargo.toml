@@ -46,6 +46,7 @@ kreivo-runtime = { workspace = true, default-features = true }
 virto-common = { workspace = true, default-features = true }
 pallet-assets = { workspace = true, default-features = true }
 pallet-balances = { workspace = true, default-features = true }
+pallet-communities-manager = { workspace = true, default-features = true }
 parity-scale-codec = { workspace = true, default-features = true }
 frame-system = { workspace = true, default-features = true }
 pallet-message-queue = { workspace = true, default-features = true }

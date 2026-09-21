@@ -6168,6 +6168,7 @@ dependencies = [
  "kreivo-runtime",
  "pallet-assets",
  "pallet-balances",
+ "pallet-communities-manager",
  "pallet-message-queue",
  "pallet-xcm",
  "parachains-common",

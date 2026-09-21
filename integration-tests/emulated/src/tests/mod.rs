@@ -1,4 +1,5 @@
 mod accounts;
+mod communities;
 mod reserve_transfers;
 mod runtime_apis;
 
