@@ -27,4 +27,4 @@ pub use {
 };
 
 #[cfg(feature = "runtime-benchmarks")]
-pub use currency::{ExistentialDeposit, TransactionByteFee};
+pub use currency::ExistentialDeposit;
