@@ -284,6 +284,12 @@ impl_runtime_apis! {
 		}
 	}
 
+	impl cumulus_primitives_core::TargetBlockRate<Block> for Runtime {
+		fn target_block_rate() -> u32 {
+			config::system::TargetBlockRate::get()
+		}
+	}
+
 	impl cumulus_primitives_core::GetParachainInfo<Block> for Runtime {
 		fn parachain_id() -> ParaId {
 			ParachainInfo::parachain_id()

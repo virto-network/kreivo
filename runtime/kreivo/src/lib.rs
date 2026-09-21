@@ -94,31 +94,43 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 
 pub type ChargeTransaction = ChargeGasTxPayment<Runtime, ChargeAssetTxPayment<Runtime>>;
 
-/// The TransactionExtensions to the basic transaction logic.
+/// The TransactionExtensions to the basic transaction logic. `DynamicMaxBlockWeight` wraps
+/// them all, so a transaction too heavy for a block's share of the core can take the whole
+/// core (when it's the first block in it) instead of being rejected.
 #[cfg(not(feature = "zombienet"))]
-pub type TransactionExtensions = (
-	PassAuthenticate<Runtime>,
-	frame_system::CheckNonZeroSender<Runtime>,
-	frame_system::CheckSpecVersion<Runtime>,
-	frame_system::CheckTxVersion<Runtime>,
-	frame_system::CheckGenesis<Runtime>,
-	frame_system::CheckEra<Runtime>,
-	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
-	SkipCheckIfFeeless<Runtime, ChargeTransaction>,
-);
+pub type TransactionExtensions = cumulus_pallet_parachain_system::block_weight::DynamicMaxBlockWeight<
+	Runtime,
+	(
+		PassAuthenticate<Runtime>,
+		frame_system::CheckNonZeroSender<Runtime>,
+		frame_system::CheckSpecVersion<Runtime>,
+		frame_system::CheckTxVersion<Runtime>,
+		frame_system::CheckGenesis<Runtime>,
+		frame_system::CheckEra<Runtime>,
+		frame_system::CheckNonce<Runtime>,
+		frame_system::CheckWeight<Runtime>,
+		SkipCheckIfFeeless<Runtime, ChargeTransaction>,
+	),
+	config::system::TargetBlockRate,
+>;
 
-/// The TransactionExtensions to the basic transaction logic.
+/// The TransactionExtensions to the basic transaction logic. `DynamicMaxBlockWeight` wraps
+/// them all, so a transaction too heavy for a block's share of the core can take the whole
+/// core (when it's the first block in it) instead of being rejected.
 #[cfg(feature = "zombienet")]
-pub type TransactionExtensions = (
-	frame_system::CheckNonZeroSender<Runtime>,
-	frame_system::CheckSpecVersion<Runtime>,
-	frame_system::CheckTxVersion<Runtime>,
-	frame_system::CheckGenesis<Runtime>,
-	frame_system::CheckEra<Runtime>,
-	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
-);
+pub type TransactionExtensions = cumulus_pallet_parachain_system::block_weight::DynamicMaxBlockWeight<
+	Runtime,
+	(
+		frame_system::CheckNonZeroSender<Runtime>,
+		frame_system::CheckSpecVersion<Runtime>,
+		frame_system::CheckTxVersion<Runtime>,
+		frame_system::CheckGenesis<Runtime>,
+		frame_system::CheckEra<Runtime>,
+		frame_system::CheckNonce<Runtime>,
+		frame_system::CheckWeight<Runtime>,
+	),
+	config::system::TargetBlockRate,
+>;
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, TransactionExtensions>;

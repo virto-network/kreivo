@@ -65,9 +65,37 @@ impl pallet_proxy::Config for Runtime {
 
 // #[runtime::pallet_index(45)]
 // pub type Scheduler
-parameter_types! {
-	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * RuntimeBlockWeights::get().max_block;
+/// What the scheduler may use in `on_initialize`: 80% of a full core in the first block of a
+/// core, and nothing in the blocks bundled after it.
+///
+/// With block bundling, only the first block of a core may use the whole core; the others
+/// get a share of it. A scheduled call too heavy for this block's budget is dropped for good
+/// (`PermanentlyOverweight`, preimage included) when it's the first task serviced. Servicing
+/// only in first blocks keeps governance calls from landing in a small share: tasks that come
+/// due in a later block wait for the next core's first block. A block with no budget leaves
+/// the scheduler's `IncompleteSince` alone, so no agenda is skipped.
+///
+/// A block without bundle info (an older collator, or tests) is alone in its PoV, so it's
+/// treated as first. The scheduler is still capped by what's left of the block's weight.
+pub struct MaximumSchedulerWeight;
+impl frame_support::traits::Get<Weight> for MaximumSchedulerWeight {
+	fn get() -> Weight {
+		let digest = frame_system::Pallet::<Runtime>::digest();
+		let first_in_core = cumulus_primitives_core::CumulusDigestItem::find_block_bundle_info(&digest)
+			.map_or(true, |bundle| bundle.index == 0);
+		if first_in_core {
+			Perbill::from_percent(80) * FULL_CORE_WEIGHT
+		} else {
+			Weight::zero()
+		}
+	}
 }
+
+/// The weight a whole relay chain core offers: 2s of execution and a 10 MiB PoV.
+const FULL_CORE_WEIGHT: Weight = Weight::from_parts(
+	2 * frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND,
+	cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
+);
 
 #[cfg(not(feature = "runtime-benchmarks"))]
 parameter_types! {

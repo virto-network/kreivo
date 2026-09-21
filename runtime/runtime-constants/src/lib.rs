@@ -59,8 +59,11 @@ pub mod async_backing_params {
 	/// Build with an offset of 1 behind the relay chain best block.
 	pub const RELAY_PARENT_OFFSET: u32 = 1;
 	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
-	/// included into the relay chain.
-	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = (2 + RELAY_PARENT_OFFSET) * BLOCK_PROCESSING_VELOCITY + 1;
+	/// included into the relay chain. As in polkadot-sdk's reference runtime for block bundling:
+	/// blocks built on relay block `X` are backed in `X + 2` and included in `X + 3`, and we build
+	/// `RELAY_PARENT_OFFSET` relay blocks behind. A collator drops a whole bundle when the
+	/// segment is full.
+	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = BLOCK_PROCESSING_VELOCITY * (3 + RELAY_PARENT_OFFSET);
 	/// The upper limit of how many parachain blocks are processed by the relay chain per
 	/// parent. Limits the number of blocks authored per slot. This determines the minimum
 	/// block time of the parachain:

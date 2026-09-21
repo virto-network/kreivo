@@ -391,3 +391,95 @@ fn view_functions_api_dispatches_to_the_pallets() {
 		));
 	})
 }
+
+mod block_bundling {
+	use super::*;
+	use cumulus_primitives_core::{
+		relay_chain::{ClaimQueueOffset, CoreSelector},
+		BlockBundleInfo, CoreInfo,
+	};
+	use frame_support::{
+		traits::Get,
+		weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
+	};
+	use sp_runtime::Perbill;
+
+	const MIB: u64 = 1024 * 1024;
+
+	fn with_cores(cores: u16) {
+		crate::System::deposit_log(
+			CoreInfo {
+				selector: CoreSelector(0),
+				claim_queue_offset: ClaimQueueOffset(0),
+				number_of_cores: cores.into(),
+			}
+			.to_digest_item(),
+		);
+	}
+
+	fn in_bundle(index: u8) {
+		crate::System::deposit_log(BlockBundleInfo { index, is_last: false }.to_digest_item());
+	}
+
+	/// A block gets a share of a core: `TargetBlockRate` blocks per relay slot (12; 3 on Paseo),
+	/// over the cores Kreivo has.
+	#[test]
+	fn a_block_gets_its_share_of_the_cores() {
+		type MaximumBlockWeight = crate::config::system::MaximumBlockWeight;
+		let rate = <crate::config::system::TargetBlockRate as Get<u32>>::get() as u64;
+
+		TestExternalities::default().execute_with(|| {
+			// One core per block: each gets the full PoV, and the blocks of a relay slot share
+			// the 6s a node has to import them (at most the core's 2s).
+			with_cores(rate as u16);
+			in_bundle(1);
+			assert_eq!(
+				MaximumBlockWeight::get(),
+				Weight::from_parts(
+					(6 * WEIGHT_REF_TIME_PER_SECOND / rate).min(2 * WEIGHT_REF_TIME_PER_SECOND),
+					10 * MIB
+				)
+			);
+		});
+
+		TestExternalities::default().execute_with(|| {
+			// All the blocks of a relay slot in one core share its 2s and 10 MiB.
+			with_cores(1);
+			in_bundle(1);
+			assert_eq!(
+				MaximumBlockWeight::get(),
+				Weight::from_parts(2 * WEIGHT_REF_TIME_PER_SECOND / rate, 10 * MIB / rate)
+			);
+		});
+	}
+
+	/// The scheduler only runs in the first block of a core, where the whole core is
+	/// available, so a scheduled call is never dropped for being too heavy for a share.
+	#[test]
+	fn the_scheduler_runs_in_the_first_block_of_a_core() {
+		type MaximumSchedulerWeight = crate::config::utilities::MaximumSchedulerWeight;
+		let full_core = Weight::from_parts(2 * WEIGHT_REF_TIME_PER_SECOND, 10 * MIB);
+
+		TestExternalities::default().execute_with(|| {
+			in_bundle(0);
+			assert_eq!(MaximumSchedulerWeight::get(), Perbill::from_percent(80) * full_core);
+		});
+		TestExternalities::default().execute_with(|| {
+			in_bundle(3);
+			assert_eq!(MaximumSchedulerWeight::get(), Weight::zero());
+		});
+		TestExternalities::default().execute_with(|| {
+			// No bundle info: the block is alone in its PoV.
+			assert_eq!(MaximumSchedulerWeight::get(), Perbill::from_percent(80) * full_core);
+		});
+	}
+
+	#[test]
+	fn target_block_rate_is_twelve_blocks_per_relay_slot() {
+		use cumulus_primitives_core::runtime_decl_for_target_block_rate::TargetBlockRateV1;
+		#[cfg(not(feature = "paseo"))]
+		assert_eq!(Runtime::target_block_rate(), 12);
+		#[cfg(feature = "paseo")]
+		assert_eq!(Runtime::target_block_rate(), 3);
+	}
+}

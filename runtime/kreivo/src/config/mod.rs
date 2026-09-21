@@ -5,7 +5,7 @@ use super::*;
 mod collator_support;
 pub mod currency;
 pub mod system;
-mod utilities;
+pub(crate) mod utilities;
 mod xcm;
 // Kreivo Governance
 pub mod collective;
