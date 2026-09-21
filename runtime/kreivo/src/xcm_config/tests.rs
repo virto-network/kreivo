@@ -1,7 +1,7 @@
 //! Acceptance tests for the message-backed bridging groundwork (specs/xcm-config/PLAN.md).
 
 use super::*;
-use crate::{ParachainInfo, PolkadotXcm, Runtime, RuntimeOrigin};
+use crate::{Balances, ParachainInfo, PolkadotXcm, Runtime, RuntimeOrigin, UNITS};
 
 use frame_support::{
 	assert_noop, assert_ok,
@@ -337,7 +337,6 @@ fn xcm_payment_api_accepts_ksm_and_dot() {
 #[cfg(not(feature = "paseo"))]
 #[test]
 fn dry_run_of_a_bridged_message_from_asset_hub_completes() {
-	use crate::{Balances, UNITS};
 	use xcm_runtime_apis::dry_run::runtime_decl_for_dry_run_api::DryRunApiV2;
 
 	TestExternalities::default().execute_with(|| {
