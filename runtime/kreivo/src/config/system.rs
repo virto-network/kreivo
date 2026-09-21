@@ -14,7 +14,7 @@ use frame_support::{
 };
 use frame_system::{limits::BlockLength, EnsureRootWithSuccess, EnsureSigned};
 use pallet_communities::origin::AsSignedByCommunity;
-use pallet_pass::FirstItemIsFree;
+use pallet_pass::FirstItemsAreFree;
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
 pub use runtime_constants::async_backing_params::RELAY_PARENT_OFFSET;
@@ -270,7 +270,11 @@ impl pallet_pass::Config for Runtime {
 			LinearStoragePrice<ConstU128<EXISTENTIAL_DEPOSIT>, ConstU128<MILLICENTS>, Balance>,
 		>,
 	>;
-	type DeviceConsideration = FirstItemIsFree<
+	// The first two devices and session keys are free, e.g. a phone and a laptop.
+	// `FirstItemsAreFree` keeps the stored ticket as `Option<C>`, the same as `FirstItemIsFree`,
+	// so existing `DeviceConsiderations`/`SessionKeyConsiderations` entries still decode.
+	type DeviceConsideration = FirstItemsAreFree<
+		ConstU32<2>,
 		HoldConsideration<
 			AccountId,
 			Balances,
@@ -278,7 +282,8 @@ impl pallet_pass::Config for Runtime {
 			LinearStoragePrice<ConstU128<MILLICENTS>, ConstU128<{ MILLICENTS / 10 }>, Balance>,
 		>,
 	>;
-	type SessionKeyConsideration = FirstItemIsFree<
+	type SessionKeyConsideration = FirstItemsAreFree<
+		ConstU32<2>,
 		HoldConsideration<
 			AccountId,
 			Balances,

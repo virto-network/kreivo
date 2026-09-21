@@ -254,3 +254,80 @@ fn fungible_asset_location_encoded_sizes() {
 	};
 	assert_eq!(asset_id.encode().len(), 10);
 }
+
+/// Helpers to drive `pallet_pass` from a test.
+mod pass {
+	use super::*;
+
+	use frame_contrib_traits::authn::{util::AuthorityFromPalletId, Challenger};
+	use frame_support::pallet_prelude::*;
+	use pass_substrate_keys::{KeyRegistration, SignedMessage};
+	use sp_core::{sr25519, Pair};
+	use sp_runtime::MultiSignature;
+
+	pub use frame_contrib_traits::authn::{DeviceId, HashedUserId};
+
+	use crate::{
+		config::system::{KreivoChallenger, PassDeviceAttestation, PassPalletId},
+		BlockNumber, System,
+	};
+
+	/// Builds a valid `SubstrateKey` device attestation for `pass_account`.
+	pub fn attestation(pass_account: &AccountId, seed: [u8; 32]) -> (PassDeviceAttestation, DeviceId) {
+		let pair = sr25519::Pair::from_seed(&seed);
+		let context: BlockNumber = System::block_number();
+		// `pallet_pass` uses the pass account's encoding as the extrinsic context.
+		let xtc = pass_account.encode();
+
+		let message = SignedMessage {
+			context,
+			challenge: KreivoChallenger::generate(&context, &xtc),
+			authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
+		};
+		let public = AccountId::new(pair.public().0);
+		let signature = MultiSignature::Sr25519(pair.sign(message.message().as_ref()));
+		let device_id = *AsRef::<[u8; 32]>::as_ref(&public);
+
+		(
+			PassDeviceAttestation::SubstrateKey(KeyRegistration {
+				public,
+				message,
+				signature,
+			}),
+			device_id,
+		)
+	}
+
+	/// The address `pallet_pass` derives for a given user id.
+	pub fn account(user: HashedUserId) -> AccountId {
+		<() as pallet_pass::AddressGenerator<Runtime, ()>>::generate_address(user)
+	}
+}
+
+/// A pass account keeps its first two devices without a deposit; the third one is charged.
+#[test]
+fn pass_accounts_hold_two_devices_for_free() {
+	use frame_support::traits::fungible::InspectHold;
+
+	use super::{config::system::AccountDevicesReason, Pass};
+
+	TestExternalities::default().execute_with(|| {
+		const ALICE: AccountId32 = AccountId32::new([1; 32]);
+		assert_ok!(Balances::mint_into(&ALICE, UNITS));
+
+		let account = pass::account([1u8; 32]);
+		let (first, _) = pass::attestation(&account, [10u8; 32]);
+		assert_ok!(Pass::register(RuntimeOrigin::signed(ALICE), [1u8; 32], first));
+		assert_ok!(Balances::mint_into(&account, UNITS));
+
+		let held = || Balances::balance_on_hold(&AccountDevicesReason::get(), &account);
+
+		let (second, _) = pass::attestation(&account, [11u8; 32]);
+		assert_ok!(Pass::add_device(RuntimeOrigin::signed(account.clone()), second));
+		assert_eq!(held(), 0, "the first two devices are free");
+
+		let (third, _) = pass::attestation(&account, [12u8; 32]);
+		assert_ok!(Pass::add_device(RuntimeOrigin::signed(account.clone()), third));
+		assert!(held() > 0, "the third device is charged");
+	})
+}
