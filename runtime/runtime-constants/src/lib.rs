@@ -64,18 +64,14 @@ pub mod async_backing_params {
 	/// `RELAY_PARENT_OFFSET` relay blocks behind. A collator drops a whole bundle when the
 	/// segment is full.
 	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = BLOCK_PROCESSING_VELOCITY * (3 + RELAY_PARENT_OFFSET);
-	/// The upper limit of how many parachain blocks are processed by the relay chain per
-	/// parent. Limits the number of blocks authored per slot. This determines the minimum
-	/// block time of the parachain:
-	#[cfg(feature = "paseo")]
+	/// Parachain blocks per relay chain slot: a 2s block time. With block bundling this no
+	/// longer depends on the cores Kreivo has: one core carries all of a slot's blocks, and
+	/// more cores give each block more room.
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
-	#[cfg(not(feature = "paseo"))]
-	pub const BLOCK_PROCESSING_VELOCITY: u32 = 12;
 	/// Relay chain slot duration, in milliseconds.
 	pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: Moment = 6_000;
 }
 
-/// Time and blocks.
 pub mod time {
 	//! Time, in relay chain blocks.
 	//!

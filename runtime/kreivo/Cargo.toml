@@ -123,7 +123,6 @@ sp-io.workspace = true
 [features]
 default = ["std"]
 paseo = ["runtime-constants/paseo"]
-zombienet = []
 std = [
   "assets-common/std",
   "cumulus-pallet-aura-ext/std",

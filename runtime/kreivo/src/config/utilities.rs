@@ -82,7 +82,7 @@ impl frame_support::traits::Get<Weight> for MaximumSchedulerWeight {
 	fn get() -> Weight {
 		let digest = frame_system::Pallet::<Runtime>::digest();
 		let first_in_core = cumulus_primitives_core::CumulusDigestItem::find_block_bundle_info(&digest)
-			.map_or(true, |bundle| bundle.index == 0);
+			.is_none_or(|bundle| bundle.index == 0);
 		if first_in_core {
 			Perbill::from_percent(80) * FULL_CORE_WEIGHT
 		} else {

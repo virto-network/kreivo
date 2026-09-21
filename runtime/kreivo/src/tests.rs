@@ -417,11 +417,11 @@ mod block_bundling {
 		);
 	}
 
-	fn in_bundle(index: u8) {
+	pub(super) fn in_bundle(index: u8) {
 		crate::System::deposit_log(BlockBundleInfo { index, is_last: false }.to_digest_item());
 	}
 
-	/// A block gets a share of a core: `TargetBlockRate` blocks per relay slot (12; 3 on Paseo),
+	/// A block gets a share of a core: `TargetBlockRate` blocks per relay slot (3),
 	/// over the cores Kreivo has.
 	#[test]
 	fn a_block_gets_its_share_of_the_cores() {
@@ -475,11 +475,8 @@ mod block_bundling {
 	}
 
 	#[test]
-	fn target_block_rate_is_twelve_blocks_per_relay_slot() {
+	fn target_block_rate_is_three_blocks_per_relay_slot() {
 		use cumulus_primitives_core::runtime_decl_for_target_block_rate::TargetBlockRateV1;
-		#[cfg(not(feature = "paseo"))]
-		assert_eq!(Runtime::target_block_rate(), 12);
-		#[cfg(feature = "paseo")]
 		assert_eq!(Runtime::target_block_rate(), 3);
 	}
 }
@@ -519,4 +516,218 @@ fn time_is_measured_in_relay_chain_blocks() {
 
 	// A relay chain block every 6s.
 	assert_eq!(runtime_constants::time::DAYS, 14_400);
+}
+
+/// What used to count parachain blocks now counts relay chain blocks, and what still counts
+/// parachain blocks keeps doing so. Each test moves the two block numbers apart, so it can tell
+/// which one a pallet follows.
+mod relay_chain_time {
+	use super::*;
+
+	use crate::{
+		config::RelaychainData, BlockNumber, KreivoReferenda, Pass, RuntimeCall, RuntimeEvent, Scheduler, System,
+	};
+	use frame_support::traits::{schedule::DispatchTime, Bounded, OnInitialize};
+	use runtime_constants::time::{parachain, DAYS, MINUTES};
+	use sp_runtime::traits::BlockNumberProvider;
+
+	fn at(parachain_block: BlockNumber, relay_block: BlockNumber) {
+		System::set_block_number(parachain_block);
+		RelaychainData::set_block_number(relay_block);
+	}
+
+	fn run_scheduler() {
+		Scheduler::on_initialize(System::block_number());
+	}
+
+	fn dispatched_at(when: BlockNumber) -> bool {
+		System::events().iter().any(|record| {
+			matches!(
+				record.event,
+				RuntimeEvent::Scheduler(pallet_scheduler::Event::Dispatched { task: (at, _), .. }) if at == when
+			)
+		})
+	}
+
+	fn schedule_at(when: BlockNumber) {
+		let call: RuntimeCall = frame_system::Call::remark { remark: vec![] }.into();
+		assert_ok!(Scheduler::schedule(
+			RuntimeOrigin::root(),
+			when,
+			None,
+			0,
+			Box::new(call)
+		));
+	}
+
+	#[test]
+	fn scheduled_calls_run_at_their_relay_chain_block() {
+		TestExternalities::default().execute_with(|| {
+			at(1, 100);
+			schedule_at(110);
+
+			// The parachain is far past block 110, but the relay chain isn't.
+			at(10_000, 109);
+			run_scheduler();
+			assert!(!dispatched_at(110));
+
+			at(10_001, 110);
+			run_scheduler();
+			assert!(dispatched_at(110));
+		})
+	}
+
+	/// With block bundling, several parachain blocks share a relay chain block and a core.
+	/// A call that comes due in a later block of a core waits for the first block of the next
+	/// core, and is not lost.
+	#[test]
+	fn calls_due_in_a_later_block_of_a_core_wait_for_the_next_core() {
+		TestExternalities::default().execute_with(|| {
+			at(1, 100);
+			schedule_at(101);
+
+			at(2, 101);
+			super::block_bundling::in_bundle(1);
+			run_scheduler();
+			assert!(!dispatched_at(101));
+
+			// The next block starts with a fresh digest.
+			System::initialize(&3, &Default::default(), &Default::default());
+			at(3, 101);
+			super::block_bundling::in_bundle(0);
+			run_scheduler();
+			assert!(dispatched_at(101));
+		})
+	}
+
+	#[test]
+	fn referenda_time_out_in_relay_chain_blocks() {
+		type ReferendumInfoFor = pallet_referenda::ReferendumInfoFor<Runtime, pallet_referenda::Instance1>;
+		const ALICE: AccountId32 = AccountId32::new([1; 32]);
+
+		TestExternalities::default().execute_with(|| {
+			assert_ok!(Balances::mint_into(&ALICE, 10 * UNITS));
+			at(1, 1_000);
+
+			let proposal: RuntimeCall = frame_system::Call::remark { remark: vec![] }.into();
+			assert_ok!(KreivoReferenda::submit(
+				RuntimeOrigin::signed(ALICE),
+				Box::new(frame_system::RawOrigin::Root.into()),
+				Bounded::Inline(proposal.encode().try_into().expect("a remark is small; qed")),
+				DispatchTime::After(1),
+			));
+
+			// Without a decision deposit, it times out 2 days after submission, in relay chain
+			// blocks (6s each).
+			let Some(pallet_referenda::ReferendumInfo::Ongoing(status)) = ReferendumInfoFor::get(0) else {
+				panic!("the referendum is ongoing");
+			};
+			assert_eq!(status.submitted, 1_000);
+			let timeout = 1_000 + 2 * DAYS;
+			assert_eq!(status.alarm.map(|(when, _)| when), Some(timeout));
+
+			at(1_000_000, timeout - 1);
+			run_scheduler();
+			assert!(matches!(
+				ReferendumInfoFor::get(0),
+				Some(pallet_referenda::ReferendumInfo::Ongoing(_))
+			));
+
+			at(1_000_001, timeout);
+			run_scheduler();
+			assert!(matches!(
+				ReferendumInfoFor::get(0),
+				Some(pallet_referenda::ReferendumInfo::TimedOut(..))
+			));
+		})
+	}
+
+	#[test]
+	fn pass_sessions_last_relay_chain_blocks() {
+		const ALICE: AccountId32 = AccountId32::new([1; 32]);
+		let session = AccountId32::new([42; 32]);
+
+		TestExternalities::default().execute_with(|| {
+			assert_ok!(Balances::mint_into(&ALICE, UNITS));
+			at(1, 1_000);
+
+			let account = pass::account([1u8; 32]);
+			let (device, _) = pass::attestation(&account, [10u8; 32]);
+			assert_ok!(Pass::register(RuntimeOrigin::signed(ALICE), [1u8; 32], device));
+			assert_ok!(Pass::add_session_key(
+				RuntimeOrigin::signed(account),
+				CommunityLookup::unlookup(session.clone()),
+				Some(10 * MINUTES),
+			));
+			let active = || pallet_pass::SessionKeys::<Runtime>::contains_key(&session);
+
+			at(1_000_000, 1_000 + 10 * MINUTES - 1);
+			run_scheduler();
+			assert!(active(), "ten minutes haven't passed on the relay chain");
+
+			at(1_000_001, 1_000 + 10 * MINUTES + 1);
+			run_scheduler();
+			assert!(!active(), "the session ended after ten minutes");
+		})
+	}
+
+	/// Device attestations sign a parachain block hash, so their lifetime is in parachain
+	/// blocks.
+	#[test]
+	fn pass_challenges_expire_in_parachain_blocks() {
+		const ALICE: AccountId32 = AccountId32::new([1; 32]);
+
+		TestExternalities::default().execute_with(|| {
+			assert_ok!(Balances::mint_into(&ALICE, UNITS));
+			at(1_000, 5);
+			let (device, _) = pass::attestation(&pass::account([1u8; 32]), [10u8; 32]);
+
+			// Too many parachain blocks later: the challenge expired.
+			at(1_000 + 30 * parachain::MINUTES + 1, 5);
+			assert!(Pass::register(RuntimeOrigin::signed(ALICE), [1u8; 32], device.clone()).is_err());
+
+			// The relay chain moving on doesn't expire it.
+			at(1_000 + 10, 1_000_000);
+			assert_ok!(Pass::register(RuntimeOrigin::signed(ALICE), [1u8; 32], device));
+		})
+	}
+
+	#[test]
+	fn memberships_expire_in_relay_chain_blocks() {
+		use crate::config::currency::MembershipIsNotExpired;
+		use runtime_constants::time::WEEKS;
+
+		TestExternalities::default().execute_with(|| {
+			if cfg!(feature = "runtime-benchmarks") {
+				assert_ok!(Balances::mint_into(
+					&TreasuryAccount::get(),
+					EXISTENTIAL_DEPOSIT + 10 * CENTS
+				));
+			}
+			at(1, 1);
+			// Memberships 0..10, expiring at relay chain block `8 * WEEKS`.
+			assert_ok!(CommunitiesManager::create_memberships(
+				RuntimeOrigin::root(),
+				10,
+				0,
+				CENTS,
+				TankConfig::default(),
+				Some(8 * WEEKS),
+			));
+			let not_expired = || MembershipIsNotExpired::get().select(0, 0);
+
+			at(8 * WEEKS * 20, 8 * WEEKS);
+			assert!(not_expired(), "the parachain block number doesn't matter");
+
+			at(1, 8 * WEEKS + 1);
+			assert!(!not_expired());
+		})
+	}
+
+	#[test]
+	fn collator_sessions_rotate_every_hour_of_parachain_blocks() {
+		assert_eq!(crate::config::collator_support::Period::get(), parachain::HOURS);
+		// 3 parachain blocks per 6s relay chain slot.
+		assert_eq!(parachain::HOURS, 1_800);
+	}
 }

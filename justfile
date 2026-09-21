@@ -107,7 +107,7 @@ bump mode="minor":
 
 _zufix := os() + if os() == "linux" { "-x64" } else { "" }
 
-zombienet network="" features="zombienet": (build-local features)
+zombienet network="" features="": (build-local features)
     #!/usr/bin/env nu
     # Run zombienet with a profile from the `zombienet/` folder chosen interactively
     mut net = "{{ network }}"
