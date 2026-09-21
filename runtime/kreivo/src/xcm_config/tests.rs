@@ -4,8 +4,8 @@ use super::*;
 use crate::{ParachainInfo, PolkadotXcm, Runtime, RuntimeOrigin};
 
 use frame_support::{
-	assert_noop,
-	traits::{EnsureOrigin, ProcessMessageError},
+	assert_noop, assert_ok,
+	traits::{fungible::Mutate, EnsureOrigin, ProcessMessageError},
 };
 use parachains_common::AccountId;
 use parity_scale_codec::Encode;
@@ -380,5 +380,171 @@ fn location_to_account_api_uses_the_runtime_converter() {
 			Runtime::convert_location(VersionedLocation::from(escrow())).ok(),
 			LocationToAccountId::convert_location(&escrow())
 		);
+	})
+}
+
+// Fellowship alignment
+
+#[test]
+fn asset_hub_is_the_only_trusted_reserve() {
+	type IsReserve = <XcmConfig as xcm_executor::Config>::IsReserve;
+	let asset_hub = sibling(ASSET_HUB_ID);
+
+	// KSM and DOT are reserved on Asset Hub...
+	assert!(IsReserve::contains(&ksm(1), &asset_hub));
+	assert!(IsReserve::contains(&(Dot::get(), 1u128).into(), &asset_hub));
+	// ...and so are Asset Hub's own assets.
+	let usdt: Asset = (
+		Location::new(1, [Parachain(ASSET_HUB_ID), PalletInstance(50), GeneralIndex(1984)]),
+		1u128,
+	)
+		.into();
+	assert!(IsReserve::contains(&usdt, &asset_hub));
+
+	// The relay chain is no longer a reserve for KSM, and siblings aren't for their own tokens.
+	assert!(!IsReserve::contains(&ksm(1), &Location::parent()));
+	assert!(!IsReserve::contains(&(sibling(2000), 1u128).into(), &sibling(2000)));
+}
+
+#[test]
+fn reserve_transfers_to_the_relay_chain_are_denied() {
+	TestExternalities::default().execute_with(|| {
+		let local_account = Location::new(
+			0,
+			[AccountId32 {
+				network: None,
+				id: ALICE,
+			}],
+		);
+		let message = Xcm::<RuntimeCall>(vec![
+			WithdrawAsset(ksm(UNITS).into()),
+			InitiateReserveWithdraw {
+				assets: Wild(All),
+				reserve: Location::parent(),
+				xcm: Xcm(vec![]),
+			},
+		]);
+		assert!(barrier(&local_account, message).is_err());
+	})
+}
+
+#[test]
+fn delivery_to_the_relay_and_siblings_is_priced() {
+	use polkadot_runtime_common::xcm_sender::PriceForMessageDelivery;
+
+	TestExternalities::default().execute_with(|| {
+		let message = Xcm::<()>(vec![ClearOrigin]);
+		let is_ksm = |assets: xcm::latest::Assets| {
+			let assets = assets.into_inner();
+			assets.len() == 1
+				&& assets[0].id == AssetId(Ksm::get())
+				&& matches!(assets[0].fun, Fungible(amount) if amount > 0)
+		};
+		assert!(is_ksm(crate::config::PriceForParentDelivery::price_for_delivery((), &message)));
+		assert!(is_ksm(
+			<<Runtime as cumulus_pallet_xcmp_queue::Config>::PriceForSiblingDelivery as PriceForMessageDelivery>::price_for_delivery(
+				ASSET_HUB_ID.into(),
+				&message
+			)
+		));
+	})
+}
+
+#[test]
+fn root_and_communities_pay_no_delivery_fees() {
+	use xcm_executor::traits::{FeeManager, FeeReason};
+	type Fees = <XcmConfig as xcm_executor::Config>::FeeManager;
+
+	let community = Location::new(
+		0,
+		[Plurality {
+			id: BodyId::Index(1),
+			part: BodyPart::Voice,
+		}],
+	);
+	let account = Location::new(
+		0,
+		[AccountId32 {
+			network: None,
+			id: ALICE,
+		}],
+	);
+	assert!(Fees::is_waived(Some(&Location::here()), FeeReason::ChargeFees));
+	assert!(Fees::is_waived(Some(&community), FeeReason::ChargeFees));
+	assert!(!Fees::is_waived(Some(&account), FeeReason::ChargeFees));
+}
+
+#[test]
+fn accounts_on_other_siblings_get_hashed_accounts() {
+	TestExternalities::default().execute_with(|| {
+		let on_sibling = Location::new(
+			1,
+			[
+				Parachain(2000),
+				AccountId32 {
+					network: None,
+					id: ALICE,
+				},
+			],
+		);
+		let account = LocationToAccountId::convert_location(&on_sibling).expect("hashed description converts");
+		// Not the same-key account: that 1:1 mapping is reserved for the relay and Asset Hub.
+		assert_ne!(account, AccountId::new(ALICE));
+	})
+}
+
+#[test]
+fn authorized_aliases_are_honoured() {
+	use xcm_runtime_apis::authorized_aliases::runtime_decl_for_authorized_aliasers_api::AuthorizedAliasersApiV1;
+
+	TestExternalities::default().execute_with(|| {
+		let alice = AccountId::new(ALICE);
+		assert_ok!(Balances::mint_into(&alice, UNITS));
+
+		let aliaser = Location::new(
+			1,
+			[
+				Parachain(2000),
+				AccountId32 {
+					network: None,
+					id: [2; 32],
+				},
+			],
+		);
+		// `pallet_xcm` records the authorizing account without a network.
+		let target = Location::new(
+			0,
+			[AccountId32 {
+				network: None,
+				id: ALICE,
+			}],
+		);
+		assert!(!TrustedAliasers::contains(&aliaser, &target));
+
+		assert_ok!(PolkadotXcm::add_authorized_alias(
+			RuntimeOrigin::signed(alice),
+			Box::new(VersionedLocation::from(aliaser.clone())),
+			None,
+		));
+		assert!(TrustedAliasers::contains(&aliaser, &target));
+		assert_eq!(Runtime::is_authorized_alias(aliaser.into(), target.into()), Ok(true));
+	})
+}
+
+#[test]
+fn trusted_query_and_parachain_info_apis() {
+	use cumulus_primitives_core::runtime_decl_for_get_parachain_info::GetParachainInfoV1;
+	use xcm_runtime_apis::trusted_query::runtime_decl_for_trusted_query_api::TrustedQueryApiV1;
+
+	TestExternalities::default().execute_with(|| {
+		assert_eq!(
+			Runtime::is_trusted_reserve(ksm(1).into(), sibling(ASSET_HUB_ID).into()),
+			Ok(true)
+		);
+		assert_eq!(
+			Runtime::is_trusted_reserve(ksm(1).into(), Location::parent().into()),
+			Ok(false)
+		);
+		assert_eq!(Runtime::parachain_id(), ParachainInfo::parachain_id());
 	})
 }
