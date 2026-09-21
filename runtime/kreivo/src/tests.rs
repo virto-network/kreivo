@@ -363,7 +363,6 @@ fn weight_to_fee_is_unchanged_without_pallet_revive() {
 /// was deprecated.
 #[test]
 fn block_length_is_unchanged() {
-	use frame_support::traits::Get;
 	use parachains_common::NORMAL_DISPATCH_RATIO;
 
 	#[allow(deprecated)]
