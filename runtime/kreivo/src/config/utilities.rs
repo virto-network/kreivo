@@ -119,7 +119,7 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = weights::pallet_scheduler::WeightInfo<Self>;
 	type Preimages = Preimage;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 }
 
 // #[runtime::pallet_index(46)]

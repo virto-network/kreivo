@@ -483,3 +483,40 @@ mod block_bundling {
 		assert_eq!(Runtime::target_block_rate(), 3);
 	}
 }
+
+/// Every time-based pallet counts relay chain blocks: parachain blocks come at a rate that
+/// depends on the cores Kreivo has, and on how many share one with block bundling.
+#[test]
+fn time_is_measured_in_relay_chain_blocks() {
+	use crate::config::RelaychainData;
+	use core::any::TypeId;
+	// Kreivo's referenda, the communities' referenda, and the community memberships.
+	type KreivoReferendaInstance = pallet_referenda::Instance1;
+	type CommunityReferendaInstance = pallet_referenda::Instance2;
+	type CommunityMembershipsInstance = pallet_nfts::Instance2;
+
+	fn relay<P: 'static>() -> bool {
+		TypeId::of::<P>() == TypeId::of::<RelaychainData>()
+	}
+
+	assert!(relay::<<Runtime as pallet_scheduler::Config>::BlockNumberProvider>());
+	assert!(relay::<
+		<Runtime as pallet_referenda::Config<KreivoReferendaInstance>>::BlockNumberProvider,
+	>());
+	assert!(relay::<
+		<Runtime as pallet_referenda::Config<CommunityReferendaInstance>>::BlockNumberProvider,
+	>());
+	assert!(relay::<<Runtime as pallet_communities::Config>::BlockNumberProvider>());
+	assert!(relay::<<Runtime as pallet_pass::Config>::BlockNumberProvider>());
+	assert!(relay::<<Runtime as pallet_payments::Config>::BlockNumberProvider>());
+	assert!(relay::<<Runtime as pallet_treasury::Config>::BlockNumberProvider>());
+	assert!(relay::<<Runtime as pallet_vesting::Config>::BlockNumberProvider>());
+	assert!(relay::<<Runtime as pallet_proxy::Config>::BlockNumberProvider>());
+	assert!(relay::<<Runtime as pallet_multisig::Config>::BlockNumberProvider>());
+	assert!(relay::<
+		<Runtime as pallet_nfts::Config<CommunityMembershipsInstance>>::BlockNumberProvider,
+	>());
+
+	// A relay chain block every 6s.
+	assert_eq!(runtime_constants::time::DAYS, 14_400);
+}

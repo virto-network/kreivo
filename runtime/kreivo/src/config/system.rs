@@ -202,7 +202,8 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 	}
 }
 
-pub type KreivoChallenger = BlockHashChallenger<{ 30 * MINUTES }>;
+// Challenges are parachain block hashes, so their lifetime is in parachain blocks.
+pub type KreivoChallenger = BlockHashChallenger<{ 30 * runtime_constants::time::parachain::MINUTES }>;
 pub type WebAuthn = pass_webauthn::Authenticator<KreivoChallenger, AuthorityFromPalletId<PassPalletId>>;
 pub type SubstrateKey = pass_substrate_keys::Authenticator<KreivoChallenger, AuthorityFromPalletId<PassPalletId>>;
 
@@ -278,7 +279,7 @@ impl pallet_pass::Config for Runtime {
 	type Balances = Balances;
 	type Authenticator = PassAuthenticator;
 	type Scheduler = Scheduler;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 	type RegistrarConsideration = SkipConsideration<
 		HoldConsideration<
 			AccountId,

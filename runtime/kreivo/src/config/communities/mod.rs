@@ -55,7 +55,7 @@ impl pallet_communities::Config for Runtime {
 	type AssetsFreezer = AssetsFreezer;
 
 	type Balances = Balances;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 
 	type PalletId = CommunityPalletId;
 	#[cfg(feature = "runtime-benchmarks")]
