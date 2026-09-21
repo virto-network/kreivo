@@ -143,9 +143,15 @@ pub type Migrations = (
 	cumulus_pallet_xcmp_queue::migration::v7::MigrateV6ToV7<Runtime>,
 	// Stepwise, up to v3 (stable2606): clears `PoVMessagesTracker`.
 	cumulus_pallet_parachain_system::migration::Migration<Runtime>,
+	// pallet-revive was never used on mainnet: its storage version is the only key left.
+	frame_support::migrations::RemovePallet<ReviveName, RocksDbWeight>,
 	// Permanent
 	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,
 );
+
+parameter_types! {
+	pub const ReviveName: &'static str = "Revive";
+}
 
 impl cumulus_pallet_xcmp_queue::migration::v5::V5Config for Runtime {
 	type ChannelList = ParachainSystem;
@@ -314,8 +320,7 @@ mod runtime {
 	pub type Contracts = pallet_contracts;
 	#[runtime::pallet_index(81)]
 	pub type ContractsStore = pallet_contracts_store;
-	#[runtime::pallet_index(82)]
-	pub type Revive = pallet_revive;
+	// NOTE: index 82 reserved (was pallet-revive, removed in 0.17.0).
 }
 
 cumulus_pallet_parachain_system::register_validate_block! {

@@ -331,3 +331,30 @@ fn pass_accounts_hold_two_devices_for_free() {
 		assert!(held() > 0, "the third device is charged");
 	})
 }
+
+/// Fees as pallet-revive's `BlockRatioFee` computed them before pallet-revive was removed:
+/// the local copy must charge exactly the same.
+#[test]
+fn weight_to_fee_is_unchanged_without_pallet_revive() {
+	use frame_support::weights::{constants::ExtrinsicBaseWeight, Weight, WeightToFee as _};
+
+	#[cfg(not(feature = "paseo"))]
+	let fees = [0, 30_819_395, 1_175_666_627, 587_833_313, 58_783_331_357, 3_333_333];
+	// Paseo prices in its own `CENTS`.
+	#[cfg(feature = "paseo")]
+	let fees = [0, 9_245_818, 352_699_988, 176_349_994, 17_634_999_425, 1_000_000];
+
+	for (weight, fee) in [
+		Weight::from_parts(0, 0),
+		Weight::from_parts(1_000_000_000, 0),
+		Weight::from_parts(0, 100_000),
+		Weight::from_parts(250_000_000, 50_000),
+		Weight::from_parts(1_000_000_000, 5_000_000),
+		ExtrinsicBaseWeight::get(),
+	]
+	.into_iter()
+	.zip(fees)
+	{
+		assert_eq!(crate::WeightToFee::weight_to_fee(&weight), fee, "{weight:?}");
+	}
+}

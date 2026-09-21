@@ -36,17 +36,50 @@ pub mod fee {
 	use frame_support::weights::constants::ExtrinsicBaseWeight;
 	use polkadot_core_primitives::Balance;
 
-	/// `pallet_revive` requires this specific `WeightToFee` implementation.
+	use core::marker::PhantomData;
+	use frame_support::{
+		traits::Get,
+		weights::{Weight, WeightToFee as WeightToFeeT},
+	};
+	use sp_runtime::{FixedPointNumber, FixedU128, SaturatedConversion, Saturating};
+
+	/// Charges `P / Q` per unit of `ref_time`, and proof size at the same price scaled by the
+	/// block's `ref_time` to `proof_size` ratio; a transaction pays for whichever is larger.
 	///
-	/// This is needed because we make certain assumptions about how weight
-	/// is mapped to fees. Enforced at compile time.
-	pub type WeightToFee = pallet_revive::evm::fees::BlockRatioFee<
+	/// This is `pallet_revive::evm::fees::BlockRatioFee`, which Kreivo used while it had
+	/// pallet-revive. It's kept verbatim so fees don't change.
+	pub struct BlockRatioFee<const P: u128, const Q: u128, T>(PhantomData<T>);
+
+	impl<const P: u128, const Q: u128, T: frame_system::Config> BlockRatioFee<P, Q, T> {
+		const REF_TIME_TO_FEE: FixedU128 = {
+			assert!(P > 0 && Q > 0);
+			FixedU128::from_rational(P, Q)
+		};
+
+		fn proof_size_to_fee() -> FixedU128 {
+			let max_weight = T::BlockWeights::get().max_block;
+			let ratio = FixedU128::from_rational(max_weight.ref_time().into(), max_weight.proof_size().into());
+			Self::REF_TIME_TO_FEE.saturating_mul(ratio)
+		}
+	}
+
+	impl<const P: u128, const Q: u128, T: frame_system::Config> WeightToFeeT for BlockRatioFee<P, Q, T> {
+		type Balance = Balance;
+
+		fn weight_to_fee(weight: &Weight) -> Balance {
+			let ref_time_fee = Self::REF_TIME_TO_FEE.saturating_mul_int(Balance::saturated_from(weight.ref_time()));
+			let proof_size_fee =
+				Self::proof_size_to_fee().saturating_mul_int(Balance::saturated_from(weight.proof_size()));
+			ref_time_fee.max(proof_size_fee)
+		}
+	}
+
+	pub type WeightToFee = BlockRatioFee<
 		// p
 		{ super::currency::CENTS },
 		// q
 		{ 100 * ExtrinsicBaseWeight::get().ref_time() as u128 },
 		crate::Runtime,
-		Balance,
 	>;
 }
 

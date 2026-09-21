@@ -22,14 +22,6 @@ jobs:
         run: |
           # Install `protoc`
           sudo apt install -y protobuf-compiler
-          # Install official Solidity compiler binary
-          curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors \
-            -o /usr/local/bin/solc https://github.com/ethereum/solidity/releases/download/v0.8.30/solc-static-linux \
-            && chmod +x /usr/local/bin/solc && solc --version
-          # Install Parity resolc binary
-          curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors \
-            -o /usr/local/bin/resolc https://github.com/paritytech/revive/releases/download/v1.0.0/resolc-x86_64-unknown-linux-musl \
-            && chmod +x /usr/local/bin/resolc && resolc --version
 
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
@@ -37,13 +29,6 @@ jobs:
           profile: minimal
           toolchain: ${{ env.NIGHTLY_VERSION }}
           target: wasm32-unknown-unknown
-          components: rust-src
-
-      - name: Install 1.91 toolchain (for revive fixtures)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.91
           components: rust-src
 
       - uses: actions/checkout@v4
@@ -62,7 +47,9 @@ jobs:
           toolchain: ${{ env.NIGHTLY_VERSION }}
           args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
         env:
-          PALLET_REVIVE_FIXTURES_RUSTUP_TOOLCHAIN: 1.91
+          # pallet-revive is out of the runtime, but assets-common still builds its fixtures
+          # under runtime-benchmarks, which would need solc and resolc.
+          SKIP_PALLET_REVIVE_FIXTURES: 1
 
   clippy:
     runs-on: ubuntu-latest
@@ -75,14 +62,6 @@ jobs:
         run: |
           # Install `protoc`
           sudo apt install -y protobuf-compiler
-          # Install official Solidity compiler binary
-          curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors \
-            -o /usr/local/bin/solc https://github.com/ethereum/solidity/releases/download/v0.8.30/solc-static-linux \
-            && chmod +x /usr/local/bin/solc && solc --version
-          # Install Parity resolc binary
-          curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors \
-            -o /usr/local/bin/resolc https://github.com/paritytech/revive/releases/download/v1.0.0/resolc-x86_64-unknown-linux-musl \
-            && chmod +x /usr/local/bin/resolc && resolc --version
 
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
@@ -91,13 +70,6 @@ jobs:
           toolchain: ${{ env.NIGHTLY_VERSION }}
           target: wasm32-unknown-unknown
           components: rust-src,clippy
-
-      - name: Install 1.91 toolchain (for revive fixtures)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.91
-          components: rust-src
 
       - uses: actions/checkout@v4
 
@@ -115,7 +87,9 @@ jobs:
           toolchain: ${{ env.NIGHTLY_VERSION }}
           args: --release --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
         env:
-          PALLET_REVIVE_FIXTURES_RUSTUP_TOOLCHAIN: 1.91
+          # pallet-revive is out of the runtime, but assets-common still builds its fixtures
+          # under runtime-benchmarks, which would need solc and resolc.
+          SKIP_PALLET_REVIVE_FIXTURES: 1
 
   test:
     runs-on: ubuntu-latest
@@ -126,14 +100,6 @@ jobs:
         run: |
           # Install `protoc`
           sudo apt install -y protobuf-compiler
-          # Install official Solidity compiler binary
-          curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors \
-            -o /usr/local/bin/solc https://github.com/ethereum/solidity/releases/download/v0.8.30/solc-static-linux \
-            && chmod +x /usr/local/bin/solc && solc --version
-          # Install Parity resolc binary
-          curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors \
-            -o /usr/local/bin/resolc https://github.com/paritytech/revive/releases/download/v1.0.0/resolc-x86_64-unknown-linux-musl \
-            && chmod +x /usr/local/bin/resolc && resolc --version
 
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
@@ -141,13 +107,6 @@ jobs:
           profile: minimal
           toolchain: ${{ env.NIGHTLY_VERSION }}
           target: wasm32-unknown-unknown
-          components: rust-src
-
-      - name: Install 1.91 toolchain (for revive fixtures)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.91
           components: rust-src
 
       - uses: actions/checkout@v4
@@ -166,4 +125,6 @@ jobs:
           toolchain: ${{ env.NIGHTLY_VERSION }}
           args: --lib --locked --all-features --workspace ${{ env.EXTRA_ARGS }}
         env:
-          PALLET_REVIVE_FIXTURES_RUSTUP_TOOLCHAIN: 1.91
+          # pallet-revive is out of the runtime, but assets-common still builds its fixtures
+          # under runtime-benchmarks, which would need solc and resolc.
+          SKIP_PALLET_REVIVE_FIXTURES: 1
