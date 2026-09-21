@@ -30,6 +30,8 @@ fn blake2_256(data: &[u8]) -> [u8; 32] {
 }
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+/// Blocks are at most 5 MiB; `Normal` extrinsics get `NORMAL_DISPATCH_RATIO` of it.
+pub(crate) const MAX_BLOCK_LENGTH: u32 = 5 * 1024 * 1024;
 
 // #[runtime::pallet_index(0)]
 // pub type System
@@ -42,8 +44,10 @@ parameter_types! {
 	//  The `RuntimeBlockLength` and `RuntimeBlockWeights` exist here because the
 	// `DeletionWeightLimit` and `DeletionQueueDepth` depend on those to parameterize
 	// the lazy contract deletion.
-	pub RuntimeBlockLength: BlockLength =
-		BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	pub RuntimeBlockLength: BlockLength = BlockLength::builder()
+		.max_length(MAX_BLOCK_LENGTH)
+		.modify_max_length_for_class(DispatchClass::Normal, |max| *max = NORMAL_DISPATCH_RATIO * MAX_BLOCK_LENGTH)
+		.build();
 	pub RuntimeBlockWeights: BlockWeights = BlockWeights::builder()
 		.base_block(BlockExecutionWeight::get())
 		.for_class(DispatchClass::all(), |weights| {
@@ -355,8 +359,8 @@ pub mod benchmarks {
 	impl RngCore for BenchRng {
 		fn next_u32(&mut self) -> u32 {
 			let mut b = [0u8; 4];
-			for i in 0..4 {
-				b[i] = self.0[i];
+			for (i, byte) in b.iter_mut().enumerate() {
+				*byte = self.0[i];
 				self.rotate();
 			}
 			u32::from_le_bytes(b)
@@ -364,8 +368,8 @@ pub mod benchmarks {
 
 		fn next_u64(&mut self) -> u64 {
 			let mut b = [0u8; 8];
-			for i in 0..8 {
-				b[i] = self.0[i];
+			for (i, byte) in b.iter_mut().enumerate() {
+				*byte = self.0[i];
 				self.rotate();
 			}
 			u64::from_le_bytes(b)

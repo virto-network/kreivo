@@ -87,7 +87,7 @@ impl pallet_aura::Config for Runtime {
 // pub type AuraExt
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
-pub(crate) use runtime_constants::async_backing_params::*;
+use runtime_constants::async_backing_params::{BLOCK_PROCESSING_VELOCITY, UNINCLUDED_SEGMENT_CAPACITY};
 
 /// Aura consensus hook
 pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<

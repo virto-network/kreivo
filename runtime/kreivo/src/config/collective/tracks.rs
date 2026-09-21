@@ -126,7 +126,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 					max_deciding: 1,
 					decision_deposit: UNITS,
 					prepare_period: 5 * MINUTES,
-					decision_period: 1 * DAYS,
+					decision_period: DAYS,
 					confirm_period: 5 * MINUTES,
 					min_enactment_period: 1,
 					min_approval: pallet_referenda::Curve::LinearDecreasing {

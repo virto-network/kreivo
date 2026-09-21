@@ -358,3 +358,18 @@ fn weight_to_fee_is_unchanged_without_pallet_revive() {
 		assert_eq!(crate::WeightToFee::weight_to_fee(&weight), fee, "{weight:?}");
 	}
 }
+
+/// `RuntimeBlockLength` is built as `BlockLength::max_with_normal_ratio` built it, before that
+/// was deprecated.
+#[test]
+fn block_length_is_unchanged() {
+	use frame_support::traits::Get;
+	use parachains_common::NORMAL_DISPATCH_RATIO;
+
+	#[allow(deprecated)]
+	let before = frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	assert_eq!(
+		crate::config::system::RuntimeBlockLength::get().encode(),
+		before.encode()
+	);
+}

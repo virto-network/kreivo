@@ -3,7 +3,6 @@ authors.workspace = true
 description = "This pallet helps with all the necesary steps to correctly setup a community."
 edition.workspace = true
 license.workspace = true
-homepage.workspace = true
 name = "pallet-communities-manager"
 repository.workspace = true
 version = "0.1.0"
@@ -93,3 +92,6 @@ try-runtime = [
   "sp-runtime/try-runtime",
   "pallet-communities/try-runtime",
 ]
+
+[lints]
+workspace = true

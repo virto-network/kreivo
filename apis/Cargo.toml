@@ -4,7 +4,6 @@ description = "A set of APIs to connect Smart Contract creators with the Kreivo 
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
-homepage.workspace = true
 license.workspace = true
 repository.workspace = true
 
@@ -42,3 +41,6 @@ std = [
 ]
 runtime = ["dep:frame-system", "dep:log", "dep:pallet-contracts"]
 contract = ["dep:ink", "dep:ink_env", "dep:virto-common"]
+
+[lints]
+workspace = true

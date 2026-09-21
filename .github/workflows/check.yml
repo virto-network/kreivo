@@ -31,6 +31,10 @@ jobs:
           target: wasm32-unknown-unknown
           components: rust-src
 
+      # The WASM builder prefers `wasm32v1-none`, and warns when it has to fall back.
+      - name: Install the wasm32v1-none target
+        run: rustup target add wasm32v1-none --toolchain ${{ env.NIGHTLY_VERSION }}
+
       - uses: actions/checkout@v4
 
       - name: Rust Cache

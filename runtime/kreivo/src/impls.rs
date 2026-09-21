@@ -49,9 +49,11 @@ impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 	Debug,
 	MaxEncodedLen,
 	scale_info::TypeInfo,
+	Default,
 )]
 pub enum ProxyType {
 	/// Fully permissioned proxy. Can execute any call on behalf of _proxied_.
+	#[default]
 	Any,
 	/// Can execute any call that does not transfer funds or assets.
 	NonTransfer,
@@ -67,11 +69,6 @@ pub enum ProxyType {
 	/// Collator selection proxy. Can execute calls related to collator
 	/// selection mechanism.
 	Collator,
-}
-impl Default for ProxyType {
-	fn default() -> Self {
-		Self::Any
-	}
 }
 
 impl InstanceFilter<RuntimeCall> for ProxyType {

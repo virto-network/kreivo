@@ -62,6 +62,8 @@ pub use pallet::*;
 pub use types::*;
 pub use weights::*;
 
+// The pallet macros clone every call argument, `Copy` ones included.
+#[allow(clippy::clone_on_copy)]
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
