@@ -12,7 +12,9 @@ concurrency:
 
 env:
   NIGHTLY_VERSION: 'nightly'
-  EXTRA_ARGS: ''
+  # The emulated XCM tests run in their own job: they need the runtimes' WASM, and must not
+  # get `runtime-benchmarks` (which swaps the message processor for a no-op).
+  EXTRA_ARGS: '--exclude kreivo-emulated-integration-tests'
 
 jobs:
   check:
@@ -132,3 +134,38 @@ jobs:
           # pallet-revive is out of the runtime, but assets-common still builds its fixtures
           # under runtime-benchmarks, which would need solc and resolc.
           SKIP_PALLET_REVIVE_FIXTURES: 1
+
+  emulated-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          # Install `protoc`
+          sudo apt install -y protobuf-compiler
+
+      - name: Install nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          target: wasm32-unknown-unknown
+          components: rust-src
+
+      - name: Install the wasm32v1-none target
+        run: rustup target add wasm32v1-none --toolchain ${{ env.NIGHTLY_VERSION }}
+
+      - uses: actions/checkout@v4
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+          cache-all-crates: true
+          key: emulated-tests
+
+      - name: Run emulated XCM tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          args: --release --locked -p kreivo-emulated-integration-tests

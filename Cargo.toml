@@ -1,5 +1,11 @@
 [workspace]
-members = ["apis", "chain-spec-generator", "common", "runtime/kreivo"]
+members = [
+  "apis",
+  "chain-spec-generator",
+  "common",
+  "integration-tests/emulated",
+  "runtime/kreivo",
+]
 resolver = "2"
 
 [profile.release]
