@@ -450,7 +450,7 @@ fn delivery_to_the_relay_and_siblings_is_priced() {
 }
 
 #[test]
-fn root_and_communities_pay_no_delivery_fees() {
+fn only_root_pays_no_delivery_fees() {
 	use xcm_executor::traits::{FeeManager, FeeReason};
 	type Fees = <XcmConfig as xcm_executor::Config>::FeeManager;
 
@@ -469,7 +469,8 @@ fn root_and_communities_pay_no_delivery_fees() {
 		}],
 	);
 	assert!(Fees::is_waived(Some(&Location::here()), FeeReason::ChargeFees));
-	assert!(Fees::is_waived(Some(&community), FeeReason::ChargeFees));
+	// Anyone can create a community, so communities pay like anyone else.
+	assert!(!Fees::is_waived(Some(&community), FeeReason::ChargeFees));
 	assert!(!Fees::is_waived(Some(&account), FeeReason::ChargeFees));
 }
 

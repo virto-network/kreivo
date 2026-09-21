@@ -303,24 +303,9 @@ parameter_types! {
 	pub RootLocation: Location = Location::here();
 }
 
-/// Senders that pay no delivery fees: Root (governance) and communities, as their pluralities.
-/// This covers messages Kreivo sends; incoming messages still pay for their execution here.
-pub struct WaivedLocations;
-impl Contains<Location> for WaivedLocations {
-	fn contains(location: &Location) -> bool {
-		location == &RootLocation::get()
-			|| matches!(
-				location.unpack(),
-				(
-					0,
-					[Plurality {
-						id: BodyId::Index(_),
-						..
-					}]
-				)
-			)
-	}
-}
+/// Senders that pay no delivery fees: Root (governance) only. Communities can be created by
+/// anyone, so a waiver for them would hand out free outbound messages.
+pub type WaivedLocations = frame_support::traits::Equals<RootLocation>;
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
