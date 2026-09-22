@@ -168,8 +168,11 @@ parameter_types! {
 			use frame_support::traits::nonfungibles_v2::Inspect;
 			let membership_expiration = b"membership_expiration";
 			CommunityMemberships::typed_system_attribute(&community, Some(&membership), &membership_expiration)
-				// If there's an expiration date, check it against block number
-				.map(|expiration| System::block_number() <= expiration)
+				// If there's an expiration, check it against the relay chain block number, the clock
+				// of the memberships collection and its gas tank.
+				.map(|expiration| {
+					<RelaychainData as sp_runtime::traits::BlockNumberProvider>::current_block_number() <= expiration
+				})
 				// Otherwise, the membership will not expire
 				.unwrap_or(true)
 		});

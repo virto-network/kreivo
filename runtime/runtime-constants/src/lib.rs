@@ -59,36 +59,44 @@ pub mod async_backing_params {
 	/// Build with an offset of 1 behind the relay chain best block.
 	pub const RELAY_PARENT_OFFSET: u32 = 1;
 	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet
-	/// included into the relay chain.
-	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = (2 + RELAY_PARENT_OFFSET) * BLOCK_PROCESSING_VELOCITY + 1;
-	/// The upper limit of how many parachain blocks are processed by the relay chain per
-	/// parent. Limits the number of blocks authored per slot. This determines the minimum
-	/// block time of the parachain:
-	#[cfg(feature = "paseo")]
+	/// included into the relay chain. As in polkadot-sdk's reference runtime for block bundling:
+	/// blocks built on relay block `X` are backed in `X + 2` and included in `X + 3`, and we build
+	/// `RELAY_PARENT_OFFSET` relay blocks behind. A collator drops a whole bundle when the
+	/// segment is full.
+	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = BLOCK_PROCESSING_VELOCITY * (3 + RELAY_PARENT_OFFSET);
+	/// Parachain blocks per relay chain slot: a 2s block time. With block bundling this no
+	/// longer depends on the cores Kreivo has: one core carries all of a slot's blocks, and
+	/// more cores give each block more room.
 	pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
-	#[cfg(not(feature = "paseo"))]
-	pub const BLOCK_PROCESSING_VELOCITY: u32 = 12;
 	/// Relay chain slot duration, in milliseconds.
 	pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: Moment = 6_000;
 }
 
-/// Time and blocks.
 pub mod time {
+	//! Time, in relay chain blocks.
+	//!
+	//! Every time-based pallet counts relay chain blocks (`RelaychainDataProvider`): they come
+	//! every 6s, while parachain blocks come at a rate that depends on the cores Kreivo has
+	//! (and, with block bundling, how many blocks share one).
 	use crate::async_backing_params::{BLOCK_PROCESSING_VELOCITY, RELAY_CHAIN_SLOT_DURATION_MILLIS};
 	use polkadot_primitives::{BlockNumber, Moment};
 
-	pub const MILLISECS_PER_BLOCK: Moment = RELAY_CHAIN_SLOT_DURATION_MILLIS / BLOCK_PROCESSING_VELOCITY as u64;
-	// These time units are defined in number of blocks.
-	pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+	pub const MINUTES: BlockNumber = 60_000 / (RELAY_CHAIN_SLOT_DURATION_MILLIS as BlockNumber);
 	pub const HOURS: BlockNumber = MINUTES * 60;
 	pub const DAYS: BlockNumber = HOURS * 24;
 	pub const WEEKS: BlockNumber = DAYS * 7;
 
-	// 1 in 4 blocks (on average, not counting collisions) will be primary babe
-	// blocks. The choice of is done in accordance to the slot duration and expected
-	// target block time, for safely resisting network delays of maximum two
-	// seconds. <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
 	pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
+
+	/// Time in parachain blocks, for what still counts them: session rotation and the
+	/// block-hash challenges of `pallet-pass`.
+	pub mod parachain {
+		use super::*;
+
+		pub const MILLISECS_PER_BLOCK: Moment = RELAY_CHAIN_SLOT_DURATION_MILLIS / BLOCK_PROCESSING_VELOCITY as u64;
+		pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+		pub const HOURS: BlockNumber = MINUTES * 60;
+	}
 }
 
 /// Fee-related.

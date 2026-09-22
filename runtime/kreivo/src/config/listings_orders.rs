@@ -139,7 +139,7 @@ impl pallet_orders::Config<ListingsInstance> for Runtime {
 	type Listings = Listings;
 	type Payments = Payments;
 	type Scheduler = Scheduler;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 	type MaxLifetimeForCheckoutOrder = MaxLifetimeForCheckoutOrder;
 	type MaxCartLen = MaxCartLen;
 	type MaxItemLen = MaxItemLen;

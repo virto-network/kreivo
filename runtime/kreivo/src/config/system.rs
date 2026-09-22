@@ -9,7 +9,7 @@ use frame_support::{
 	derive_impl,
 	dispatch::DispatchClass,
 	traits::{fungible::HoldConsideration, Consideration, Footprint},
-	weights::constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_SECOND},
+	weights::constants::{BlockExecutionWeight, ExtrinsicBaseWeight},
 	PalletId,
 };
 use frame_system::{limits::BlockLength, EnsureRootWithSuccess, EnsureSigned};
@@ -17,7 +17,7 @@ use pallet_communities::origin::AsSignedByCommunity;
 use pallet_pass::FirstItemsAreFree;
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
-pub use runtime_constants::async_backing_params::RELAY_PARENT_OFFSET;
+pub use runtime_constants::async_backing_params::{BLOCK_PROCESSING_VELOCITY, RELAY_PARENT_OFFSET};
 use sp_core::ConstU128;
 use sp_runtime::{
 	traits::{AccountIdConversion, LookupError, StaticLookup},
@@ -29,13 +29,23 @@ fn blake2_256(data: &[u8]) -> [u8; 32] {
 	<frame_support::Blake2_256 as frame_support::StorageHasher>::hash(data)
 }
 
-const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
 /// Blocks are at most 5 MiB; `Normal` extrinsics get `NORMAL_DISPATCH_RATIO` of it.
 pub(crate) const MAX_BLOCK_LENGTH: u32 = 5 * 1024 * 1024;
 
 // #[runtime::pallet_index(0)]
 // pub type System
-const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), MAX_POV_SIZE);
+
+/// Parachain blocks we aim to build per relay chain slot. With block bundling, a core's
+/// execution time and PoV are split among the blocks it carries.
+pub type TargetBlockRate = ConstU32<BLOCK_PROCESSING_VELOCITY>;
+
+/// The weight a block may use: the share of a core it gets, given the cores the parachain has
+/// and [`TargetBlockRate`]. The first block of a core may take the whole core when it needs
+/// to (e.g. a runtime upgrade), which the [`DynamicMaxBlockWeight`] extension arranges.
+///
+/// [`DynamicMaxBlockWeight`]: cumulus_pallet_parachain_system::block_weight::DynamicMaxBlockWeight
+pub type MaximumBlockWeight =
+	cumulus_pallet_parachain_system::block_weight::MaxParachainBlockWeight<Runtime, TargetBlockRate>;
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
@@ -54,14 +64,14 @@ parameter_types! {
 			weights.base_extrinsic = ExtrinsicBaseWeight::get();
 		})
 		.for_class(DispatchClass::Normal, |weights| {
-			weights.max_total = Some(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT);
+			weights.max_total = Some(NORMAL_DISPATCH_RATIO * MaximumBlockWeight::get());
 		})
 		.for_class(DispatchClass::Operational, |weights| {
-			weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
+			weights.max_total = Some(MaximumBlockWeight::get());
 			// Operational transactions have some extra reserved space, so that they
-			// are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
+			// are included even if block reached `MaximumBlockWeight`.
 			weights.reserved = Some(
-				MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT
+				MaximumBlockWeight::get() - NORMAL_DISPATCH_RATIO * MaximumBlockWeight::get()
 			);
 		})
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
@@ -114,13 +124,16 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = ConstU32<16>;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Self>;
+	// Sets the block's weight mode (a share of the core, or the whole core) before inherents.
+	type PreInherents =
+		cumulus_pallet_parachain_system::block_weight::DynamicMaxBlockWeightHooks<Runtime, TargetBlockRate>;
 }
 
 // #[runtime::pallet_index(1)]
 // pub type ParachainSystem
 parameter_types! {
-	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
-	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
+	pub ReservedXcmpWeight: Weight = MaximumBlockWeight::get().saturating_div(4);
+	pub ReservedDmpWeight: Weight = MaximumBlockWeight::get().saturating_div(4);
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
@@ -189,7 +202,8 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 	}
 }
 
-pub type KreivoChallenger = BlockHashChallenger<{ 30 * MINUTES }>;
+// Challenges are parachain block hashes, so their lifetime is in parachain blocks.
+pub type KreivoChallenger = BlockHashChallenger<{ 30 * runtime_constants::time::parachain::MINUTES }>;
 pub type WebAuthn = pass_webauthn::Authenticator<KreivoChallenger, AuthorityFromPalletId<PassPalletId>>;
 pub type SubstrateKey = pass_substrate_keys::Authenticator<KreivoChallenger, AuthorityFromPalletId<PassPalletId>>;
 
@@ -265,7 +279,7 @@ impl pallet_pass::Config for Runtime {
 	type Balances = Balances;
 	type Authenticator = PassAuthenticator;
 	type Scheduler = Scheduler;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 	type RegistrarConsideration = SkipConsideration<
 		HoldConsideration<
 			AccountId,

@@ -43,27 +43,35 @@ pub mod fee {
 	};
 	use sp_runtime::{FixedPointNumber, FixedU128, SaturatedConversion, Saturating};
 
+	/// The block limits that fees are priced against: 2s of `ref_time` and a 5 MiB PoV, Kreivo's
+	/// fixed block limits before block bundling. Block limits are now a share of a core, and
+	/// change with the cores the parachain has, so fees don't follow them.
+	pub const FEE_REFERENCE_BLOCK_WEIGHT: Weight = Weight::from_parts(
+		2 * frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND,
+		5 * 1024 * 1024,
+	);
+
 	/// Charges `P / Q` per unit of `ref_time`, and proof size at the same price scaled by the
-	/// block's `ref_time` to `proof_size` ratio; a transaction pays for whichever is larger.
+	/// `ref_time` to `proof_size` ratio of `Limits`; a transaction pays for whichever is larger.
 	///
 	/// This is `pallet_revive::evm::fees::BlockRatioFee`, which Kreivo used while it had
-	/// pallet-revive. It's kept verbatim so fees don't change.
-	pub struct BlockRatioFee<const P: u128, const Q: u128, T>(PhantomData<T>);
+	/// pallet-revive, with the ratio taken from fixed `Limits` instead of the block weights.
+	pub struct BlockRatioFee<const P: u128, const Q: u128, Limits>(PhantomData<Limits>);
 
-	impl<const P: u128, const Q: u128, T: frame_system::Config> BlockRatioFee<P, Q, T> {
+	impl<const P: u128, const Q: u128, Limits: Get<Weight>> BlockRatioFee<P, Q, Limits> {
 		const REF_TIME_TO_FEE: FixedU128 = {
 			assert!(P > 0 && Q > 0);
 			FixedU128::from_rational(P, Q)
 		};
 
 		fn proof_size_to_fee() -> FixedU128 {
-			let max_weight = T::BlockWeights::get().max_block;
+			let max_weight = Limits::get();
 			let ratio = FixedU128::from_rational(max_weight.ref_time().into(), max_weight.proof_size().into());
 			Self::REF_TIME_TO_FEE.saturating_mul(ratio)
 		}
 	}
 
-	impl<const P: u128, const Q: u128, T: frame_system::Config> WeightToFeeT for BlockRatioFee<P, Q, T> {
+	impl<const P: u128, const Q: u128, Limits: Get<Weight>> WeightToFeeT for BlockRatioFee<P, Q, Limits> {
 		type Balance = Balance;
 
 		fn weight_to_fee(weight: &Weight) -> Balance {
@@ -79,8 +87,12 @@ pub mod fee {
 		{ super::currency::CENTS },
 		// q
 		{ 100 * ExtrinsicBaseWeight::get().ref_time() as u128 },
-		crate::Runtime,
+		FeeReferenceBlockWeight,
 	>;
+
+	frame_support::parameter_types! {
+		pub const FeeReferenceBlockWeight: Weight = FEE_REFERENCE_BLOCK_WEIGHT;
+	}
 }
 
 pub mod locations {

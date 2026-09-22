@@ -64,7 +64,7 @@ impl pallet_payments::Config for Runtime {
 	type PaymentId = virto_common::PaymentId;
 	type Assets = Assets;
 	type AssetsHold = AssetsHolder;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 	type FeeHandler = KreivoFeeHandler;
 	type Scheduler = Scheduler;
 	type Preimages = Preimage;

@@ -55,7 +55,7 @@ impl pallet_communities::Config for Runtime {
 	type AssetsFreezer = AssetsFreezer;
 
 	type Balances = Balances;
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelaychainData;
 
 	type PalletId = CommunityPalletId;
 	#[cfg(feature = "runtime-benchmarks")]
@@ -102,6 +102,13 @@ mod benchmarks {
 	use sp_runtime::Perbill;
 
 	type MembershipsManagementCollection = ItemOf<CommunityMemberships, MembershipsCollectionId, AccountId>;
+
+	/// Moves time to block `n`. Referenda (and the scheduler) count relay chain blocks, so the
+	/// relay chain block number moves along with the parachain's.
+	fn advance_to(n: BlockNumber) {
+		System::set_block_number(n);
+		<RelaychainData as sp_runtime::traits::BlockNumberProvider>::set_block_number(n);
+	}
 
 	pub struct CommunityBenchmarkHelper;
 
@@ -194,19 +201,19 @@ mod benchmarks {
 			)?;
 			Referenda::<Runtime, CommunityReferendaInstance>::place_decision_deposit(origin, index)?;
 
-			System::set_block_number(2);
+			advance_to(2);
 			Referenda::<Runtime, CommunityReferendaInstance>::nudge_referendum(RuntimeOrigin::root(), 0)?;
 
 			Ok(0)
 		}
 
 		fn finish_poll(index: PollIndexOf<Runtime>) -> Result<(), BenchmarkError> {
-			System::set_block_number(8);
+			advance_to(8);
 			Referenda::<Runtime, CommunityReferendaInstance>::nudge_referendum(RuntimeOrigin::root(), index)?;
 
 			frame_support::assert_ok!(Referenda::<Runtime, CommunityReferendaInstance>::ensure_ongoing(index));
 
-			System::set_block_number(9);
+			advance_to(9);
 			Referenda::<Runtime, CommunityReferendaInstance>::nudge_referendum(RuntimeOrigin::root(), index)?;
 
 			frame_support::assert_err!(

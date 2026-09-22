@@ -46,7 +46,8 @@ impl pallet_collator_selection::Config for Runtime {
 // #[runtime::pallet_index(22)]
 // pub type Session
 parameter_types! {
-	pub const Period: u32 = HOURS;
+	// `pallet-session` counts parachain blocks.
+	pub const Period: u32 = runtime_constants::time::parachain::HOURS;
 	pub const Offset: u32 = 0;
 	pub const KeyDeposit: u64 = 0;
 }
