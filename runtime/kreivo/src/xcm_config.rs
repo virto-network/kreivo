@@ -19,18 +19,21 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
-use parachains_common::xcm_config::{AssetFeeAsExistentialDepositMultiplier, ParentRelayOrSiblingParachains};
+use parachains_common::xcm_config::{
+	AliasAccountId32FromSiblingSystemChain, AssetFeeAsExistentialDepositMultiplier, ParentRelayOrSiblingParachains,
+};
 use polkadot_parachain_primitives::primitives::Sibling;
 use sp_runtime::traits::ConvertInto;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AliasChildLocation, AliasOriginRootUsingFilter, AllowExplicitUnpaidExecutionFrom,
-	AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, ConvertedConcreteId,
-	EnsureXcmOrigin, ExternalConsensusLocationsConverterFor, FrameTransactionalProcessor, FungibleAdapter,
-	FungiblesAdapter, IsConcrete, LocalMint, MintLocation, NativeAsset, ParentIsPreset, RelayChainAsNative,
+	AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId,
+	DenyReserveTransferToRelayChain, DenyThenTry, DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin,
+	ExternalConsensusLocationsConverterFor, FrameTransactionalProcessor, FungibleAdapter, FungiblesAdapter,
+	HashedDescription, IsConcrete, LocalMint, MintLocation, ParentIsPreset, RelayChainAsNative, SendXcmFeeToAccount,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
 	SovereignSignedViaLocation, StartsWith, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents, WeightInfoBounds,
-	WithComputedOrigin, WithUniqueTopic,
+	WithComputedOrigin, WithUniqueTopic, XcmFeeManagerFromComponents,
 };
 use xcm_executor::traits::JustTry;
 use xcm_executor::XcmExecutor;
@@ -89,6 +92,10 @@ pub type LocationToAccountId = (
 	// over the bridge) get a deterministic account, so fees can be refunded and trapped assets
 	// claimed.
 	ExternalConsensusLocationsConverterFor<UniversalLocation, AccountId>,
+	// Any other location in our consensus (e.g. an account on a sibling parachain) gets a
+	// hashed account, so it can pay fees, `Transact` and claim trapped assets. It comes last,
+	// so the 1:1 relay/Asset Hub mapping and community accounts above keep their addresses.
+	HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
 );
 
 pub type LocationConvertedConcreteId = xcm_builder::MatchedConvertedConcreteId<
@@ -179,22 +186,28 @@ impl Contains<Location> for ParentOrParentsExecutivePlurality {
 	}
 }
 
-pub type Barrier = TrailingSetTopicAsId<(
-	TakeWeightCredit,
-	// Responses to queries we made (e.g. XCM version discovery).
-	AllowKnownQueryResponses<PolkadotXcm>,
-	WithComputedOrigin<
+pub type Barrier = TrailingSetTopicAsId<
+	DenyThenTry<
+		// The relay chain is no reserve for anything: reject reserve-based transfers to it.
+		DenyReserveTransferToRelayChain,
 		(
-			AllowTopLevelPaidExecutionFrom<Everything>,
-			AllowExplicitUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
-			// ^^^ Parent and its exec plurality get free execution
-			// Version subscriptions from the relay and siblings, so they can learn our XCM version.
-			AllowSubscriptionsFrom<ParentRelayOrSiblingParachains>,
+			TakeWeightCredit,
+			// Responses to queries we made (e.g. XCM version discovery).
+			AllowKnownQueryResponses<PolkadotXcm>,
+			WithComputedOrigin<
+				(
+					AllowTopLevelPaidExecutionFrom<Everything>,
+					// Parent and its exec plurality get free execution, also after a trusted alias.
+					AllowExplicitUnpaidExecutionFrom<ParentOrParentsExecutivePlurality, CheapTrustedAliasers>,
+					// Version subscriptions from the relay and siblings, so they can learn our XCM version.
+					AllowSubscriptionsFrom<ParentRelayOrSiblingParachains>,
+				),
+				UniversalLocation,
+				ConstU32<8>,
+			>,
 		),
-		UniversalLocation,
-		ConstU32<8>,
 	>,
-)>;
+>;
 
 pub type AssetTransactors = (FungibleTransactor, FungiblesTransactor);
 
@@ -214,14 +227,22 @@ impl Contains<Location> for PolkadotOrigins {
 	}
 }
 
-/// Origins may alias into their own children, and (Kusama) Asset Hub may hand over an
-/// origin preserved from the Polkadot side of the bridge (`InitiateTransfer {
-/// preserve_origin: true }`), as Kusama Asset Hub itself allows Polkadot Asset Hub to do.
-/// Asset Hub cannot alias arbitrary Kusama origins.
-pub type Aliasers = (
+/// Aliases that don't need an on-chain authorization:
+/// - origins may alias into their own children;
+/// - (Kusama) Asset Hub may hand over an origin preserved from the Polkadot side of the bridge
+///   (`InitiateTransfer { preserve_origin: true }`), as Kusama Asset Hub itself allows Polkadot
+///   Asset Hub to do. Asset Hub cannot alias arbitrary Kusama origins;
+/// - an account on a sibling system chain may alias the same account here, the counterpart of
+///   the 1:1 `AccountId32` mapping in `LocationToAccountId`.
+pub type CheapTrustedAliasers = (
 	AliasChildLocation,
 	AliasOriginRootUsingFilter<AssetHubLocation, PolkadotOrigins>,
+	AliasAccountId32FromSiblingSystemChain,
 );
+
+/// All aliases we accept: the ones above, plus those an account authorized on chain with
+/// `PolkadotXcm::add_authorized_alias` (which holds `AuthorizedAliasConsideration`).
+pub type TrustedAliasers = (CheapTrustedAliasers, pallet_xcm::AuthorizedAliasers<Runtime>);
 
 //- From PR https://github.com/paritytech/cumulus/pull/936
 fn matches_prefix(prefix: &Location, loc: &Location) -> bool {
@@ -241,12 +262,13 @@ impl<Origin: Get<Location>> ContainsPair<Asset, Location> for ReserveAssetsFrom<
 	}
 }
 
-pub struct ReserveAssetInOrigin<I, L>(PhantomData<(I, L)>);
-impl<Id: Get<Location>, Origin: Get<Location>> ContainsPair<Asset, Location> for ReserveAssetInOrigin<Id, Origin> {
-	fn contains(asset: &Asset, origin: &Location) -> bool {
-		log::trace!(target: "xcm_config::ReserveAssetInOrigin", "origin ({origin:?}) should be {:?}, and asset ({asset:?}) should be {:?}", Origin::get(), Id::get());
-		&Origin::get() == origin && matches!(&asset.id, AssetId(ref id) if id == &Id::get())
-	}
+parameter_types! {
+	/// KSM, reserved on Asset Hub since the Kusama Asset Hub migration.
+	pub KsmFromAssetHub: (AssetFilter, Location) =
+		(Wild(AllOf { id: AssetId(Ksm::get()), fun: WildFungible }), AssetHubLocation::get());
+	/// DOT, reserved on (Kusama) Asset Hub.
+	pub DotFromAssetHub: (AssetFilter, Location) =
+		(Wild(AllOf { id: AssetId(Dot::get()), fun: WildFungible }), AssetHubLocation::get());
 }
 
 pub type AssetFeeAsExistentialDepositMultiplierFeeCharger = AssetFeeAsExistentialDepositMultiplier<
@@ -268,12 +290,22 @@ pub type Traders = (
 	UsingComponents<WeightToFee, RelayLocation, AccountId, Balances, ResolveTo<TreasuryAccount, Balances>>,
 );
 
+/// Asset Hub is the only reserve we trust: for its own assets, for KSM and for DOT. KSM with
+/// the relay chain as reserve is no longer accepted (it moved to Asset Hub), nor are other
+/// chains' native tokens.
 pub type Reserves = (
-	NativeAsset,
 	ReserveAssetsFrom<AssetHubLocation>,
-	ReserveAssetInOrigin<Ksm, AssetHubLocation>,
-	ReserveAssetInOrigin<Dot, AssetHubLocation>,
+	Case<KsmFromAssetHub>,
+	Case<DotFromAssetHub>,
 );
+
+parameter_types! {
+	pub RootLocation: Location = Location::here();
+}
+
+/// Senders that pay no delivery fees: Root (governance) only. Communities can be created by
+/// anyone, so a waiver for them would hand out free outbound messages.
+pub type WaivedLocations = frame_support::traits::Equals<RootLocation>;
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -286,7 +318,7 @@ impl xcm_executor::Config for XcmConfig {
 	type IsReserve = Reserves;
 	// Teleporting is disabled.
 	type IsTeleporter = ();
-	type Aliasers = Aliasers;
+	type Aliasers = TrustedAliasers;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
 	type Weigher = WeightInfoBounds<crate::weights::xcm::KreivoXcmWeight<RuntimeCall>, RuntimeCall, MaxInstructions>;
@@ -298,7 +330,8 @@ impl xcm_executor::Config for XcmConfig {
 	type SubscriptionService = PolkadotXcm;
 	type PalletInstancesInfo = AllPalletsWithSystem;
 	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;
-	type FeeManager = ();
+	type FeeManager =
+		XcmFeeManagerFromComponents<WaivedLocations, SendXcmFeeToAccount<AssetTransactors, TreasuryAccount>>;
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type CallDispatcher = RuntimeCall;
@@ -307,7 +340,7 @@ impl xcm_executor::Config for XcmConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
-	type XcmRecorder = ();
+	type XcmRecorder = PolkadotXcm;
 }
 
 parameter_types! {
@@ -347,7 +380,7 @@ pub type CanExecuteXcmTransactions = (
 /// the right message queues.
 pub type XcmRouter = WithUniqueTopic<(
 	// Two routers - use UMP to communicate with the relay chain:
-	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, (), ()>,
+	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, PolkadotXcm, crate::config::PriceForParentDelivery>,
 	// ..and XCMP to communicate with the sibling chains.
 	XcmpQueue,
 )>;

@@ -279,10 +279,23 @@ impl_runtime_apis! {
 			<Runtime as cumulus_pallet_parachain_system::Config>::RelayParentOffset::get()
 		}
 
-		// V3 scheduling is disabled (`SchedulingSignatureVerifier = ()`); `0` is what
-		// collators assume on the V1/V2 path when the runtime doesn't provide it.
 		fn max_claim_queue_offset() -> u8 {
-			0
+			cumulus_pallet_parachain_system::Pallet::<Runtime>::max_claim_queue_offset()
+		}
+	}
+
+	impl cumulus_primitives_core::GetParachainInfo<Block> for Runtime {
+		fn parachain_id() -> ParaId {
+			ParachainInfo::parachain_id()
+		}
+	}
+
+	impl frame_support::view_functions::runtime_api::RuntimeViewFunction<Block> for Runtime {
+		fn execute_view_function(
+			id: frame_support::view_functions::ViewFunctionId,
+			input: Vec<u8>,
+		) -> Result<Vec<u8>, frame_support::view_functions::ViewFunctionDispatchError> {
+			Runtime::execute_view_function(id, input)
 		}
 	}
 
@@ -343,6 +356,37 @@ impl_runtime_apis! {
 			xcm: xcm::VersionedXcm<RuntimeCall>,
 		) -> Result<xcm_runtime_apis::dry_run::XcmDryRunEffects<RuntimeEvent>, xcm_runtime_apis::dry_run::Error> {
 			PolkadotXcm::dry_run_xcm::<xcm_config::XcmRouter>(origin_location, xcm)
+		}
+	}
+
+	impl xcm_runtime_apis::trusted_query::TrustedQueryApi<Block> for Runtime {
+		fn is_trusted_reserve(
+			asset: xcm::VersionedAsset,
+			location: xcm::VersionedLocation,
+		) -> xcm_runtime_apis::trusted_query::XcmTrustedQueryResult {
+			PolkadotXcm::is_trusted_reserve(asset, location)
+		}
+
+		fn is_trusted_teleporter(
+			asset: xcm::VersionedAsset,
+			location: xcm::VersionedLocation,
+		) -> xcm_runtime_apis::trusted_query::XcmTrustedQueryResult {
+			PolkadotXcm::is_trusted_teleporter(asset, location)
+		}
+	}
+
+	impl xcm_runtime_apis::authorized_aliases::AuthorizedAliasersApi<Block> for Runtime {
+		fn authorized_aliasers(
+			target: xcm::VersionedLocation,
+		) -> Result<Vec<xcm_runtime_apis::authorized_aliases::OriginAliaser>, xcm_runtime_apis::authorized_aliases::Error> {
+			PolkadotXcm::authorized_aliasers(target)
+		}
+
+		fn is_authorized_alias(
+			origin: xcm::VersionedLocation,
+			target: xcm::VersionedLocation,
+		) -> Result<bool, xcm_runtime_apis::authorized_aliases::Error> {
+			PolkadotXcm::is_authorized_alias(origin, target)
 		}
 	}
 

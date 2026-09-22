@@ -23,10 +23,8 @@ pub use {
 	governance::{pallet_custom_origins, TreasuryAccount},
 	payments::pallet_payment_indices,
 	system::{RelaychainData, RuntimeBlockWeights},
+	xcm::PriceForParentDelivery,
 };
 
 #[cfg(feature = "runtime-benchmarks")]
-pub use {
-	currency::{ExistentialDeposit, TransactionByteFee},
-	xcm::PriceForParentDelivery,
-};
+pub use currency::ExistentialDeposit;

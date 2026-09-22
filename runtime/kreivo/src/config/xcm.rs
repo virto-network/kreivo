@@ -2,14 +2,17 @@ use super::*;
 
 use frame_support::traits::TransformOrigin;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
-use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
+use polkadot_runtime_common::xcm_sender::ExponentialPrice;
+
+use super::currency::TransactionByteFee;
 
 // #[runtime::pallet_index(30)]
 // pub type XcmpQueue
 impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ChannelInfo = ParachainSystem;
-	type VersionWrapper = ();
+	// Wrap outgoing messages in the XCM version each destination supports.
+	type VersionWrapper = PolkadotXcm;
 	// Enqueue XCMP messages from siblings for later processing.
 	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
 	type MaxInboundSuspended = ConstU32<1_000>;
@@ -22,7 +25,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type MaxPageSize = ConstU32<{ 103 * 1024 }>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	type PriceForSiblingDelivery = NoPriceForMessageDelivery<ParaId>;
+	type PriceForSiblingDelivery = PriceForSiblingDelivery;
 	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Self>;
 }
 
@@ -54,19 +57,21 @@ impl pallet_message_queue::Config for Runtime {
 	type IdleMaxServiceWeight = ();
 }
 
-// XcmSender
-#[cfg(feature = "runtime-benchmarks")]
+// Message delivery fees, as the fellowship system chains price them: a base fee plus a
+// per-byte fee, both in KSM and scaled up exponentially while the channel is congested.
+// The base fees are the fellowship's, 3 CENTS. Only Root doesn't pay them; see
+// `WaivedLocations` in `xcm_config.rs`.
 parameter_types! {
-	/// The asset ID for the asset that we use to pay for message delivery fees.
+	/// The asset used to pay message delivery fees.
 	pub FeeAssetId: cumulus_primitives_core::AssetId = xcm_config::RelayLocation::get().into();
-	/// The base fee for the message delivery fees.
+	/// The base fee for messages to the relay chain.
 	pub const ToParentBaseDeliveryFee: u128 = CENTS.saturating_mul(3);
+	/// The base fee for messages to sibling parachains.
+	pub const ToSiblingBaseDeliveryFee: u128 = CENTS.saturating_mul(3);
 }
 
-#[cfg(feature = "runtime-benchmarks")]
-pub type PriceForParentDelivery = polkadot_runtime_common::xcm_sender::ExponentialPrice<
-	FeeAssetId,
-	ToParentBaseDeliveryFee,
-	TransactionByteFee,
-	ParachainSystem,
->;
+pub type PriceForParentDelivery =
+	ExponentialPrice<FeeAssetId, ToParentBaseDeliveryFee, TransactionByteFee, ParachainSystem>;
+
+pub type PriceForSiblingDelivery =
+	ExponentialPrice<FeeAssetId, ToSiblingBaseDeliveryFee, TransactionByteFee, XcmpQueue>;
