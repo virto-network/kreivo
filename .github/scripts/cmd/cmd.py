@@ -87,6 +87,9 @@ parser_bench.add_argument('--pallet', help='Pallet(s) space separated', nargs='*
 parser_bench.add_argument('--dry-run', action='store_true',
                           help='Build the runtime(s) and print which pallets would be benchmarked, and where their '
                                'weights would be written, without running the benchmarks')
+# Used by the bot, which builds the runtime and runs the benchmarks on different machines: the
+# benchmarking runner has no Rust toolchain, and takes the runtime it was handed.
+parser_bench.add_argument('--runtime-wasm', help=argparse.SUPPRESS, default=None)
 
 """
 FMT
@@ -96,7 +99,13 @@ for arg, config in common_args.items():
     parser_fmt.add_argument(arg, **config)
 
 
+# Set from `--runtime-wasm`: a runtime that was built elsewhere, used instead of building one.
+PREBUILT_WASM = None
+
+
 def wasm_path(config):
+    if PREBUILT_WASM:
+        return PREBUILT_WASM
     package = config['package']
     target_dir = os.environ.get('CARGO_TARGET_DIR') or 'target'
     return f"{target_dir}/{PROFILE}/wbuild/{package}/{package.replace('-', '_')}.compact.compressed.wasm"
@@ -175,6 +184,7 @@ def main():
         sys.exit(1)
 
     if args.command == 'bench':
+        global PREBUILT_WASM
         runtime_pallets_map = {}
         failed_benchmarks = {}
         successful_benchmarks = {}
@@ -183,9 +193,19 @@ def main():
         runtimes = {x['name']: x for x in runtimesMatrix if x['name'] in args.runtime}
         print(f'Filtered out runtimes: {list(runtimes)}')
 
+        if args.runtime_wasm:
+            if len(runtimes) != 1:
+                print(f'--runtime-wasm is a single runtime, but {len(runtimes)} were selected: {list(runtimes)}')
+                sys.exit(1)
+            PREBUILT_WASM = os.path.abspath(args.runtime_wasm)
+            if not os.path.isfile(PREBUILT_WASM):
+                print(f'No runtime at {PREBUILT_WASM}')
+                sys.exit(1)
+            print(f'-- using the runtime at {PREBUILT_WASM}, not building one')
+
         # loop over remaining runtimes to collect available pallets
         for config in runtimes.values():
-            if not build_runtime(config):
+            if not PREBUILT_WASM and not build_runtime(config):
                 print(f"Failed to build {config['name']}")
                 sys.exit(1)
             print(f'-- listing pallets for benchmark for {config["name"]}', flush=True)
