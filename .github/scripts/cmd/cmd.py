@@ -98,7 +98,8 @@ for arg, config in common_args.items():
 
 def wasm_path(config):
     package = config['package']
-    return f"target/{PROFILE}/wbuild/{package}/{package.replace('-', '_')}.compact.compressed.wasm"
+    target_dir = os.environ.get('CARGO_TARGET_DIR') or 'target'
+    return f"{target_dir}/{PROFILE}/wbuild/{package}/{package.replace('-', '_')}.compact.compressed.wasm"
 
 
 def build_runtime(config):
