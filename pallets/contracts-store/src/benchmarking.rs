@@ -7,7 +7,7 @@ use parity_scale_codec::HasCompact;
 use sp_runtime::traits::{Bounded, EnsureDiv, Hash};
 
 fn assert_has_event<T: frame_system::Config>(generic_event: T::RuntimeEvent) {
-	frame_system::Pallet::<T>::assert_has_event(generic_event.into());
+	frame_system::Pallet::<T>::assert_has_event(generic_event);
 }
 
 fn mock_upload_code<T: Config>(app_info: &mut AppInfoFor<T>, _: &AccountIdOf<T>, code: Vec<u8>) -> DispatchResult {

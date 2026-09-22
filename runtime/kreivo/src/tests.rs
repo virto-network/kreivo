@@ -224,69 +224,151 @@ fn ensure_asset_creation_when_depositing_nonexisting_assets_works() {
 }
 
 #[test]
-fn ensure_asset_max_size_is_64_bits() {
+fn fungible_asset_location_encoded_sizes() {
 	let asset_id = FungibleAssetLocation::Here(u32::MAX);
-	let encoded = asset_id.encode();
-	assert!(encoded.len() <= 8);
+	assert_eq!(asset_id.encode().len(), 5);
 
 	let asset_id = FungibleAssetLocation::Sibling(virto_common::Para {
 		id: u16::MAX,
 		pallet: u8::MAX,
 		index: u32::MAX,
 	});
-	let encoded = asset_id.encode();
-	assert!(encoded.len() <= 8);
+	assert_eq!(asset_id.encode().len(), 8);
 
-	let asset_id = FungibleAssetLocation::PolkadotNativeDOT;
-	let encoded = asset_id.encode();
-	assert!(encoded.len() <= 8);
+	// DOT, as stored on chain: `02 00 00`.
+	let asset_id = FungibleAssetLocation::External {
+		network: virto_common::NetworkId::Polkadot,
+		child: None,
+	};
+	assert_eq!(asset_id.encode(), alloc::vec![2, 0, 0]);
 
-	let asset_id = FungibleAssetLocation::PolkadotParachainAsset(virto_common::Para {
-		id: u16::MAX,
-		pallet: u8::MAX,
-		index: u32::MAX,
-	});
-	let encoded = asset_id.encode();
-	assert!(encoded.len() <= 8);
+	// An external *parachain* asset takes 10 bytes with this shape. Shrinking it (as #472 did)
+	// changes the DOT id's encoding, which would need a storage migration for the `Assets` keys.
+	let asset_id = FungibleAssetLocation::External {
+		network: virto_common::NetworkId::Polkadot,
+		child: Some(virto_common::Para {
+			id: u16::MAX,
+			pallet: u8::MAX,
+			index: u32::MAX,
+		}),
+	};
+	assert_eq!(asset_id.encode().len(), 10);
 }
 
-#[test]
-fn fungible_asset_location_as_u64_try_from_round_trip() {
-	let asset = FungibleAssetLocation::Here(42);
-	let u64_val = asset.as_u64();
-	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
-	assert_eq!(asset, back);
+/// Helpers to drive `pallet_pass` from a test.
+mod pass {
+	use super::*;
 
-	let asset = FungibleAssetLocation::Sibling(virto_common::Para {
-		id: 1000,
-		pallet: 50,
-		index: 42,
-	});
-	let u64_val = asset.as_u64();
-	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
-	assert_eq!(asset, back);
+	use frame_contrib_traits::authn::{util::AuthorityFromPalletId, Challenger};
+	use frame_support::pallet_prelude::*;
+	use pass_substrate_keys::{KeyRegistration, SignedMessage};
+	use sp_core::{sr25519, Pair};
+	use sp_runtime::MultiSignature;
 
-	let asset = FungibleAssetLocation::PolkadotNativeDOT;
-	let u64_val = asset.as_u64();
-	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
-	assert_eq!(asset, back);
+	pub use frame_contrib_traits::authn::{DeviceId, HashedUserId};
 
-	let asset = FungibleAssetLocation::PolkadotParachainAsset(virto_common::Para {
-		id: 2000,
-		pallet: 10,
-		index: 100,
-	});
-	let u64_val = asset.as_u64();
-	let back = FungibleAssetLocation::try_from(u64_val).unwrap();
-	assert_eq!(asset, back);
+	use crate::{
+		config::system::{KreivoChallenger, PassDeviceAttestation, PassPalletId},
+		BlockNumber, System,
+	};
+
+	/// Builds a valid `SubstrateKey` device attestation for `pass_account`.
+	pub fn attestation(pass_account: &AccountId, seed: [u8; 32]) -> (PassDeviceAttestation, DeviceId) {
+		let pair = sr25519::Pair::from_seed(&seed);
+		let context: BlockNumber = System::block_number();
+		// `pallet_pass` uses the pass account's encoding as the extrinsic context.
+		let xtc = pass_account.encode();
+
+		let message = SignedMessage {
+			context,
+			challenge: KreivoChallenger::generate(&context, &xtc),
+			authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
+		};
+		let public = AccountId::new(pair.public().0);
+		let signature = MultiSignature::Sr25519(pair.sign(message.message().as_ref()));
+		let device_id = *AsRef::<[u8; 32]>::as_ref(&public);
+
+		(
+			PassDeviceAttestation::SubstrateKey(KeyRegistration {
+				public,
+				message,
+				signature,
+			}),
+			device_id,
+		)
+	}
+
+	/// The address `pallet_pass` derives for a given user id.
+	pub fn account(user: HashedUserId) -> AccountId {
+		<() as pallet_pass::AddressGenerator<Runtime, ()>>::generate_address(user)
+	}
 }
 
+/// A pass account keeps its first two devices without a deposit; the third one is charged.
 #[test]
-fn fungible_asset_location_try_from_invalid() {
-	// Here we test invalid values that should not be able to be decoded into a valid
-	let invalid_u64 = 4u64;
-	assert!(FungibleAssetLocation::try_from(invalid_u64).is_err());
+fn pass_accounts_hold_two_devices_for_free() {
+	use frame_support::traits::fungible::InspectHold;
 
-	let invalid_u64 = u64::from_le_bytes([255, 0, 0, 0, 0, 0, 0, 0]);
-	assert!(FungibleAssetLocation::try_from(invalid_u64).is_err());
+	use super::{config::system::AccountDevicesReason, Pass};
+
+	TestExternalities::default().execute_with(|| {
+		const ALICE: AccountId32 = AccountId32::new([1; 32]);
+		assert_ok!(Balances::mint_into(&ALICE, UNITS));
+
+		let account = pass::account([1u8; 32]);
+		let (first, _) = pass::attestation(&account, [10u8; 32]);
+		assert_ok!(Pass::register(RuntimeOrigin::signed(ALICE), [1u8; 32], first));
+		assert_ok!(Balances::mint_into(&account, UNITS));
+
+		let held = || Balances::balance_on_hold(&AccountDevicesReason::get(), &account);
+
+		let (second, _) = pass::attestation(&account, [11u8; 32]);
+		assert_ok!(Pass::add_device(RuntimeOrigin::signed(account.clone()), second));
+		assert_eq!(held(), 0, "the first two devices are free");
+
+		let (third, _) = pass::attestation(&account, [12u8; 32]);
+		assert_ok!(Pass::add_device(RuntimeOrigin::signed(account.clone()), third));
+		assert!(held() > 0, "the third device is charged");
+	})
+}
+
+/// Fees as pallet-revive's `BlockRatioFee` computed them before pallet-revive was removed:
+/// the local copy must charge exactly the same.
+#[test]
+fn weight_to_fee_is_unchanged_without_pallet_revive() {
+	use frame_support::weights::{constants::ExtrinsicBaseWeight, Weight, WeightToFee as _};
+
+	#[cfg(not(feature = "paseo"))]
+	let fees = [0, 30_819_395, 1_175_666_627, 587_833_313, 58_783_331_357, 3_333_333];
+	// Paseo prices in its own `CENTS`.
+	#[cfg(feature = "paseo")]
+	let fees = [0, 9_245_818, 352_699_988, 176_349_994, 17_634_999_425, 1_000_000];
+
+	for (weight, fee) in [
+		Weight::from_parts(0, 0),
+		Weight::from_parts(1_000_000_000, 0),
+		Weight::from_parts(0, 100_000),
+		Weight::from_parts(250_000_000, 50_000),
+		Weight::from_parts(1_000_000_000, 5_000_000),
+		ExtrinsicBaseWeight::get(),
+	]
+	.into_iter()
+	.zip(fees)
+	{
+		assert_eq!(crate::WeightToFee::weight_to_fee(&weight), fee, "{weight:?}");
+	}
+}
+
+/// `RuntimeBlockLength` is built as `BlockLength::max_with_normal_ratio` built it, before that
+/// was deprecated.
+#[test]
+fn block_length_is_unchanged() {
+	use parachains_common::NORMAL_DISPATCH_RATIO;
+
+	#[allow(deprecated)]
+	let before = frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	assert_eq!(
+		crate::config::system::RuntimeBlockLength::get().encode(),
+		before.encode()
+	);
 }

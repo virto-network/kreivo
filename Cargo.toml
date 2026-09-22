@@ -16,7 +16,6 @@ debug = 0
 [workspace.package]
 authors = ['Virto Team <contact@virto.team>']
 edition = "2021"
-homepage = 'https://github.com/virto-network/kreivo'
 license = "GPL-3.0-only"
 repository = 'https://github.com/virto-network/kreivo'
 
@@ -29,7 +28,6 @@ twox-hash = { version = "2.1.2", default-features = false }
 num_enum = { version = "0.7.3", default-features = false }
 
 clap = { version = "4.5.48" }
-hex-literal = { version = "1.0.0" }
 log = { version = "0.4.28" }
 parity-scale-codec = { version = "3.6.4", default-features = false, features = [
   "derive",
@@ -37,11 +35,9 @@ parity-scale-codec = { version = "3.6.4", default-features = false, features = [
 scale-info = { version = "2.10.0", default-features = false, features = [
   "derive",
 ] }
-rand_core = { version = "0.6.4", default-features = false }
 serde = { version = "1.0.228", default-features = false }
 serde_json = { version = "1.0.145", default-features = false }
 smallvec = "1.11"
-schnorrkel = { version = "0.11.4", default-features = false }
 
 # Local dependencies
 kreivo-runtime = { path = "runtime/kreivo" }
@@ -57,115 +53,110 @@ runtime-constants = { default-features = false, path = "runtime/runtime-constant
 runtime-common = { default-features = false, path = "runtime/common" }
 
 # Frame Contrib
-frame-contrib-traits = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
-mock-helpers = { git = "https://github.com/virto-network/frame-contrib", default-features = false }
+frame-contrib-traits = { version = "2.2.0", default-features = false }
+mock-helpers = { version = "2.2.0", default-features = false, package = "fc-mock-helpers" }
 
-pallet-communities = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-communities" }
-pallet-gas-transaction-payment = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-gas-transaction-payment" }
-pallet-listings = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-listings" }
-pallet-orders = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-orders" }
-pallet-payments = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-payments" }
-pallet-pass = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-pass" }
-pallet-referenda-tracks = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-referenda-tracks" }
-pallet-black-hole = { git = "https://github.com/virto-network/frame-contrib", default-features = false, package = "fc-pallet-black-hole" }
+pallet-communities = { version = "2.2.0", default-features = false, package = "fc-pallet-communities" }
+pallet-gas-transaction-payment = { version = "2.2.0", default-features = false, package = "fc-pallet-gas-transaction-payment" }
+pallet-listings = { version = "2.2.0", default-features = false, package = "fc-pallet-listings" }
+pallet-orders = { version = "2.2.0", default-features = false, package = "fc-pallet-orders" }
+pallet-payments = { version = "2.2.0", default-features = false, package = "fc-pallet-payments" }
+pallet-pass = { version = "2.2.0", default-features = false, package = "fc-pallet-pass" }
+pallet-referenda-tracks = { version = "2.2.0", default-features = false, package = "fc-pallet-referenda-tracks" }
+pallet-black-hole = { version = "2.2.0", default-features = false, package = "fc-pallet-black-hole" }
 
 # Pass Authenticators
-pass-webauthn = { git = "https://github.com/virto-network/pass-authenticators", default-features = false, package = "pass-authenticators-webauthn" }
-pass-substrate-keys = { git = "https://github.com/virto-network/pass-authenticators", default-features = false, package = "pass-authenticators-substrate-keys" }
+pass-webauthn = { version = "1.0.0", default-features = false, package = "pass-authenticators-webauthn" }
+pass-substrate-keys = { version = "1.0.0", default-features = false, package = "pass-authenticators-substrate-keys" }
 
 # Substrate std
-pallet-transaction-payment-rpc = { version = "48.0.0" }
-sc-chain-spec = { version = "48.0.0" }
-sp-consensus = { version = "0.46.0" }
+sc-chain-spec = { version = "52.0.0" }
 
 # Substrate non-std
-frame-benchmarking = { version = "45.0.3", default-features = false }
-sp-api = { version = "40.0.0", default-features = false }
-sp-block-builder = { version = "40.0.0", default-features = false }
-sp-consensus-aura = { version = "0.46.0", default-features = false }
-sp-core = { version = "39.0.0", default-features = false }
-sp-io = { version = "44.0.0", default-features = false }
-sp-offchain = { version = "40.0.0", default-features = false }
-sp-session = { version = "42.0.0", default-features = false }
-sp-transaction-pool = { version = "40.0.0", default-features = false }
+frame-benchmarking = { version = "49.0.0", default-features = false }
+sp-api = { version = "43.0.0", default-features = false }
+sp-block-builder = { version = "43.0.0", default-features = false }
+sp-consensus-aura = { version = "0.49.0", default-features = false }
+sp-core = { version = "43.0.0", default-features = false }
+sp-io = { version = "48.0.0", default-features = false }
+sp-offchain = { version = "43.0.0", default-features = false }
+sp-session = { version = "45.0.0", default-features = false }
+sp-transaction-pool = { version = "43.0.0", default-features = false }
 
 # Substrate Runtime
-sp-genesis-builder = { version = "0.21.0", default-features = false }
-sp-inherents = { version = "40.0.0", default-features = false }
-sp-runtime = { version = "45.0.0", default-features = false }
-sp-version = { version = "43.0.0", default-features = false }
-sp-weights = { version = "33.2.0", default-features = false }
+sp-genesis-builder = { version = "0.24.0", default-features = false }
+sp-inherents = { version = "43.0.0", default-features = false }
+sp-runtime = { version = "48.0.0", default-features = false }
+sp-version = { version = "46.0.0", default-features = false }
+sp-weights = { version = "36.0.0", default-features = false }
 
 # Build Dependencies
-substrate-wasm-builder = { version = "31.1.0" }
+substrate-wasm-builder = { version = "34.0.1" }
 parity-wasm = { version = "0.45.0" }
 
 ## FRAME Dependencies
-frame-executive = { version = "45.0.1", default-features = false }
-frame-support = { version = "45.1.0", default-features = false }
-frame-system = { version = "45.0.0", default-features = false }
-frame-system-benchmarking = { version = "45.0.0", default-features = false }
-frame-system-rpc-runtime-api = { version = "40.0.0", default-features = false }
-frame-try-runtime = { version = "0.51.0", default-features = false }
+frame-executive = { version = "48.0.0", default-features = false }
+frame-support = { version = "48.1.0", default-features = false }
+frame-system = { version = "48.0.0", default-features = false }
+frame-system-benchmarking = { version = "49.0.0", default-features = false }
+frame-system-rpc-runtime-api = { version = "43.0.0", default-features = false }
+frame-try-runtime = { version = "0.54.0", default-features = false }
 
 ## FRAME Pallets
-pallet-asset-tx-payment = { version = "45.0.0", default-features = false }
-pallet-assets = { version = "48.1.0", default-features = false }
-pallet-assets-freezer = { version = "0.13.0", default-features = false }
-pallet-assets-holder = { version = "0.8.0", default-features = false }
-pallet-aura = { version = "44.0.0", default-features = false }
-pallet-authorship = { version = "45.0.0", default-features = false }
-pallet-balances = { version = "46.0.0", default-features = false }
-pallet-contracts = { version = "45.0.1", default-features = false }
+pallet-asset-tx-payment = { version = "49.0.0", default-features = false }
+pallet-assets = { version = "53.0.0", default-features = false }
+pallet-assets-freezer = { version = "0.18.0", default-features = false }
+pallet-assets-holder = { version = "0.13.0", default-features = false }
+pallet-aura = { version = "48.0.0", default-features = false }
+pallet-authorship = { version = "48.0.0", default-features = false }
+pallet-balances = { version = "50.0.0", default-features = false }
+pallet-contracts = { version = "49.0.0", default-features = false }
 pallet-contracts-fixtures = { path = "pallets/contracts-store/fixtures", default-features = false }
-pallet-multisig = { version = "45.0.0", default-features = false }
-pallet-nfts = { version = "39.0.0", default-features = false }
-pallet-preimage = { version = "45.0.0", default-features = false }
-pallet-proxy = { version = "45.0.0", default-features = false }
-pallet-ranked-collective = { version = "45.0.0", default-features = false }
-pallet-referenda = { version = "45.0.0", default-features = false }
-pallet-scheduler = { version = "46.0.0", default-features = false }
-pallet-session = { version = "45.1.0", default-features = false }
-pallet-skip-feeless-payment = { version = "20.0.0", default-features = false }
-pallet-sudo = { version = "45.0.0", default-features = false }
-pallet-timestamp = { version = "44.0.0", default-features = false }
-pallet-transaction-payment = { version = "45.0.0", default-features = false }
-pallet-transaction-payment-rpc-runtime-api = { version = "45.0.0", default-features = false }
-pallet-treasury = { version = "44.0.0", default-features = false }
-pallet-utility = { version = "45.0.0", default-features = false }
-pallet-vesting = { version = "45.0.0", default-features = false }
-pallet-revive = { version = "0.12.2", default-features = false }
+pallet-multisig = { version = "49.0.0", default-features = false }
+pallet-nfts = { version = "43.0.0", default-features = false }
+pallet-preimage = { version = "49.0.0", default-features = false }
+pallet-proxy = { version = "49.0.0", default-features = false }
+pallet-ranked-collective = { version = "49.0.0", default-features = false }
+pallet-referenda = { version = "49.0.0", default-features = false }
+pallet-scheduler = { version = "50.0.0", default-features = false }
+pallet-session = { version = "49.0.0", default-features = false }
+pallet-skip-feeless-payment = { version = "23.0.0", default-features = false }
+pallet-timestamp = { version = "48.0.0", default-features = false }
+pallet-transaction-payment = { version = "49.0.0", default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { version = "49.0.0", default-features = false }
+pallet-treasury = { version = "48.0.0", default-features = false }
+pallet-utility = { version = "49.0.1", default-features = false }
+pallet-vesting = { version = "49.0.0", default-features = false }
 
 # Cumulus client dependencies
-cumulus-primitives-aura = { version = "0.21.0", default-features = false }
+cumulus-primitives-aura = { version = "0.24.0", default-features = false }
 
 # Cumulus runtime dependencies
-assets-common = { version = "0.27.1", default-features = false }
-cumulus-pallet-aura-ext = { version = "0.25.0", default-features = false }
-cumulus-pallet-parachain-system = { version = "0.25.0", default-features = false }
-cumulus-pallet-session-benchmarking = { version = "26.0.0", default-features = false }
-cumulus-pallet-xcm = { version = "0.24.0", default-features = false }
-cumulus-pallet-xcmp-queue = { version = "0.25.0", default-features = false }
-cumulus-primitives-core = { version = "0.23.0", default-features = false }
-cumulus-primitives-timestamp = { version = "0.24.0", default-features = false }
-cumulus-primitives-utility = { version = "0.25.0", default-features = false }
-pallet-collator-selection = { version = "26.0.0", default-features = false }
-pallet-message-queue = { version = "48.0.0", default-features = false }
-parachain-info = { version = "0.25.0", package = "staging-parachain-info", default-features = false }
-parachains-common = { version = "27.1.0", default-features = false }
+assets-common = { version = "0.37.0", default-features = false }
+cumulus-pallet-aura-ext = { version = "0.30.0", default-features = false }
+cumulus-pallet-parachain-system = { version = "0.30.0", default-features = false }
+cumulus-pallet-session-benchmarking = { version = "30.0.0", default-features = false }
+cumulus-pallet-xcm = { version = "0.27.0", default-features = false }
+cumulus-pallet-xcmp-queue = { version = "0.32.0", default-features = false }
+cumulus-primitives-core = { version = "0.26.0", default-features = false }
+cumulus-primitives-utility = { version = "0.32.0", default-features = false }
+pallet-collator-selection = { version = "30.0.0", default-features = false }
+pallet-message-queue = { version = "52.0.0", default-features = false }
+parachain-info = { version = "0.28.0", package = "staging-parachain-info", default-features = false }
+parachains-common = { version = "36.0.0", default-features = false }
 
 # Polkadot
-polkadot-primitives = { version = "22.0.0", default-features = false }
+polkadot-primitives = { version = "25.0.0", default-features = false }
 
 # Polkadot Dependencies
-pallet-xcm = { version = "25.0.0", default-features = false }
-pallet-xcm-benchmarks = { version = "25.0.0", default-features = false }
-polkadot-core-primitives = { version = "21.0.0", default-features = false }
-polkadot-parachain-primitives = { version = "20.0.0", default-features = false }
-polkadot-runtime-common = { version = "24.0.0", default-features = false }
-xcm = { version = "21.0.0", package = "staging-xcm", default-features = false }
-xcm-builder = { version = "25.0.0", package = "staging-xcm-builder", default-features = false }
-xcm-executor = { version = "24.0.1", package = "staging-xcm-executor", default-features = false }
+pallet-xcm = { version = "29.1.0", default-features = false }
+pallet-xcm-benchmarks = { version = "29.0.0", default-features = false }
+polkadot-core-primitives = { version = "24.0.0", default-features = false }
+polkadot-parachain-primitives = { version = "23.0.0", default-features = false }
+polkadot-runtime-common = { version = "31.0.0", default-features = false }
+xcm = { version = "24.1.0", package = "staging-xcm", default-features = false }
+xcm-builder = { version = "29.0.1", package = "staging-xcm-builder", default-features = false }
+xcm-executor = { version = "28.0.1", package = "staging-xcm-executor", default-features = false }
 
 # ink!
 ink = { version = "5.1.1", default-features = false }

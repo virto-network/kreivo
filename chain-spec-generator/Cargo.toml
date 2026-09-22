@@ -2,7 +2,6 @@
 authors.workspace = true
 description = "Chain Spec Generator for Kreivo"
 edition.workspace = true
-homepage.workspace = true
 license.workspace = true
 name = "chain-spec-generator"
 repository.workspace = true
@@ -17,3 +16,6 @@ sc-chain-spec.workspace = true
 [features]
 runtime-benchmarks = ["kreivo-runtime/runtime-benchmarks"]
 paseo = ["kreivo-runtime/paseo"]
+
+[lints]
+workspace = true

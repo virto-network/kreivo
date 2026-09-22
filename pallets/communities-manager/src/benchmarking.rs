@@ -16,7 +16,7 @@ fn block_weight<T: frame_system::Config>() -> Weight {
 }
 
 fn assert_has_event<T: frame_system::Config>(generic_event: T::RuntimeEvent) {
-	frame_system::Pallet::<T>::assert_has_event(generic_event.into());
+	frame_system::Pallet::<T>::assert_has_event(generic_event);
 }
 
 fn setup_account<T: Config>(who: &AccountIdOf<T>) -> DispatchResult

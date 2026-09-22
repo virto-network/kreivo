@@ -2,7 +2,6 @@
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
-homepage.workspace = true
 name = "runtime-constants"
 repository.workspace = true
 version = "1.0.0"
@@ -39,3 +38,6 @@ std = [
   "parachains-common/std",
   "xcm/std",
 ]
+
+[lints]
+workspace = true

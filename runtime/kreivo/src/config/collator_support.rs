@@ -87,7 +87,7 @@ impl pallet_aura::Config for Runtime {
 // pub type AuraExt
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
-pub(crate) use runtime_constants::async_backing_params::*;
+use runtime_constants::async_backing_params::{BLOCK_PROCESSING_VELOCITY, UNINCLUDED_SEGMENT_CAPACITY};
 
 /// Aura consensus hook
 pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
@@ -98,4 +98,10 @@ pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
 >;
 
 #[cfg(feature = "runtime-benchmarks")]
-impl cumulus_pallet_session_benchmarking::Config for Runtime {}
+impl cumulus_pallet_session_benchmarking::Config for Runtime {
+	fn generate_session_keys_and_proof(owner: AccountId) -> (SessionKeys, Vec<u8>) {
+		use parity_scale_codec::Encode;
+		let generated = SessionKeys::generate(&owner.encode(), None);
+		(generated.keys, generated.proof.encode())
+	}
+}

@@ -2,7 +2,6 @@
 authors.workspace = true
 description = "Kreivo Runtime"
 edition.workspace = true
-homepage.workspace = true
 license.workspace = true
 name = "kreivo-runtime"
 repository.workspace = true
@@ -15,14 +14,11 @@ targets = ["x86_64-unknown-linux-gnu"]
 substrate-wasm-builder.workspace = true
 
 [dependencies]
-hex-literal = { workspace = true, optional = true }
 log.workspace = true
 parity-scale-codec = { workspace = true, features = ["derive"] }
 scale-info = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["alloc"] }
 smallvec.workspace = true
-schnorrkel = { workspace = true, optional = true, features = ["alloc"] }
-rand_core = { workspace = true, optional = true }
 
 # Local
 kreivo-apis = { workspace = true, features = ["runtime"] }
@@ -60,11 +56,9 @@ pallet-preimage.workspace = true
 pallet-proxy.workspace = true
 pallet-ranked-collective.workspace = true
 pallet-referenda.workspace = true
-pallet-revive.workspace = true
 pallet-scheduler.workspace = true
 pallet-session.workspace = true
 pallet-skip-feeless-payment.workspace = true
-pallet-sudo.workspace = true
 pallet-timestamp.workspace = true
 pallet-transaction-payment.workspace = true
 pallet-transaction-payment-rpc-runtime-api.workspace = true
@@ -104,7 +98,6 @@ cumulus-pallet-xcm.workspace = true
 cumulus-pallet-xcmp-queue.workspace = true
 cumulus-primitives-aura.workspace = true
 cumulus-primitives-core.workspace = true
-cumulus-primitives-timestamp.workspace = true
 cumulus-primitives-utility.workspace = true
 pallet-collator-selection.workspace = true
 pallet-message-queue.workspace = true
@@ -139,7 +132,6 @@ std = [
   "cumulus-pallet-xcmp-queue/std",
   "cumulus-primitives-aura/std",
   "cumulus-primitives-core/std",
-  "cumulus-primitives-timestamp/std",
   "cumulus-primitives-utility/std",
   "frame-benchmarking/std",
   "frame-executive/std",
@@ -172,11 +164,9 @@ std = [
   "pallet-ranked-collective/std",
   "pallet-referenda/std",
   "pallet-referenda-tracks/std",
-  "pallet-revive/std",
   "pallet-scheduler/std",
   "pallet-session/std",
   "pallet-skip-feeless-payment/std",
-  "pallet-sudo/std",
   "pallet-timestamp/std",
   "pallet-transaction-payment-rpc-runtime-api/std",
   "pallet-transaction-payment/std",
@@ -218,8 +208,6 @@ std = [
   "frame-contrib-traits/std",
   "pallet-contracts-store/std",
   "pass-substrate-keys/std",
-  "rand_core?/std",
-  "schnorrkel?/std",
   "pallet-black-hole/std",
 ]
 
@@ -234,7 +222,6 @@ runtime-benchmarks = [
   "frame-support/runtime-benchmarks",
   "frame-system-benchmarking/runtime-benchmarks",
   "frame-system/runtime-benchmarks",
-  "hex-literal",
   "pallet-assets-freezer/runtime-benchmarks",
   "pallet-asset-tx-payment/runtime-benchmarks",
   "pallet-assets/runtime-benchmarks",
@@ -254,10 +241,8 @@ runtime-benchmarks = [
   "pallet-ranked-collective/runtime-benchmarks",
   "pallet-referenda/runtime-benchmarks",
   "pallet-referenda-tracks/runtime-benchmarks",
-  "pallet-revive/runtime-benchmarks",
   "pallet-scheduler/runtime-benchmarks",
   "pallet-skip-feeless-payment/runtime-benchmarks",
-  "pallet-sudo/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
   "pallet-treasury/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
@@ -266,10 +251,10 @@ runtime-benchmarks = [
   "parachains-common/runtime-benchmarks",
   "polkadot-parachain-primitives/runtime-benchmarks",
   "polkadot-runtime-common/runtime-benchmarks",
-  "rand_core",
   "runtime-common/runtime-benchmarks",
-  "schnorrkel",
   "frame-contrib-traits/runtime-benchmarks",
+  "pass-substrate-keys/runtime-benchmarks",
+  "pass-webauthn/runtime-benchmarks",
   "pallet-assets-holder/runtime-benchmarks",
   "pallet-black-hole/runtime-benchmarks",
   "pallet-contracts-store/runtime-benchmarks",
@@ -322,11 +307,9 @@ try-runtime = [
   "pallet-ranked-collective/try-runtime",
   "pallet-referenda/try-runtime",
   "pallet-referenda-tracks/try-runtime",
-  "pallet-revive/try-runtime",
   "pallet-scheduler/try-runtime",
   "pallet-session/try-runtime",
   "pallet-skip-feeless-payment/try-runtime",
-  "pallet-sudo/try-runtime",
   "pallet-timestamp/try-runtime",
   "pallet-transaction-payment/try-runtime",
   "pallet-treasury/try-runtime",
@@ -342,3 +325,6 @@ try-runtime = [
   "sp-runtime/try-runtime",
   "runtime-constants/try-runtime"
 ]
+
+[lints]
+workspace = true

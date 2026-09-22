@@ -20,7 +20,6 @@ use super::*;
 use core::cmp::Ordering;
 use frame_support::traits::{Contains, InstanceFilter, PrivilegeCmp};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
-use sp_runtime::RuntimeDebug;
 
 pub struct RuntimeBlackListedCalls;
 impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
@@ -47,12 +46,14 @@ impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 	Encode,
 	Decode,
 	DecodeWithMemTracking,
-	RuntimeDebug,
+	Debug,
 	MaxEncodedLen,
 	scale_info::TypeInfo,
+	Default,
 )]
 pub enum ProxyType {
 	/// Fully permissioned proxy. Can execute any call on behalf of _proxied_.
+	#[default]
 	Any,
 	/// Can execute any call that does not transfer funds or assets.
 	NonTransfer,
@@ -68,11 +69,6 @@ pub enum ProxyType {
 	/// Collator selection proxy. Can execute calls related to collator
 	/// selection mechanism.
 	Collator,
-}
-impl Default for ProxyType {
-	fn default() -> Self {
-		Self::Any
-	}
 }
 
 impl InstanceFilter<RuntimeCall> for ProxyType {

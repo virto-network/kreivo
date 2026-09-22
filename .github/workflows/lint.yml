@@ -46,3 +46,39 @@ jobs:
           toolchain: ${{ env.NIGHTLY_VERSION }}
           command: fmt
           args: --all -- --check
+
+  pinned-git-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure git dependencies are pinned
+        run: |
+          # A git dependency without `tag`/`rev` only stays pinned while Cargo.lock
+          # does: any `cargo update` silently moves the runtime to another commit,
+          # SDK version or pallet API (metadata drift). frame-contrib should come
+          # from crates.io; any git use of it must be pinned like the rest.
+          unpinned="$(git grep -nE '^[^#]*git *= *"' -- '*Cargo.toml' | grep -vE '(tag|rev) *= *"' || true)"
+          if [ -n "$unpinned" ]; then
+            echo "$unpinned" | while IFS=: read -r file line _; do
+              echo "::error file=$file,line=$line::git dependency must be pinned with tag or rev"
+            done
+            exit 1
+          fi
+
+      - name: Ensure any git-sourced frame-contrib is one tagged commit
+        run: |
+          repo=https://github.com/virto-network/frame-contrib
+          commits="$(grep -oE "git\+$repo[^#\"]*#[0-9a-f]{40}" Cargo.lock | sed 's/.*#//' | sort -u || true)"
+          [ -z "$commits" ] && { echo "frame-contrib comes from crates.io only." >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          if [ "$(echo "$commits" | grep -c .)" -ne 1 ]; then
+            echo "::error file=Cargo.lock::frame-contrib resolves to more than one git commit:"
+            echo "$commits"
+            exit 1
+          fi
+          tags="$(git ls-remote --tags "$repo" | awk -v c="$commits" '$1 == c { sub("refs/tags/", "", $2); sub(/\^\{\}$/, "", $2); print $2 }')"
+          if [ -z "$tags" ]; then
+            echo "::error file=Cargo.lock::frame-contrib is locked to $commits, which is not a tagged release."
+            exit 1
+          fi
+          echo "frame-contrib (git) locked to $commits ($(echo $tags | tr ' ' ','))" >> "$GITHUB_STEP_SUMMARY"

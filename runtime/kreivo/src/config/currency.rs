@@ -62,6 +62,9 @@ impl pallet_transaction_payment::Config for Runtime {
 	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Self>;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_transaction_payment::BenchmarkConfig for Runtime {}
+
 // #[runtime::pallet_index(12)]
 // pub type AssetsFreezer
 impl pallet_assets_freezer::Config<KreivoAssetsInstance> for Runtime {
@@ -111,6 +114,7 @@ impl pallet_assets::Config<KreivoAssetsInstance> for Runtime {
 	type Holder = AssetsHolder;
 	type Extra = ();
 	type CallbackHandle = ();
+	type AssetIdAllocator = ();
 	type WeightInfo = weights::pallet_assets::WeightInfo<Self>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();

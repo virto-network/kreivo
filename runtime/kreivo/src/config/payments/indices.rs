@@ -16,6 +16,8 @@
 
 //! Temporary storage for payment indices.
 
+// The pallet macros clone `PhantomData`, which is `Copy`.
+#[allow(clippy::clone_on_copy)]
 #[frame_support::pallet]
 pub mod pallet_payment_indices {
 	use frame_support::{pallet_prelude::*, traits::Hooks};

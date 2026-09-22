@@ -16,6 +16,8 @@
 
 //! Custom origins for governance interventions.
 
+// The pallet macros clone `PhantomData`, which is `Copy`.
+#[allow(clippy::clone_on_copy)]
 #[frame_support::pallet]
 pub mod pallet_custom_origins {
 	use frame_support::pallet_prelude::*;
@@ -26,7 +28,7 @@ pub mod pallet_custom_origins {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
-	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, DecodeWithMemTracking, TypeInfo, RuntimeDebug)]
+	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, DecodeWithMemTracking, TypeInfo, Debug)]
 	#[pallet::origin]
 	pub enum Origin {
 		/// Origin for issuing new memberships.

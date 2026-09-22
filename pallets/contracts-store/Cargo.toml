@@ -3,7 +3,6 @@ authors.workspace = true
 description = "This pallet helps with all the necesary steps to publish and acquire 'apps' (contracts) from publishers."
 edition.workspace = true
 license.workspace = true
-homepage.workspace = true
 name = "pallet-contracts-store"
 repository.workspace = true
 version = "0.1.0"
@@ -64,3 +63,6 @@ try-runtime = [
 	"pallet-contracts/try-runtime",
 	"sp-runtime/try-runtime"
 ]
+
+[lints]
+workspace = true

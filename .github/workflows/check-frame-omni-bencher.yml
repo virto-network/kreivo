@@ -19,29 +19,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Install solidity dependencies
-        run: |
-          # Install official Solidity compiler binary
-          curl -L -o /usr/local/bin/solc https://github.com/ethereum/solidity/releases/download/v0.8.33/solc-static-linux \
-            && chmod +x /usr/local/bin/solc
-          # Install Parity resolc binary
-          curl -L -o /usr/local/bin/resolc https://github.com/paritytech/revive/releases/download/v1.0.0/resolc-x86_64-unknown-linux-musl \
-            && chmod +x /usr/local/bin/resolc
-
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           target: wasm32v1-none
-          components: rust-src
-
-      - name: Install 1.91 toolchain (for revive fixtures)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.91
-          target: wasm32-unknown-unknown
           components: rust-src
 
       - uses: actions/checkout@v4
@@ -53,7 +36,9 @@ jobs:
           toolchain: stable
           args: --profile production --features ${{ github.ref_name == 'dev' && 'paseo,runtime-benchmarks' || 'runtime-benchmarks' }} --locked -p kreivo-runtime
         env:
-          PALLET_REVIVE_FIXTURES_RUSTUP_TOOLCHAIN: 1.91
+          # pallet-revive is out of the runtime, but assets-common still builds its fixtures
+          # under runtime-benchmarks, which would need solc and resolc.
+          SKIP_PALLET_REVIVE_FIXTURES: 1
 
       - name: Upload runtime to artifacts
         uses: actions/upload-artifact@v4
@@ -64,8 +49,15 @@ jobs:
   quick-benchmarks-omni:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A full `--all` run takes ~75 min now that the bencher matches the runtime.
+    timeout-minutes: 120
     steps:
+      # Only for `polkadot-sdk-version`, which picks the matching bencher release.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: polkadot-sdk-version
+          sparse-checkout-cone-mode: false
+
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
@@ -73,7 +65,9 @@ jobs:
 
       - name: Download CLI
         run: |
-          curl -sL https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2503/frame-omni-bencher -o frame-omni-bencher
+          # Use the bencher from the SDK release the runtime targets: an older one can't decode
+          # the runtime's host-function arguments.
+          curl -sfL "https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-$(tr -d '[:space:]' < polkadot-sdk-version)/frame-omni-bencher" -o frame-omni-bencher
           chmod +x ./frame-omni-bencher
           echo "Using frame-omni-bencher version:"
           ./frame-omni-bencher --version

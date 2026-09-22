@@ -2,7 +2,6 @@
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
-homepage.workspace = true
 name = "virto-common"
 repository.workspace = true
 version = "0.1.0"
@@ -11,9 +10,7 @@ version = "0.1.0"
 bs58 = { version = "0.5.0", default-features = false }
 wasm-bindgen = { version = "0.2.87", optional = true }
 
-cumulus-primitives-core = { workspace = true, optional = true }
 frame-support = { workspace = true, optional = true }
-pallet-payments = { workspace = true, optional = true }
 parity-scale-codec = { workspace = true, optional = true }
 scale-info = { workspace = true, optional = true }
 serde = { workspace = true, optional = true, default-features = false }
@@ -27,9 +24,7 @@ frame-support = { workspace = true, features = ["std"] }
 default = ["std"]
 std = [
   "bs58/std",
-  "cumulus-primitives-core?/std",
   "frame-support?/std",
-  "pallet-payments?/std",
   "parity-scale-codec?/std",
   "scale-info?/std",
   "serde?/std",
@@ -42,18 +37,17 @@ alloc = []
 js = ["alloc", "wasm-bindgen"]
 nightly = []
 runtime = [
-  "dep:cumulus-primitives-core",
   "dep:frame-support",
-  "dep:pallet-payments",
   "dep:sp-runtime",
   "dep:xcm",
   "scale",
   "serde",
 ]
 runtime-benchmarks = [
-	"pallet-payments?/runtime-benchmarks",
-	"cumulus-primitives-core?/runtime-benchmarks",
 	"frame-support?/runtime-benchmarks",
 	"sp-runtime?/runtime-benchmarks",
 	"xcm?/runtime-benchmarks"
 ]
+
+[lints]
+workspace = true
