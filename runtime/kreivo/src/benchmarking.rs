@@ -14,6 +14,9 @@ frame_benchmarking::define_benchmarks!(
 	[cumulus_pallet_parachain_system, ParachainSystem]
 	[pallet_timestamp, Timestamp]
 	[pallet_pass, Pass]
+	// The authenticators' verification costs (benchmarking-only pallets, not in the runtime).
+	[pass_webauthn, pass_webauthn::benchmarking::Pallet::<Runtime>]
+	[pass_substrate_keys, pass_substrate_keys::benchmarking::Pallet::<Runtime>]
 
 	// Monetary stuff
 	[pallet_balances, Balances]

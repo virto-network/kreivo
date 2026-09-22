@@ -19,8 +19,6 @@ parity-scale-codec = { workspace = true, features = ["derive"] }
 scale-info = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["alloc"] }
 smallvec.workspace = true
-schnorrkel = { workspace = true, optional = true, features = ["alloc"] }
-rand_core = { workspace = true, optional = true }
 
 # Local
 kreivo-apis = { workspace = true, features = ["runtime"] }
@@ -210,8 +208,6 @@ std = [
   "frame-contrib-traits/std",
   "pallet-contracts-store/std",
   "pass-substrate-keys/std",
-  "rand_core?/std",
-  "schnorrkel?/std",
   "pallet-black-hole/std",
 ]
 
@@ -255,10 +251,10 @@ runtime-benchmarks = [
   "parachains-common/runtime-benchmarks",
   "polkadot-parachain-primitives/runtime-benchmarks",
   "polkadot-runtime-common/runtime-benchmarks",
-  "rand_core",
   "runtime-common/runtime-benchmarks",
-  "schnorrkel",
   "frame-contrib-traits/runtime-benchmarks",
+  "pass-substrate-keys/runtime-benchmarks",
+  "pass-webauthn/runtime-benchmarks",
   "pallet-assets-holder/runtime-benchmarks",
   "pallet-black-hole/runtime-benchmarks",
   "pallet-contracts-store/runtime-benchmarks",

@@ -65,6 +65,13 @@ impl<T: frame_system::Config> pallet_pass::WeightInfo for WeightInfo<T> {
 			.saturating_add(Weight::from_parts(0, 6380))
 			.saturating_add(T::DbWeight::get().reads(2))
 	}
+	/// PLACEHOLDER: not produced by a benchmark run, pending a run on reference hardware. The
+	/// default from `fc-pallet-pass` 2.2.0: a conservative estimate, and at most one
+	/// `SessionKeys` lookup.
+	/// Storage: `Pass::SessionKeys` (r:1 w:0)
+	fn authenticate_none() -> Weight {
+		Weight::from_parts(10_000_000, 4_000).saturating_add(T::DbWeight::get().reads(1))
+	}
 	/// Storage: `Pass::Devices` (r:1 w:1)
 	/// Proof: `Pass::Devices` (`max_values`: None, `max_size`: Some(220), added: 2695, mode: `MaxEncodedLen`)
 	/// Storage: `Pass::DeviceConsiderations` (r:1 w:1)

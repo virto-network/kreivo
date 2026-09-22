@@ -1216,7 +1216,7 @@ checksum = "8d9a9bf8b79a749ee0b911b91b671cc2b6c670bdbc7e3dfd537576ddc94bb2a2"
 dependencies = [
  "http 0.2.12",
  "log",
- "url 2.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url",
 ]
 
 [[package]]
@@ -3413,9 +3413,9 @@ dependencies = [
 
 [[package]]
 name = "fc-mock-helpers"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e3c614bef13de8754882686d9e3d2812f228c6cb80f3930d81fdd46e15ab871"
+checksum = "21ea769e76f961ceee1a6a258f0fba86d44a02641bad769e74c0c0a6d1a8117d"
 dependencies = [
  "fc-pallet-listings",
  "frame-support",
@@ -3428,9 +3428,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-black-hole"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21968ba1b17c14906dc5fad2b9169d457b27d666a91e1cb6ed252f94b427f114"
+checksum = "e8b3c05bf1325ca837dcf7853885069e007e3a85382d0c9ae64da2737f48d380"
 dependencies = [
  "parity-scale-codec",
  "polkadot-sdk-frame",
@@ -3439,9 +3439,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-communities"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa011ace9de488f8a10fec97fdca9ce840e105c8b37fb39bd68e983d9ae94b11"
+checksum = "79ed277f21ed6d63f42c948c65da105130d8b2298498e0ac4fb7b1742c5ce06e"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -3457,9 +3457,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-gas-transaction-payment"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c7be3ccbd58bce0f741b609e5b28ed971f6de5dc2272623ada9ad076bbe9eb3"
+checksum = "13db586bcfbd26e58ec7585c05ec1a0972c1437b6c7efd250828c53fab4697b2"
 dependencies = [
  "frame-contrib-traits",
  "parity-scale-codec",
@@ -3469,9 +3469,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-listings"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb466e28ab513949609ae8e018c47dfa1bfc60ed2fc8e28663777336cdf7e667"
+checksum = "67e883943f9a5110fcd6eacc5d17f3ef03d9dc6af9441a64f3da5d0853b8da63"
 dependencies = [
  "fc-traits-listings",
  "frame-benchmarking",
@@ -3488,9 +3488,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-orders"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32aba988115ffeed000ba98b844a54a7942b14b3ff3087a87605d5e745959400"
+checksum = "7271abc67851feab3f1bd1773b3826487b71a5f2f6e38aad4ea917ac2c7d3e2f"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -3506,9 +3506,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-pass"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f126da9547510e0ba5377d0d76ec454b9fc33336a2973e691b4bb066d4f3e94"
+checksum = "10128a62a76cfdce588772717e15e858057b0fb118a1c2205dcfc90e90e67751"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -3524,9 +3524,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-payments"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5f5b858b1a91fb064662719f6071da2f6d08725f89e4bac86c31695c5f7ebd9"
+checksum = "78bc21d1313c961d8084d34ccb6706e9ac909247683a30c2800cfca06391bb7a"
 dependencies = [
  "fc-traits-payments",
  "frame-benchmarking",
@@ -3542,9 +3542,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-referenda-tracks"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29b2842dd790ad52e53a986f26675f636ec7efd79fc33217f4f7801da4292da9"
+checksum = "4bdd1470f14bd415cbba32744c5c7a3adc82352ca906d86a88b6b9106ae1a61e"
 dependencies = [
  "fc-traits-tracks",
  "frame-benchmarking",
@@ -3561,9 +3561,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-authn"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66e301375635d0a22e51a4beb09f42ceb620a0c485054d568ec9aa222628d4f1"
+checksum = "0e304dee8ea8fe5877b70a72d9cab9f83cb176e31202206e1a9b0816cac863c3"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -3574,9 +3574,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-authn-proc"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cc804e98bff305564c3c04138532956c34a7d5b6717bb438ebf4f9a49b88e99"
+checksum = "fdd406933a4efc6d58678366f5889c1b436b647e143af2f08b271a1e2db8454e"
 dependencies = [
  "proc-macro-crate 3.4.0",
  "quote",
@@ -3585,9 +3585,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-gas-tank"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80676d38be94459250c17533ec298a1ebc89371f7679ee00a099e568023f3a73"
+checksum = "7f3292554965983e27ecfc69abd176c38e92ec037fcc45052f1e1c6e17b8c411"
 dependencies = [
  "fc-traits-nonfungibles-helpers",
  "frame-support",
@@ -3598,9 +3598,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-listings"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5bc2d30c77af98f4eb441db2d8fe4a2b7215fd6754d2557a123dcd908599587"
+checksum = "47a163590ccfa18c54cf6dd236b7dcfc5a2e4f678f7a63a62d47b3eb4ed4b6e0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -3610,9 +3610,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-memberships"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5730543964199112b0b4313bf20bed8960586a3f183bd4daca284848431e74a3"
+checksum = "1ede9a7452d6bb59eee221b60b28e6c42d503bae86422af5597c6f3ea6f1906a"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -3621,15 +3621,15 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-nonfungibles-helpers"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3bc2e7cf2b3a86b971087fe9752c865a6135bf5a8e331f1195cec5f387bb5e9c"
+checksum = "dbc89045b015c3d048933b7a879a9484c4c1f2f31008bedc86c5b2e246526200"
 
 [[package]]
 name = "fc-traits-payments"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b04b8a6c17921f21f6d41b8740356f9980504fc38dfdf763340450e9a463372"
+checksum = "43cab6c82f39f54ba98b788e164a3ff1e290e0613eb5ea0becc6f6ffba056039"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -3639,9 +3639,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-tracks"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c68068f9ee84fc2e3d38642af96263c7dda1edc664eb9a941f674586c822564"
+checksum = "fcc255c1a4a4a7c465640371ed67d03fc3656c0cf8b8307c096f37a827862ea8"
 dependencies = [
  "frame-support",
  "pallet-referenda",
@@ -3771,15 +3771,7 @@ version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
- "percent-encoding 2.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "form_urlencoded"
-version = "1.2.2"
-source = "git+https://github.com/servo/rust-url#a66f4220895c3cc84ae623c218466710eb3a812f"
-dependencies = [
- "percent-encoding 2.3.2 (git+https://github.com/servo/rust-url)",
+ "percent-encoding",
 ]
 
 [[package]]
@@ -3816,9 +3808,9 @@ dependencies = [
 
 [[package]]
 name = "frame-contrib-traits"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc4fb8cc30aef010c4df96ab2e3b36a300e3ccfe5107e422f5f9c69de336db4f"
+checksum = "23e8b5485bf432d696dc14631611cdab0a632950728e37739f64006d0f50c5b2"
 dependencies = [
  "fc-traits-authn",
  "fc-traits-gas-tank",
@@ -4506,7 +4498,7 @@ dependencies = [
  "futures-io",
  "futures-util",
  "hickory-proto 0.26.3",
- "idna 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "idna",
  "ipnet",
  "jni",
  "rand 0.10.2",
@@ -4514,7 +4506,7 @@ dependencies = [
  "tinyvec",
  "tokio",
  "tracing",
- "url 2.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url",
 ]
 
 [[package]]
@@ -4530,7 +4522,7 @@ dependencies = [
  "futures-channel",
  "futures-io",
  "futures-util",
- "idna 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "idna",
  "ipnet",
  "once_cell",
  "rand 0.8.5",
@@ -4539,7 +4531,7 @@ dependencies = [
  "tinyvec",
  "tokio",
  "tracing",
- "url 2.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url",
 ]
 
 [[package]]
@@ -4549,7 +4541,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "12b92608f679a6fa515dd1d15c1ff89443026e391200a2c840c7afcba482893d"
 dependencies = [
  "data-encoding",
- "idna 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "idna",
  "ipnet",
  "jni",
  "once_cell",
@@ -4559,7 +4551,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tinyvec",
  "tracing",
- "url 2.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url",
 ]
 
 [[package]]
@@ -4929,16 +4921,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "idna"
-version = "1.1.0"
-source = "git+https://github.com/servo/rust-url#a66f4220895c3cc84ae623c218466710eb3a812f"
-dependencies = [
- "idna_adapter",
- "smallvec",
- "utf8_iter",
-]
-
-[[package]]
 name = "idna_adapter"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4996,7 +4978,7 @@ dependencies = [
  "log",
  "rand 0.8.5",
  "tokio",
- "url 2.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url",
  "xmltree",
 ]
 
@@ -5701,11 +5683,9 @@ dependencies = [
  "polkadot-core-primitives",
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
- "rand_core 0.6.4",
  "runtime-common",
  "runtime-constants",
  "scale-info",
- "schnorrkel",
  "serde_json",
  "smallvec",
  "sp-api",
@@ -6170,7 +6150,7 @@ dependencies = [
  "soketto",
  "thiserror 1.0.69",
  "tracing",
- "url 2.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url",
  "webpki-roots",
 ]
 
@@ -6359,7 +6339,7 @@ dependencies = [
  "tracing",
  "uint 0.10.0",
  "unsigned-varint 0.8.0",
- "url 2.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url",
  "x25519-dalek",
  "x509-parser 0.17.0",
  "yamux 0.13.10",
@@ -6638,11 +6618,11 @@ dependencies = [
  "libp2p-identity",
  "multibase",
  "multihash",
- "percent-encoding 2.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "percent-encoding",
  "serde",
  "static_assertions",
  "unsigned-varint 0.8.0",
- "url 2.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url",
 ]
 
 [[package]]
@@ -8201,35 +8181,56 @@ checksum = "7924d1d0ad836f665c9065e26d016c673ece3993f30d340068b16f282afc1156"
 
 [[package]]
 name = "pass-authenticators-substrate-keys"
-version = "0.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators?rev=881ed7eb5005e4b554e26bd848006ff06a038730#881ed7eb5005e4b554e26bd848006ff06a038730"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70568e401d6b2e8d8467fdf893b5c542b6cfec844c5fe9da7988fbdc76bd5f4c"
 dependencies = [
+ "ed25519-zebra",
  "fc-traits-authn",
+ "frame-support",
+ "k256",
  "log",
  "parity-scale-codec",
+ "polkadot-sdk-frame",
+ "rand_core 0.6.4",
  "scale-info",
+ "schnorrkel",
  "sp-core",
  "sp-runtime",
 ]
 
 [[package]]
 name = "pass-authenticators-webauthn"
-version = "0.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators?rev=881ed7eb5005e4b554e26bd848006ff06a038730#881ed7eb5005e4b554e26bd848006ff06a038730"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a786766b3a499fbd50dfb0380e1fa1a16ce1cb97931b40e7f979448c503dc70"
 dependencies = [
  "bitflags 2.11.0",
  "byteorder",
  "coset",
  "fc-traits-authn",
+ "frame-support",
  "log",
+ "p256",
  "parity-scale-codec",
+ "pass-authenticators-webauthn-verifier",
  "polkadot-sdk-frame",
  "scale-info",
  "serde",
  "serde_json",
  "simple-base64",
- "url 2.5.8 (git+https://github.com/servo/rust-url)",
- "webauthn-verifier",
+ "url",
+]
+
+[[package]]
+name = "pass-authenticators-webauthn-verifier"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc7ed6fd26ac002274686180191a9e0fbaee99a1101ecbfaa7bc801f9380dee3"
+dependencies = [
+ "log",
+ "p256",
+ "sha2 0.10.9",
 ]
 
 [[package]]
@@ -8284,11 +8285,6 @@ name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
-
-[[package]]
-name = "percent-encoding"
-version = "2.3.2"
-source = "git+https://github.com/servo/rust-url#a66f4220895c3cc84ae623c218466710eb3a812f"
 
 [[package]]
 name = "pest"
@@ -13069,7 +13065,7 @@ dependencies = [
  "rustls-pki-types",
  "sha1",
  "thiserror 2.0.18",
- "url 2.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url",
  "utf-8",
 ]
 
@@ -13225,20 +13221,9 @@ version = "2.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff67a8a4397373c3ef660812acab3268222035010ab8680ec4215f38ba3d0eed"
 dependencies = [
- "form_urlencoded 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "idna 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "percent-encoding 2.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde",
-]
-
-[[package]]
-name = "url"
-version = "2.5.8"
-source = "git+https://github.com/servo/rust-url#a66f4220895c3cc84ae623c218466710eb3a812f"
-dependencies = [
- "form_urlencoded 1.2.2 (git+https://github.com/servo/rust-url)",
- "idna 1.1.0 (git+https://github.com/servo/rust-url)",
- "percent-encoding 2.3.2 (git+https://github.com/servo/rust-url)",
+ "form_urlencoded",
+ "idna",
+ "percent-encoding",
  "serde",
 ]
 
@@ -13913,16 +13898,6 @@ checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "webauthn-verifier"
-version = "0.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators?rev=881ed7eb5005e4b554e26bd848006ff06a038730#881ed7eb5005e4b554e26bd848006ff06a038730"
-dependencies = [
- "log",
- "p256",
- "sha2 0.10.9",
 ]
 
 [[package]]

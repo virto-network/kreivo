@@ -299,20 +299,12 @@ impl pallet_pass::Config for Runtime {
 	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
 	type MaxDevicesPerAccount = ConstU32<100>;
 	type MaxSessionsPerAccount = ConstU32<10>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = benchmarks::PassBenchmarkHelper;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
 pub mod benchmarks {
 	use super::*;
 	use frame_benchmarking::BenchmarkError;
-	use frame_support::Blake2_256;
-	use pass_substrate_keys::SignedMessage;
-	use rand_core::{CryptoRng, Error, RngCore};
-	use schnorrkel::{context::SigningContext, Keypair, SecretKey};
-	use sp_core::U256;
-	use sp_runtime::MultiSignature;
 
 	impl frame_system_benchmarking::Config for Runtime {
 		fn setup_set_code_requirements(code: &Vec<u8>) -> Result<(), BenchmarkError> {
@@ -326,149 +318,15 @@ pub mod benchmarks {
 			);
 		}
 	}
+}
 
-	/// This is a map of secret keys, grouped by its derived [`DeviceId`]
-	#[frame_support::storage_alias]
-	type BenchmarkDeviceIdSecretKey =
-		StorageMap<Pass, Blake2_256, DeviceId, [u8; 64], frame_support::pallet_prelude::OptionQuery>;
-
-	#[frame_support::storage_alias]
-	type Rng = StorageValue<Pass, BenchRng, frame_support::pallet_prelude::ValueQuery>;
-
-	/// A hash-based _(not really random)_ "RNG". Marked as [`CryptoRng`] (even
-	/// though it is clearly not) because these are benchmarking tests, and
-	/// don't aim to test for security issues.
-	#[derive(Debug, Eq, PartialEq, Clone, Encode, Decode, DecodeWithMemTracking, MaxEncodedLen, TypeInfo, Default)]
-	pub struct BenchRng([u8; 32], u8);
-	impl BenchRng {
-		fn rotate(&mut self) {
-			if self.1 == 31 {
-				self.0 = blake2_256(&self.0);
-				self.1 = 0;
-			} else {
-				self.1 += 1
-			}
-		}
-	}
-	impl From<U256> for BenchRng {
-		fn from(u256: U256) -> Self {
-			Self(blake2_256(&u256.to_little_endian()), 0)
-		}
-	}
-	impl CryptoRng for BenchRng {}
-	impl RngCore for BenchRng {
-		fn next_u32(&mut self) -> u32 {
-			let mut b = [0u8; 4];
-			for (i, byte) in b.iter_mut().enumerate() {
-				*byte = self.0[i];
-				self.rotate();
-			}
-			u32::from_le_bytes(b)
-		}
-
-		fn next_u64(&mut self) -> u64 {
-			let mut b = [0u8; 8];
-			for (i, byte) in b.iter_mut().enumerate() {
-				*byte = self.0[i];
-				self.rotate();
-			}
-			u64::from_le_bytes(b)
-		}
-
-		fn fill_bytes(&mut self, dest: &mut [u8]) {
-			for byte in dest.iter_mut() {
-				*byte = self.0[self.1 as usize];
-				self.rotate();
-			}
-		}
-
-		fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-			for byte in dest.iter_mut() {
-				*byte = self.0[self.1 as usize];
-				self.rotate();
-			}
-			Ok(())
-		}
-	}
-
-	pub struct PassBenchmarkHelper;
-
-	impl PassBenchmarkHelper {
-		fn sign<Cx: Encode>(pair: &Keypair, msg: &SignedMessage<Cx>) -> MultiSignature {
-			Rng::mutate(|rng| {
-				let msg = msg.message();
-				let t = {
-					// The context must be b"substrate", otherwise it'll fail validation.
-					let t = SigningContext::new(b"substrate").bytes(msg.as_ref());
-					schnorrkel::context::attach_rng(t, rng)
-				};
-
-				MultiSignature::Sr25519(pair.sign(t).to_bytes().into())
-			})
-		}
-
-		fn derive() -> Keypair {
-			Rng::mutate(|rng| {
-				let secret = SecretKey::generate_with(rng);
-				secret.to_keypair()
-			})
-		}
-
-		fn pair(id: DeviceId) -> Keypair {
-			let bytes = BenchmarkDeviceIdSecretKey::get(id).expect("pairs handled by benchmarks are saved here; qed");
-			SecretKey::from_bytes(&bytes)
-				.expect("saved using `to_bytes`; qed")
-				.to_keypair()
-		}
-
-		fn set_pair(device_id: DeviceId, keypair: Keypair) {
-			BenchmarkDeviceIdSecretKey::insert(device_id, keypair.secret.to_bytes());
-		}
-	}
-
-	impl pallet_pass::BenchmarkHelper<Runtime> for PassBenchmarkHelper {
-		fn device_attestation(xtc: &impl ExtrinsicContext) -> pallet_pass::DeviceAttestationOf<Runtime, ()> {
-			let pair = Self::derive();
-
-			let context = System::block_number();
-			let message = SignedMessage {
-				context,
-				challenge: KreivoChallenger::generate(&context, xtc),
-				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
-			};
-			let public = AccountId::new(pair.public.to_bytes());
-			let signature = Self::sign(&pair, &message);
-
-			let attestation = PassDeviceAttestation::SubstrateKey(pass_substrate_keys::KeyRegistration {
-				message,
-				public,
-				signature,
-			});
-
-			Self::set_pair(*attestation.device_id(), pair);
-			attestation
-		}
-
-		fn credential(
-			user_id: HashedUserId,
-			device_id: DeviceId,
-			xtc: &impl ExtrinsicContext,
-		) -> pallet_pass::CredentialOf<Runtime, ()> {
-			let pair = Self::pair(device_id);
-
-			let context = System::block_number();
-			let message = SignedMessage {
-				context,
-				challenge: KreivoChallenger::generate(&context, xtc),
-				authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
-			};
-			let signature = Self::sign(&pair, &message);
-
-			PassCredential::SubstrateKey(pass_substrate_keys::KeySignature {
-				user_id,
-				message,
-				signature,
-			})
-		}
+/// `pallet-pass` benchmarks get their inputs from the authenticators (WebAuthn, the first in the
+/// `Pass` composite); they only need a context that the challenger accepts.
+#[cfg(feature = "runtime-benchmarks")]
+impl<const PAST_BLOCKS: BlockNumber> frame_contrib_traits::authn::ChallengerBenchmarkHelper
+	for BlockHashChallenger<PAST_BLOCKS>
+{
+	fn benchmark_context() -> Self::Context {
+		System::block_number()
 	}
 }
