@@ -40,3 +40,6 @@ zombienet-linux
 # Testing try-runtime locally
 snapshot.raw
 try-runtime
+
+# Python bytecode (e.g. from the /cmd bot scripts)
+__pycache__/
