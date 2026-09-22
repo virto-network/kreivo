@@ -22,7 +22,7 @@ mod constants;
 mod genesis_config_presets;
 mod impls;
 mod weights;
-mod xcm_config;
+pub mod xcm_config;
 
 use apis::*;
 use config::*;
