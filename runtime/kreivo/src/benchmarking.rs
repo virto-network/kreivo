@@ -7,6 +7,7 @@ use frame_system_benchmarking::Pallet as SystemBench;
 
 type XcmBalances = pallet_xcm_benchmarks::fungible::Pallet<Runtime>;
 type XcmGeneric = pallet_xcm_benchmarks::generic::Pallet<Runtime>;
+type PalletXcmExtrinsicsBenchmark<T> = pallet_xcm::benchmarking::Pallet<T>;
 
 frame_benchmarking::define_benchmarks!(
 	// System support
@@ -32,6 +33,7 @@ frame_benchmarking::define_benchmarks!(
 
 	// XCM
 	[cumulus_pallet_xcmp_queue, XcmpQueue]
+	[pallet_xcm, PalletXcmExtrinsicsBenchmark::<Runtime>]
 	// NOTE: Make sure you point to the individual modules below.
 	[pallet_xcm_benchmarks::fungible, XcmBalances]
 	[pallet_xcm_benchmarks::generic, XcmGeneric]
