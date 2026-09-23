@@ -703,11 +703,23 @@ mod benchmarks {
 		}
 
 		fn get_assets(n: u32) -> XcmAssets {
+			use frame_support::traits::fungibles::Create;
+			use sp_runtime::traits::MaybeEquivalence;
+
 			// The `Assets` transactor also deposits every Asset Hub asset, so claims can hold
-			// many distinct ones: KSM plus `n - 1` of those. They're deposited into an account
-			// that exists (see `get_asset`), as those assets aren't sufficient.
+			// many distinct ones: KSM plus `n - 1` of those.
 			let mut assets = vec![Self::get_asset()];
-			assets.extend((1..n).map(|i| (asset_hub_asset(BENCHMARK_ASSETS_BASE_INDEX + i), 1_000_000u128).into()));
+			assets.extend((1..n).map(|i| {
+				let location = asset_hub_asset(BENCHMARK_ASSETS_BASE_INDEX + i);
+				// The transactor would create each asset on first sight, as not sufficient. Each
+				// such asset takes a consumer reference from the claimer, and `MaxConsumers` (16)
+				// would run out before `MAX_ITEMS_IN_ASSETS` (20). Create them as sufficient
+				// instead: the claim does the same work, minus the consumer bookkeeping.
+				let id = AsFungibleAssetLocation::convert(&location).expect("an Asset Hub asset location; qed");
+				<Assets as Create<AccountId>>::create(id, TreasuryAccount::get(), true, 1)
+					.expect("the asset doesn't exist yet");
+				(location, 1_000_000u128).into()
+			}));
 			assets.into()
 		}
 
