@@ -637,19 +637,22 @@ mod benchmarks {
 			use frame_support::traits::fungible::Mutate;
 			use xcm_executor::traits::ConvertLocation;
 
-			// KSM back to Asset Hub, its reserve (`DestinationReserve`): what Kreivo's accounts do
-			// to move KSM out (see the `ksm_goes_back_to_asset_hub` emulated test). The benchmark
-			// mints the KSM to the sender itself.
-			let amount = ExistentialDeposit::get() * 100;
-			let asset: Asset = (RelayLocation::get(), amount).into();
+			// An Asset Hub asset going back to Asset Hub, its reserve (`DestinationReserve`).
+			// Not KSM: `reserve_transfer_assets` and `transfer_assets` refuse reserve transfers
+			// of the network's native asset (`InvalidAssetUnknownReserve`), which can only leave
+			// through `transfer_assets_using_type_and_then`. The benchmark mints the asset to the
+			// sender itself.
+			let amount: Balance = 1_000_000;
+			let asset: Asset = (asset_hub_asset(BENCHMARK_ASSETS_BASE_INDEX), amount).into();
 			let dest = AssetHubLocation::get();
 
-			// Kreivo burns the KSM it sends to its reserve, but the benchmark then withdraws the
+			// Kreivo burns what it sends to the reserve, but the benchmark then withdraws the
 			// amount from the destination's sovereign account, as it would after a local-reserve
 			// transfer. Fund that account so the check holds; the transfer measured is the real
-			// one.
+			// one. The KSM keeps the account alive, as Asset Hub assets aren't sufficient.
 			let asset_hub_sovereign = LocationToAccountId::convert_location(&dest)?;
-			Balances::set_balance(&asset_hub_sovereign, ExistentialDeposit::get() + amount);
+			Balances::set_balance(&asset_hub_sovereign, ExistentialDeposit::get());
+			deposit_as_reserve_transfer(asset.clone(), &dest);
 
 			Some((asset, dest))
 		}
@@ -658,35 +661,42 @@ mod benchmarks {
 			use frame_support::traits::fungible::Mutate;
 			use sp_runtime::traits::MaybeEquivalence;
 
-			// Kreivo teleports nothing, so the most involved transfer it makes is several assets
-			// reserved on Asset Hub going back there, paying fees in KSM: KSM plus an Asset Hub
-			// asset, both `DestinationReserve`.
+			// Kreivo teleports nothing, so the most involved transfer `transfer_assets` makes is
+			// several Asset Hub assets going back to their reserve, paying fees in one of them:
+			// both `DestinationReserve`. KSM can't be one of them (see
+			// `reserve_transferable_asset_and_dest`), though it pays for delivery.
 			let dest = AssetHubLocation::get();
 			let who: AccountId = frame_benchmarking::whitelisted_caller();
 			let who_location = account_location(&who);
 
-			// KSM for the fees, plus enough to pay for delivery to Asset Hub.
-			let fee_amount = ExistentialDeposit::get() * 100;
-			let balance = fee_amount + UNITS;
+			// KSM for the delivery fees (and to keep the account, as the assets aren't sufficient).
+			let balance = UNITS;
 			Balances::set_balance(&who, balance);
-			assert_eq!(Balances::free_balance(&who), balance);
 
-			let asset_location = asset_hub_asset(BENCHMARK_ASSETS_BASE_INDEX);
+			let initial_amount: Balance = 1_000_000;
+			let fee_location = asset_hub_asset(BENCHMARK_ASSETS_BASE_INDEX);
+			let fee_id = AsFungibleAssetLocation::convert(&fee_location)?;
+			let fee_amount: Balance = 100_000;
+			let asset_location = asset_hub_asset(BENCHMARK_ASSETS_BASE_INDEX + 1);
 			let asset_id = AsFungibleAssetLocation::convert(&asset_location)?;
-			let initial_asset_amount: Balance = 1_000_000;
 			let asset_amount: Balance = 100_000;
-			deposit_as_reserve_transfer((asset_location.clone(), initial_asset_amount).into(), &who_location);
-			assert_eq!(Assets::balance(asset_id.clone(), &who), initial_asset_amount);
+			for location in [&fee_location, &asset_location] {
+				deposit_as_reserve_transfer((location.clone(), initial_amount).into(), &who_location);
+			}
+			assert_eq!(Assets::balance(fee_id.clone(), &who), initial_amount);
+			assert_eq!(Assets::balance(asset_id.clone(), &who), initial_amount);
 
-			let fee_asset: Asset = (RelayLocation::get(), fee_amount).into();
+			let fee_asset: Asset = (fee_location, fee_amount).into();
 			let assets: XcmAssets = vec![fee_asset.clone(), (asset_location, asset_amount).into()].into();
 			let fee_index = assets.inner().iter().position(|asset| asset.id == fee_asset.id)? as u32;
 
 			let verify = alloc::boxed::Box::new(move || {
-				// KSM went down by the fees sent along, plus delivery fees.
-				assert!(Balances::free_balance(&who) <= balance - fee_amount);
-				// The Asset Hub asset went down by exactly the amount transferred.
-				assert_eq!(Assets::balance(asset_id, &who), initial_asset_amount - asset_amount);
+				// The fee asset went down by at least the fees sent along.
+				assert!(Assets::balance(fee_id, &who) <= initial_amount - fee_amount);
+				// The other asset went down by exactly the amount transferred.
+				assert_eq!(Assets::balance(asset_id, &who), initial_amount - asset_amount);
+				// Delivery was paid in KSM.
+				assert!(Balances::free_balance(&who) < balance);
 			});
 
 			Some((assets, fee_index, dest, verify))
