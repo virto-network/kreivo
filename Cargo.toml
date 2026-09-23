@@ -72,8 +72,8 @@ pallet-referenda-tracks = { version = "2.3.0", default-features = false, package
 pallet-black-hole = { version = "2.3.0", default-features = false, package = "fc-pallet-black-hole" }
 
 # Pass Authenticators
-pass-webauthn = { version = "1.1.0", default-features = false, package = "pass-authenticators-webauthn" }
-pass-substrate-keys = { version = "1.1.0", default-features = false, package = "pass-authenticators-substrate-keys" }
+pass-webauthn = { version = "1.2.0", default-features = false, package = "pass-authenticators-webauthn" }
+pass-substrate-keys = { version = "1.2.0", default-features = false, package = "pass-authenticators-substrate-keys" }
 
 # Substrate std
 sc-chain-spec = { version = "52.0.0" }

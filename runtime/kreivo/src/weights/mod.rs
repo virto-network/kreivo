@@ -50,6 +50,8 @@ pub mod pallet_treasury;
 pub mod pallet_utility;
 pub mod pallet_vesting;
 pub mod paritydb_weights;
+pub mod pass_substrate_keys;
+pub mod pass_webauthn;
 pub mod rocksdb_weights;
 pub mod xcm;
 

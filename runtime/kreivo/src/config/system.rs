@@ -204,18 +204,17 @@ impl<const PAST_BLOCKS: BlockNumber> Challenger for BlockHashChallenger<PAST_BLO
 
 // Challenges are parachain block hashes, so their lifetime is in parachain blocks.
 pub type KreivoChallenger = BlockHashChallenger<{ 30 * runtime_constants::time::parachain::MINUTES }>;
-// Verification is charged with the weights the authenticator crates ship (measured on reference
-// hardware). TODO: bind Kreivo's own run of `pass_webauthn`/`pass_substrate_keys` benchmarks once
-// they're generated under `weights/`.
+// Verification is charged with Kreivo's own run of the authenticators' benchmarks (`weights/`),
+// through each crate's `(c, a)` mapping (`Weights<W>`).
 pub type WebAuthn = pass_webauthn::Authenticator<
 	KreivoChallenger,
 	AuthorityFromPalletId<PassPalletId>,
-	pass_webauthn::WeightInfo<Runtime>,
+	pass_webauthn::Weights<crate::weights::pass_webauthn::WeightInfo<Runtime>>,
 >;
 pub type SubstrateKey = pass_substrate_keys::Authenticator<
 	KreivoChallenger,
 	AuthorityFromPalletId<PassPalletId>,
-	pass_substrate_keys::WeightInfo<Runtime>,
+	pass_substrate_keys::Weights<crate::weights::pass_substrate_keys::WeightInfo<Runtime>>,
 >;
 
 composite_authenticator!(
