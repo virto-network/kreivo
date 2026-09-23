@@ -542,7 +542,20 @@ mod benchmarks {
 		}
 
 		fn alias_origin() -> Result<(Location, Location), BenchmarkError> {
-			Err(BenchmarkError::Skip)
+			// `AliasChildLocation`: a sibling parachain may alias any location beneath itself,
+			// which is what the origin-preservation flows rely on (see `xcm_config::tests`).
+			let origin = Location::new(1, [Parachain(ASSET_HUB_ID)]);
+			let target = Location::new(
+				1,
+				[
+					Parachain(ASSET_HUB_ID),
+					AccountId32 {
+						network: None,
+						id: [1u8; 32],
+					},
+				],
+			);
+			Ok((origin, target))
 		}
 
 		fn worst_case_for_trader() -> Result<(Asset, WeightLimit), BenchmarkError> {

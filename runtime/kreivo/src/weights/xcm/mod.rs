@@ -118,11 +118,9 @@ impl<Call> XcmWeightInfo<Call> for KreivoXcmWeight<Call> {
 	fn deposit_reserve_asset(assets: &AssetFilter, _dest: &Location, _xcm: &Xcm<()>) -> Weight {
 		assets.weigh_assets(XcmFungibleWeight::<Runtime>::deposit_reserve_asset())
 	}
-	fn exchange_asset(give: &AssetFilter, receive: &Assets, _maximal: &bool) -> Weight {
-		let base_weight = XcmGeneric::<Runtime>::exchange_asset();
-		let give_weight = give.weigh_assets(base_weight);
-		let receive_weight = receive.weigh_assets(base_weight);
-		give_weight.max(receive_weight)
+	fn exchange_asset(_give: &AssetFilter, _receive: &Assets, _maximal: &bool) -> Weight {
+		// XCM Executor does not currently support exchange asset operations
+		Weight::MAX
 	}
 	fn initiate_reserve_withdraw(assets: &AssetFilter, _reserve: &Location, _xcm: &Xcm<()>) -> Weight {
 		assets.weigh_assets(XcmFungibleWeight::<Runtime>::initiate_reserve_withdraw())
@@ -194,7 +192,8 @@ impl<Call> XcmWeightInfo<Call> for KreivoXcmWeight<Call> {
 		XcmGeneric::<Runtime>::clear_transact_status()
 	}
 	fn universal_origin(_: &Junction) -> Weight {
-		XcmGeneric::<Runtime>::universal_origin()
+		// XCM Executor does not currently support universal origin operations
+		Weight::MAX
 	}
 	fn export_message(_: &NetworkId, _: &Junctions, _: &Xcm<()>) -> Weight {
 		Weight::MAX
