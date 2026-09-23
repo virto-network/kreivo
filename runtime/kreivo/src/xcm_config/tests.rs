@@ -405,6 +405,49 @@ fn asset_hub_is_the_only_trusted_reserve() {
 	assert!(!IsReserve::contains(&(sibling(2000), 1u128).into(), &sibling(2000)));
 }
 
+/// Every reserve transfer from Asset Hub starts with `ReserveAssetDeposited`. If its
+/// benchmark fails, `frame-omni-bencher` writes `Weight::MAX` for it, the message can't be
+/// weighed, and the message queue drops it as `Unsupported`.
+#[test]
+fn inbound_reserve_transfers_from_asset_hub_are_weighable() {
+	let usdt: Asset = (
+		Location::new(1, [Parachain(ASSET_HUB_ID), PalletInstance(50), GeneralIndex(1984)]),
+		UNITS,
+	)
+		.into();
+	let beneficiary = Location::new(
+		0,
+		[AccountId32 {
+			network: None,
+			id: ALICE,
+		}],
+	);
+	let transfer = |asset: Asset| {
+		Xcm::<RuntimeCall>(vec![
+			ReserveAssetDeposited(asset.clone().into()),
+			ClearOrigin,
+			BuyExecution {
+				fees: asset,
+				weight_limit: Unlimited,
+			},
+			DepositAsset {
+				assets: Wild(AllCounted(1)),
+				beneficiary: beneficiary.clone(),
+			},
+			SetTopic([0; 32]),
+		])
+	};
+
+	for mut message in [transfer(ksm(UNITS)), transfer(usdt)] {
+		let weight = <XcmConfig as xcm_executor::Config>::Weigher::weight(&mut message, Weight::MAX)
+			.expect("an inbound reserve transfer can be weighed");
+		assert!(
+			weight.ref_time() < frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND,
+			"{weight:?}"
+		);
+	}
+}
+
 #[test]
 fn reserve_transfers_to_the_relay_chain_are_denied() {
 	TestExternalities::default().execute_with(|| {

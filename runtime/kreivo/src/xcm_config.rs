@@ -483,8 +483,13 @@ mod benchmarks {
 			Asset { fun: Fungible(UNITS), id: AssetId(RelayLocation::get()) },
 		));
 		pub const CheckedAccount: Option<(AccountId, MintLocation)> = None;
-		pub const TrustedReserve: Option<(Location, Asset)> = None;
-
+		/// KSM reserved on Asset Hub (see `KsmFromAssetHub`): what every inbound reserve
+		/// transfer of KSM starts with. With `None` the benchmark is overridden to
+		/// `Weight::MAX`, which makes every such message unweighable.
+		pub TrustedReserve: Option<(Location, Asset)> = Some((
+			AssetHubLocation::get(),
+			Asset { fun: Fungible(UNITS), id: AssetId(Ksm::get()) },
+		));
 	}
 
 	impl pallet_xcm_benchmarks::fungible::Config for Runtime {
