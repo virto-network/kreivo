@@ -15,7 +15,7 @@ impl pallet_authorship::Config for Runtime {
 // pub type CollatorSelection
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
-	pub const MaxCandidates: u32 = 1000;
+	pub const MaxCandidates: u32 = 100;
 	pub const MinEligibleCollators: u32 = 1;
 	pub const MaxInvulnerables: u32 = 100;
 	// StakingAdmin pluralistic body.
