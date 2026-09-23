@@ -72,10 +72,8 @@ pallet-referenda-tracks = { version = "2.3.0", default-features = false, package
 pallet-black-hole = { version = "2.3.0", default-features = false, package = "fc-pallet-black-hole" }
 
 # Pass Authenticators
-# TODO: switch to `version = "1.1.0"` from crates.io once pass-authenticators 1.1.0 is published
-# (`rev` is the head of `feat/v1-bench-runtime-weights`, exactly the 1.1.0 content).
-pass-webauthn = { git = "https://github.com/virto-network/pass-authenticators", rev = "c21ada7e6df1f82956687a45305b70a0de5b68ee", default-features = false, package = "pass-authenticators-webauthn" }
-pass-substrate-keys = { git = "https://github.com/virto-network/pass-authenticators", rev = "c21ada7e6df1f82956687a45305b70a0de5b68ee", default-features = false, package = "pass-authenticators-substrate-keys" }
+pass-webauthn = { version = "1.1.0", default-features = false, package = "pass-authenticators-webauthn" }
+pass-substrate-keys = { version = "1.1.0", default-features = false, package = "pass-authenticators-substrate-keys" }
 
 # Substrate std
 sc-chain-spec = { version = "52.0.0" }

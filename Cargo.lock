@@ -3807,7 +3807,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -7464,7 +7464,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -9693,7 +9693,8 @@ checksum = "7924d1d0ad836f665c9065e26d016c673ece3993f30d340068b16f282afc1156"
 [[package]]
 name = "pass-authenticators-substrate-keys"
 version = "1.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators?rev=c21ada7e6df1f82956687a45305b70a0de5b68ee#c21ada7e6df1f82956687a45305b70a0de5b68ee"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e215b6b7253893b0a6a6d6c4ef2ca00b284a703435336ad0f983ae341a1cdc0c"
 dependencies = [
  "ed25519-zebra",
  "fc-traits-authn",
@@ -9713,7 +9714,8 @@ dependencies = [
 [[package]]
 name = "pass-authenticators-webauthn"
 version = "1.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators?rev=c21ada7e6df1f82956687a45305b70a0de5b68ee#c21ada7e6df1f82956687a45305b70a0de5b68ee"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a94b41c0698b1788ec92a0783201e4077c24bc36d8ef3f8ca17e04f739aaa067"
 dependencies = [
  "bitflags 2.11.0",
  "byteorder",
@@ -9736,7 +9738,8 @@ dependencies = [
 [[package]]
 name = "pass-authenticators-webauthn-verifier"
 version = "1.1.0"
-source = "git+https://github.com/virto-network/pass-authenticators?rev=c21ada7e6df1f82956687a45305b70a0de5b68ee#c21ada7e6df1f82956687a45305b70a0de5b68ee"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22c8f6b8740fd456957533706146b24b6c1bd1734b3a30704a0ddb8a362cf42f"
 dependencies = [
  "log",
  "p256",
@@ -10857,7 +10860,7 @@ dependencies = [
  "once_cell",
  "socket2 0.5.10",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -10870,7 +10873,7 @@ dependencies = [
  "libc",
  "socket2 0.5.10",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -11592,7 +11595,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -14542,7 +14545,7 @@ dependencies = [
  "getrandom 0.4.1",
  "once_cell",
  "rustix",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -16026,7 +16029,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
