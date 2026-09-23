@@ -423,7 +423,7 @@ impl pallet_xcm::Config for Runtime {
 	type MaxLockers = ConstU32<8>;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
-	type WeightInfo = pallet_xcm::TestWeightInfo;
+	type WeightInfo = crate::weights::pallet_xcm::WeightInfo<Runtime>;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -436,7 +436,7 @@ mod benchmarks {
 	use super::*;
 
 	use crate::{
-		config::{ExistentialDeposit, PriceForParentDelivery},
+		config::{ExistentialDeposit, PriceForParentDelivery, PriceForSiblingDelivery},
 		vec, UNITS,
 	};
 	use frame_benchmarking::BenchmarkError;
@@ -566,6 +566,175 @@ mod benchmarks {
 				},
 				Limited(Weight::from_parts(5000, 5000)),
 			))
+		}
+	}
+
+	parameter_types! {
+		pub AssetHubParaId: cumulus_primitives_core::ParaId = ASSET_HUB_ID.into();
+	}
+
+	/// The `Assets` pallet instance on Asset Hub.
+	const ASSET_HUB_ASSETS_PALLET: u8 = 50;
+	/// First `GeneralIndex` of the Asset Hub assets the benchmarks use. Clear of the
+	/// [`BridgeBackedAssets`] (1337, 1984), which can't be reserve-transferred.
+	const BENCHMARK_ASSETS_BASE_INDEX: u32 = 1_000_000;
+
+	/// An Asset Hub asset (other than KSM) that Asset Hub is the reserve of.
+	fn asset_hub_asset(index: u32) -> Location {
+		Location::new(
+			1,
+			[
+				Parachain(ASSET_HUB_ID),
+				PalletInstance(ASSET_HUB_ASSETS_PALLET),
+				GeneralIndex(index.into()),
+			],
+		)
+	}
+
+	fn account_location(who: &AccountId) -> Location {
+		Junction::AccountId32 {
+			network: None,
+			id: who.clone().into(),
+		}
+		.into()
+	}
+
+	/// Deposits `asset` into `who` the way a reserve transfer from Asset Hub does: through the
+	/// asset transactor, which also creates an Asset Hub asset the first time it sees it.
+	fn deposit_as_reserve_transfer(asset: Asset, who: &Location) {
+		use xcm_executor::traits::TransactAsset;
+		let context = XcmContext {
+			origin: None,
+			message_id: XcmHash::default(),
+			topic: None,
+		};
+		let holding = AssetTransactors::mint_asset(&asset, &context).expect("the asset transactor handles the asset");
+		AssetTransactors::deposit_asset(holding, who, Some(&context))
+			.map_err(|(_, error)| error)
+			.expect("the account can receive the asset");
+	}
+
+	impl pallet_xcm::benchmarking::Config for Runtime {
+		// Asset Hub is where Kreivo sends: it is the reserve of KSM and of every asset we accept.
+		type DeliveryHelper = polkadot_runtime_common::xcm_sender::ToParachainDeliveryHelper<
+			XcmConfig,
+			ExistentialDepositAsset,
+			PriceForSiblingDelivery,
+			AssetHubParaId,
+			ParachainSystem,
+		>;
+
+		fn reachable_dest() -> Option<Location> {
+			Some(AssetHubLocation::get())
+		}
+
+		fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
+			// Kreivo teleports nothing: `IsTeleporter = ()` and `XcmTeleportFilter = Nothing`.
+			None
+		}
+
+		fn reserve_transferable_asset_and_dest() -> Option<(Asset, Location)> {
+			use frame_support::traits::fungible::Mutate;
+			use xcm_executor::traits::ConvertLocation;
+
+			// An Asset Hub asset going back to Asset Hub, its reserve (`DestinationReserve`).
+			// Not KSM: `reserve_transfer_assets` and `transfer_assets` refuse reserve transfers
+			// of the network's native asset (`InvalidAssetUnknownReserve`), which can only leave
+			// through `transfer_assets_using_type_and_then`. The benchmark mints the asset to the
+			// sender itself.
+			let amount: Balance = 1_000_000;
+			let asset: Asset = (asset_hub_asset(BENCHMARK_ASSETS_BASE_INDEX), amount).into();
+			let dest = AssetHubLocation::get();
+
+			// Kreivo burns what it sends to the reserve, but the benchmark then withdraws the
+			// amount from the destination's sovereign account, as it would after a local-reserve
+			// transfer. Fund that account so the check holds; the transfer measured is the real
+			// one. The KSM keeps the account alive, as Asset Hub assets aren't sufficient.
+			let asset_hub_sovereign = LocationToAccountId::convert_location(&dest)?;
+			Balances::set_balance(&asset_hub_sovereign, ExistentialDeposit::get());
+			deposit_as_reserve_transfer(asset.clone(), &dest);
+
+			Some((asset, dest))
+		}
+
+		fn set_up_complex_asset_transfer() -> Option<(XcmAssets, u32, Location, alloc::boxed::Box<dyn FnOnce()>)> {
+			use frame_support::traits::fungible::Mutate;
+			use sp_runtime::traits::MaybeEquivalence;
+
+			// Kreivo teleports nothing, so the most involved transfer `transfer_assets` makes is
+			// several Asset Hub assets going back to their reserve, paying fees in one of them:
+			// both `DestinationReserve`. KSM can't be one of them (see
+			// `reserve_transferable_asset_and_dest`), though it pays for delivery.
+			let dest = AssetHubLocation::get();
+			let who: AccountId = frame_benchmarking::whitelisted_caller();
+			let who_location = account_location(&who);
+
+			// KSM for the delivery fees (and to keep the account, as the assets aren't sufficient).
+			let balance = UNITS;
+			Balances::set_balance(&who, balance);
+
+			let initial_amount: Balance = 1_000_000;
+			let fee_location = asset_hub_asset(BENCHMARK_ASSETS_BASE_INDEX);
+			let fee_id = AsFungibleAssetLocation::convert(&fee_location)?;
+			let fee_amount: Balance = 100_000;
+			let asset_location = asset_hub_asset(BENCHMARK_ASSETS_BASE_INDEX + 1);
+			let asset_id = AsFungibleAssetLocation::convert(&asset_location)?;
+			let asset_amount: Balance = 100_000;
+			for location in [&fee_location, &asset_location] {
+				deposit_as_reserve_transfer((location.clone(), initial_amount).into(), &who_location);
+			}
+			assert_eq!(Assets::balance(fee_id.clone(), &who), initial_amount);
+			assert_eq!(Assets::balance(asset_id.clone(), &who), initial_amount);
+
+			let fee_asset: Asset = (fee_location, fee_amount).into();
+			let assets: XcmAssets = vec![fee_asset.clone(), (asset_location, asset_amount).into()].into();
+			let fee_index = assets.inner().iter().position(|asset| asset.id == fee_asset.id)? as u32;
+
+			let verify = alloc::boxed::Box::new(move || {
+				// The fee asset went down by at least the fees sent along.
+				assert!(Assets::balance(fee_id, &who) <= initial_amount - fee_amount);
+				// The other asset went down by exactly the amount transferred.
+				assert_eq!(Assets::balance(asset_id, &who), initial_amount - asset_amount);
+				// Delivery was paid in KSM.
+				assert!(Balances::free_balance(&who) < balance);
+			});
+
+			Some((assets, fee_index, dest, verify))
+		}
+
+		fn get_asset() -> Asset {
+			use frame_support::traits::fungible::Mutate;
+
+			// KSM, the only asset of the `Balances` transactor. The claimer exists already, as
+			// the owner of trapped assets does.
+			let who: AccountId = frame_benchmarking::whitelisted_caller();
+			Balances::set_balance(&who, ExistentialDeposit::get());
+			(RelayLocation::get(), UNITS).into()
+		}
+
+		fn get_assets(n: u32) -> XcmAssets {
+			use frame_support::traits::fungibles::Create;
+			use sp_runtime::traits::MaybeEquivalence;
+
+			// The `Assets` transactor also deposits every Asset Hub asset, so claims can hold
+			// many distinct ones: KSM plus `n - 1` of those.
+			let mut assets = vec![Self::get_asset()];
+			assets.extend((1..n).map(|i| {
+				let location = asset_hub_asset(BENCHMARK_ASSETS_BASE_INDEX + i);
+				// The transactor would create each asset on first sight, as not sufficient. Each
+				// such asset takes a consumer reference from the claimer, and `MaxConsumers` (16)
+				// would run out before `MAX_ITEMS_IN_ASSETS` (20). Create them as sufficient
+				// instead: the claim does the same work, minus the consumer bookkeeping.
+				let id = AsFungibleAssetLocation::convert(&location).expect("an Asset Hub asset location; qed");
+				<Assets as Create<AccountId>>::create(id, TreasuryAccount::get(), true, 1)
+					.expect("the asset doesn't exist yet");
+				(location, 1_000_000u128).into()
+			}));
+			assets.into()
+		}
+
+		fn batch_call(calls: alloc::vec::Vec<RuntimeCall>) -> Option<RuntimeCall> {
+			Some(RuntimeCall::Utility(pallet_utility::Call::batch_all { calls }))
 		}
 	}
 }

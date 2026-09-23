@@ -28,3 +28,5 @@ pub use {
 
 #[cfg(feature = "runtime-benchmarks")]
 pub use currency::ExistentialDeposit;
+#[cfg(feature = "runtime-benchmarks")]
+pub use xcm::PriceForSiblingDelivery;
