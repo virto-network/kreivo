@@ -19,10 +19,12 @@ import _help
 _HelpAction = _help._HelpAction
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..', '..'))
 
-# Every path below is relative to the repository root.
-os.chdir(REPO_ROOT)
+# The repository the command works on is the working directory, which must be its root: every path
+# below is relative to it. It need not be the repository this script comes from: the bot runs the
+# default branch's scripts on a checkout of the pull request (see `.github/workflows/cmd.yml`).
+if not os.path.isfile('Cargo.toml') or not os.path.exists('.git'):
+    sys.exit(f'Run this from the root of the repository to work on ({os.getcwd()} is not one)')
 
 with open(os.path.join(SCRIPT_DIR, 'runtimes.json'), 'r') as f:
     runtimesMatrix = json.load(f)

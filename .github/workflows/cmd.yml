@@ -19,6 +19,11 @@
 #   that the result only touches the paths the command may change before committing it.
 # - The pull request's head is pinned when the command is authorized: the run checks out that
 #   commit, and the push fails if the branch has moved since.
+# - The bot's scripts (`.github/scripts/cmd`) always come from the default branch, checked out
+#   into `bot/`, and run against the pull request, checked out into `pr/` (as FRAME Contrib's bot
+#   does). A pull request branched before a script existed, or that changes one, still gets the
+#   bot as merged. What describes the runtime (the weight templates, the error-weight allowlist)
+#   comes from the pull request.
 #
 # Security model: `issue_comment` workflows always run the workflow file of the default branch, so a
 # pull request can't change this file to grant itself access. Every job that checks out or runs
@@ -215,9 +220,10 @@ jobs:
       pull-requests: write
     steps:
       # The default branch, not the pull request: the help needs no pull request code.
-      - name: Checkout
+      - name: Checkout the bot
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/scripts/cmd
           persist-credentials: false
 
@@ -279,10 +285,19 @@ jobs:
     outputs:
       changed: ${{ steps.patch.outputs.changed }}
     steps:
+      - name: Checkout the bot
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: bot
+          persist-credentials: false
+          sparse-checkout: .github/scripts/cmd
+
       - name: Checkout the pull request
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.auth.outputs.head-sha }}
+          path: pr
           persist-credentials: false
 
       - name: Install nightly toolchain
@@ -291,17 +306,19 @@ jobs:
           components: rustfmt
 
       - name: Run cmd
+        working-directory: pr
         env:
           CMD: ${{ needs.auth.outputs.cmd }}
-          PYTHONDONTWRITEBYTECODE: 1 # keep `__pycache__` out of the patch
+          PYTHONDONTWRITEBYTECODE: 1
         run: |
           echo "Running command: $CMD"
           read -ra args <<< "$CMD"
-          python3 .github/scripts/cmd/cmd.py "${args[@]}"
+          python3 ../bot/.github/scripts/cmd/cmd.py "${args[@]}"
           git status
 
       - name: Save changes as a patch
         id: patch
+        working-directory: pr
         run: |
           mkdir -p "$RUNNER_TEMP/cmd"
           git add -A
@@ -392,16 +409,25 @@ jobs:
       group: cmd-bench-${{ github.event.issue.number }}
       cancel-in-progress: false
     steps:
-      # Only what the benchmarks need: the bot's scripts, the XCM weight template, the SDK version
-      # that picks the bencher, and the weight files to overwrite.
+      - name: Checkout the bot
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: bot
+          persist-credentials: false
+          sparse-checkout: .github/scripts/cmd
+
+      # Only what the benchmarks need: the XCM weight template, the SDK version that picks the
+      # bencher, and the weight files to overwrite (cmd.py checks for a `Cargo.toml` at the root).
       - name: Checkout the pull request
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.auth.outputs.head-sha }}
+          path: pr
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: |
-            /.github/scripts/cmd/
+            /Cargo.toml
             /templates/
             /polkadot-sdk-version
             /runtime/kreivo/src/weights/
@@ -413,6 +439,7 @@ jobs:
           path: ${{ runner.temp }}/runtime
 
       - name: Download frame-omni-bencher
+        working-directory: pr
         run: |
           # Use the bencher from the SDK release the runtime targets: an older one can't decode the
           # runtime's host-function arguments.
@@ -431,13 +458,14 @@ jobs:
       # Below the job's timeout, so that a run that is too long still uploads what it measured.
       - name: Run the benchmarks
         timeout-minutes: 165
+        working-directory: pr
         env:
           CMD: ${{ needs.auth.outputs.cmd }}
           PYTHONDONTWRITEBYTECODE: 1
         run: |
           echo "Running command: $CMD"
           read -ra args <<< "$CMD"
-          python3 .github/scripts/cmd/cmd.py "${args[@]}" \
+          python3 ../bot/.github/scripts/cmd/cmd.py "${args[@]}" \
             --runtime-wasm "$RUNNER_TEMP/runtime/$RUNTIME_WASM"
           git status --short
 
@@ -448,7 +476,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cmd-bench-weights
-          path: ${{ env.WEIGHTS_DIR }}
+          path: pr/${{ env.WEIGHTS_DIR }}
           if-no-files-found: warn
           retention-days: 7
 
@@ -483,11 +511,21 @@ jobs:
           private-key: ${{ secrets.KREIVOPS_APP_PRIVATE_KEY }}
           permission-contents: write
 
+      - name: Checkout the bot
+        if: ${{ env.RUN_RESULT == 'success' || env.PARTIAL == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: bot
+          persist-credentials: false
+          sparse-checkout: .github/scripts/cmd
+
       - name: Checkout the pull request
         if: ${{ env.RUN_RESULT == 'success' || env.PARTIAL == 'true' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.auth.outputs.head-sha }}
+          path: pr
           token: ${{ steps.app-token.outputs.token || github.token }}
           fetch-depth: 0
 
@@ -498,7 +536,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: cmd-bench-weights
-          path: ${{ env.WEIGHTS_DIR }}
+          path: pr/${{ env.WEIGHTS_DIR }}
 
       - name: Download the patch
         if: ${{ env.RUN_RESULT == 'success' && env.COMMAND == 'fmt' && needs.fmt.outputs.changed == 'true' }}
@@ -510,6 +548,7 @@ jobs:
       - name: Stage the changes
         id: stage
         if: ${{ env.RUN_RESULT == 'success' || env.PARTIAL == 'true' }}
+        working-directory: pr
         run: |
           set -o pipefail
           # The paths each command may change; anything else means the result is not what we expect.
@@ -537,7 +576,7 @@ jobs:
             # No weight of a benchmark that failed, unless the runtime's allowlist expects it.
             mapfile -t paths < "$RUNNER_TEMP/paths"
             CHECK_WEIGHTS_REPORT="$RUNNER_TEMP/weight-errors.md" \
-              python3 .github/scripts/cmd/check_weights.py "${paths[@]}"
+              python3 ../bot/.github/scripts/cmd/check_weights.py "${paths[@]}"
           fi
           git diff --cached --stat
           if git diff --cached --quiet; then
@@ -549,6 +588,7 @@ jobs:
       - name: Commit and push
         id: push
         if: ${{ steps.stage.outputs.changed == 'true' }}
+        working-directory: pr
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
           APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
@@ -597,6 +637,7 @@ jobs:
         id: subweight
         if: ${{ steps.push.outcome == 'success' && env.COMMAND == 'bench' }}
         continue-on-error: true
+        working-directory: pr
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
