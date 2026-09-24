@@ -153,6 +153,10 @@ def bench_pallet(config, pallet, output):
     `runtime/kreivo/src/weights`): the bencher's default template and no header, `--steps 50
     --repeat 20`. Only the XCM pallets use a template, as their weights are not a pallet's
     `WeightInfo` implementation.
+
+    One bencher run per pallet, which writes the pallet's weights when it finishes: if a later
+    pallet fails, or the job times out, the weights already written are kept (the bot uploads and
+    commits them).
     """
     template = (config.get("benchmarks_templates") or {}).get(pallet)
     header = config.get("benchmarks_header")

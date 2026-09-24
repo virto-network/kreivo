@@ -428,7 +428,9 @@ jobs:
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
           ./frame-omni-bencher --version
 
+      # Below the job's timeout, so that a run that is too long still uploads what it measured.
       - name: Run the benchmarks
+        timeout-minutes: 165
         env:
           CMD: ${{ needs.auth.outputs.cmd }}
           PYTHONDONTWRITEBYTECODE: 1
@@ -439,17 +441,21 @@ jobs:
             --runtime-wasm "$RUNNER_TEMP/runtime/$RUNTIME_WASM"
           git status --short
 
+      # Also when the benchmarks failed or timed out: each pallet's weights are written as soon as
+      # it finishes, and `commit` keeps those of the pallets that did.
       - name: Upload the weights
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: cmd-bench-weights
           path: ${{ env.WEIGHTS_DIR }}
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 7
 
   # `/cmd bench`, step 3 (and `/cmd fmt`, step 2): commit the result to the pull request's branch
   # and report back, from a GitHub-hosted runner. Never runs pull request code: it only copies the
-  # weights in, or applies a patch whose paths it checked.
+  # weights in, or applies a patch whose paths it checked. When the benchmarks fail or time out,
+  # it still commits the weights of the pallets that finished, and reports the command as failed.
   commit:
     needs: [auth, fmt, build, bench]
     if: ${{ always() && needs.auth.outputs.allowed == 'true' && needs.auth.outputs.help != 'true' && (needs.fmt.result != 'skipped' || needs.build.result != 'skipped') }}
@@ -465,10 +471,12 @@ jobs:
       HEAD_REF: ${{ needs.auth.outputs.head-ref }}
       # `bench` only runs when `build` succeeded, so its result covers the whole bench path.
       RUN_RESULT: ${{ needs.auth.outputs.command == 'fmt' && needs.fmt.result || needs.bench.result }}
+      # The benchmarks failed or timed out: commit the weights that were measured before that.
+      PARTIAL: ${{ needs.auth.outputs.command == 'bench' && needs.bench.result == 'failure' }}
     steps:
       - name: Get a GitHub App token
         id: app-token
-        if: ${{ env.RUN_RESULT == 'success' && vars.KREIVOPS_APP_ID != '' }}
+        if: ${{ (env.RUN_RESULT == 'success' || env.PARTIAL == 'true') && vars.KREIVOPS_APP_ID != '' }}
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.KREIVOPS_APP_ID }}
@@ -476,7 +484,7 @@ jobs:
           permission-contents: write
 
       - name: Checkout the pull request
-        if: ${{ env.RUN_RESULT == 'success' }}
+        if: ${{ env.RUN_RESULT == 'success' || env.PARTIAL == 'true' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.auth.outputs.head-sha }}
@@ -484,7 +492,9 @@ jobs:
           fetch-depth: 0
 
       - name: Download the weights
-        if: ${{ env.RUN_RESULT == 'success' && env.COMMAND == 'bench' }}
+        if: ${{ (env.RUN_RESULT == 'success' || env.PARTIAL == 'true') && env.COMMAND == 'bench' }}
+        # A failed run may have stopped before it uploaded anything.
+        continue-on-error: ${{ env.PARTIAL == 'true' }}
         uses: actions/download-artifact@v4
         with:
           name: cmd-bench-weights
@@ -499,7 +509,7 @@ jobs:
 
       - name: Stage the changes
         id: stage
-        if: ${{ env.RUN_RESULT == 'success' }}
+        if: ${{ env.RUN_RESULT == 'success' || env.PARTIAL == 'true' }}
         run: |
           set -o pipefail
           # The paths each command may change; anything else means the result is not what we expect.
@@ -552,7 +562,11 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           fi
-          git commit -m "Update from @$GH_ACTOR running command \`$CMD\`"
+          message="Update from @$GH_ACTOR running command \`$CMD\`"
+          if [ "$PARTIAL" = "true" ]; then
+            message="$message (partial: the benchmarks that finished before the run failed)"
+          fi
+          git commit -m "$message"
           # Not a force push: this fails if the branch has moved since the command was authorized.
           if ! git push origin "HEAD:refs/heads/$HEAD_REF"; then
             echo "::error::Could not push to $HEAD_REF: it has probably moved since the command started. Run it again."
@@ -626,16 +640,21 @@ jobs:
       - name: Comment PR (Failure)
         if: ${{ (failure() || env.RUN_RESULT != 'success') && needs.auth.outputs.quiet != 'true' }}
         uses: actions/github-script@v7
+        env:
+          PUSHED: ${{ steps.push.outputs.sha }}
         with:
           script: |
             const fs = require('fs');
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const report = `${process.env.RUNNER_TEMP}/weight-errors.md`;
             const details = fs.existsSync(report) ? `\n\n${fs.readFileSync(report, 'utf8')}` : '';
+            const pushed = process.env.PUSHED
+              ? `\n\nThe weights of the pallets that finished were pushed in ${process.env.PUSHED}.`
+              : '';
             await github.rest.issues.createComment({
               ...context.repo,
               issue_number: context.issue.number,
-              body: `Command \`${process.env.CMD}\` has failed ❌! [See logs here](${runUrl})` + details
+              body: `Command \`${process.env.CMD}\` has failed ❌! [See logs here](${runUrl})` + pushed + details
             });
 
       - name: Add 😕 reaction on failure
