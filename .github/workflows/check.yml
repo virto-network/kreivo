@@ -135,6 +135,48 @@ jobs:
           # under runtime-benchmarks, which would need solc and resolc.
           SKIP_PALLET_REVIVE_FIXTURES: 1
 
+  # `test` runs with `--all-features`, which includes `paseo`: the runtime is then configured for
+  # Paseo (Polkadot as the relay network), and the tests that only apply to Kusama are compiled
+  # out (e.g. the dry run of a message bridged from Polkadot Asset Hub). This runs the runtime's
+  # tests as Kusama's runtime is built: default features, no `paseo`.
+  test-kusama:
+    runs-on: ubuntu-latest
+    env:
+      SKIP_WASM_BUILD: 1
+    steps:
+      - name: Install dependencies
+        run: |
+          # Install `protoc`
+          sudo apt install -y protobuf-compiler
+
+      - name: Install nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          target: wasm32-unknown-unknown
+          components: rust-src
+
+      - uses: actions/checkout@v4
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+          cache-all-crates: true
+          key: test-kusama
+
+      - name: Run the runtime tests without `paseo`
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          args: --lib --locked -p kreivo-runtime
+        env:
+          # pallet-revive is out of the runtime, but assets-common still builds its fixtures
+          # under runtime-benchmarks, which would need solc and resolc.
+          SKIP_PALLET_REVIVE_FIXTURES: 1
+
   emulated-tests:
     runs-on: ubuntu-latest
     steps:
