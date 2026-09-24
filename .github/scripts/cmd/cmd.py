@@ -91,6 +91,34 @@ parser_bench.add_argument('--dry-run', action='store_true',
 parser_bench.add_argument('--runtime-wasm', help=argparse.SUPPRESS, default=None)
 
 """
+BENCH-OVERHEAD
+"""
+
+bench_overhead_example = '''**Examples**:
+
+ > measures the overhead of an empty block and of an extrinsic, into the runtime's
+ > `weights/block_weights.rs` and `weights/extrinsic_weights.rs`
+
+ %(prog)s
+
+ '''
+
+parser_bench_overhead = subparsers.add_parser(
+    'bench-overhead', help='Benchmarks the block and extrinsic execution overhead (block_weights.rs and '
+                           'extrinsic_weights.rs)', epilog=bench_overhead_example,
+    formatter_class=argparse.RawDescriptionHelpFormatter)
+
+for arg, config in common_args.items():
+    parser_bench_overhead.add_argument(arg, **config)
+
+parser_bench_overhead.add_argument('--runtime', help='Runtime(s) space separated', choices=runtimeNames, nargs='*',
+                                   default=runtimeNames)
+parser_bench_overhead.add_argument('--dry-run', action='store_true',
+                                   help='Build the runtime(s) and print the command that would run, without '
+                                        'running it')
+parser_bench_overhead.add_argument('--runtime-wasm', help=argparse.SUPPRESS, default=None)
+
+"""
 FMT
 """
 parser_fmt = subparsers.add_parser('fmt', help='Formats code (cargo +nightly fmt --all)')
@@ -182,6 +210,57 @@ def bench_pallet(config, pallet, output):
     return subprocess.run(command).returncode == 0
 
 
+def bench_overhead(config, dry_run=False):
+    """
+    `frame-omni-bencher v1 benchmark overhead`: the time of an empty block and of a `System::remark`
+    extrinsic, as `BlockExecutionWeight` and `ExtrinsicBaseWeight`, written to
+    `<runtime>/src/weights/{block,extrinsic}_weights.rs`. The bencher recognizes a parachain by its
+    `ParachainSystem` and `ParachainInfo` pallets, and provides the parachain inherent itself; it
+    builds the genesis state from the runtime's preset, with the para id set to `para_id` (from
+    `runtimes.json`; the bencher otherwise patches in 100). It writes `block_weights.rs` as soon as
+    the block overhead is measured, before it measures the extrinsic.
+    """
+    output = f"./{config['path']}/src/weights/"
+    command = [
+        "frame-omni-bencher", "v1", "benchmark", "overhead",
+        "--runtime", wasm_path(config),
+        "--genesis-builder", "runtime",
+        "--genesis-builder-preset", config.get("genesis_preset") or "development",
+        "--weight-path", output,
+        "--warmup", "10",
+        "--repeat", "100",
+    ]
+    if config.get("para_id") is not None:
+        command += ["--para-id", str(config["para_id"])]
+    header = config.get("benchmarks_header")
+    if header:
+        command += ["--header", header]
+    print(f'-- benchmarking the block and extrinsic overhead of {config["name"]} into {output}', flush=True)
+    print(f'   $ {" ".join(command)}', flush=True)
+    if dry_run:
+        return True
+    return subprocess.run(command).returncode == 0
+
+
+def select_runtimes(args):
+    """The runtimes `args.runtime` selects, using `args.runtime_wasm` if the bot passed one."""
+    global PREBUILT_WASM
+    print(f'Provided runtimes: {args.runtime}')
+    runtimes = {x['name']: x for x in runtimesMatrix if x['name'] in args.runtime}
+    print(f'Filtered out runtimes: {list(runtimes)}')
+
+    if args.runtime_wasm:
+        if len(runtimes) != 1:
+            print(f'--runtime-wasm is a single runtime, but {len(runtimes)} were selected: {list(runtimes)}')
+            sys.exit(1)
+        PREBUILT_WASM = os.path.abspath(args.runtime_wasm)
+        if not os.path.isfile(PREBUILT_WASM):
+            print(f'No runtime at {PREBUILT_WASM}')
+            sys.exit(1)
+        print(f'-- using the runtime at {PREBUILT_WASM}, not building one')
+    return runtimes
+
+
 def main():
     args, unknown = parser.parse_known_args()
     print(f'args: {args}')
@@ -191,24 +270,11 @@ def main():
         sys.exit(1)
 
     if args.command == 'bench':
-        global PREBUILT_WASM
         runtime_pallets_map = {}
         failed_benchmarks = {}
         successful_benchmarks = {}
 
-        print(f'Provided runtimes: {args.runtime}')
-        runtimes = {x['name']: x for x in runtimesMatrix if x['name'] in args.runtime}
-        print(f'Filtered out runtimes: {list(runtimes)}')
-
-        if args.runtime_wasm:
-            if len(runtimes) != 1:
-                print(f'--runtime-wasm is a single runtime, but {len(runtimes)} were selected: {list(runtimes)}')
-                sys.exit(1)
-            PREBUILT_WASM = os.path.abspath(args.runtime_wasm)
-            if not os.path.isfile(PREBUILT_WASM):
-                print(f'No runtime at {PREBUILT_WASM}')
-                sys.exit(1)
-            print(f'-- using the runtime at {PREBUILT_WASM}, not building one')
+        runtimes = select_runtimes(args)
 
         # loop over remaining runtimes to collect available pallets
         for config in runtimes.values():
@@ -273,6 +339,24 @@ def main():
             print('✅ Successful benchmarks of runtimes/pallets:')
             for runtime, pallets in successful_benchmarks.items():
                 print(f'-- {runtime}: {pallets}')
+
+    elif args.command == 'bench-overhead':
+        runtimes = select_runtimes(args)
+        if not runtimes:
+            print('No runtimes found')
+            sys.exit(1)
+        failed = []
+        for config in runtimes.values():
+            if not PREBUILT_WASM and not build_runtime(config):
+                print(f"Failed to build {config['name']}")
+                sys.exit(1)
+            if not bench_overhead(config, dry_run=args.dry_run):
+                print(f'❌ Failed to benchmark the overhead of {config["name"]}')
+                if not args.continue_on_fail:
+                    sys.exit(1)
+                failed.append(config['name'])
+        if failed:
+            sys.exit(1)
 
     elif args.command == 'fmt':
         command = ["cargo", "+nightly", "fmt", "--all"]

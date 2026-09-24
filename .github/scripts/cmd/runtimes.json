@@ -3,6 +3,8 @@
     "name": "kreivo",
     "package": "kreivo-runtime",
     "path": "runtime/kreivo",
+    "para_id": 2281,
+    "genesis_preset": "development",
     "build_extra_features": "",
     "build_env": {
       "SKIP_PALLET_REVIVE_FIXTURES": "1"

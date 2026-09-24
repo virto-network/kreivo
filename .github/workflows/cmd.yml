@@ -6,7 +6,8 @@
 # Changes for Kreivo:
 # - Authorization: repository permission `write`, `maintain` or `admin`, instead of the Fellowship's
 #   on-chain members list. Only pull requests from branches of this repository (not forks).
-# - `/cmd bench` runs in three jobs, so that the reference hardware only ever measures:
+# - `/cmd bench` (pallet weights) and `/cmd bench-overhead` (block and extrinsic overhead) run in
+#   the same three jobs, so that the reference hardware only ever measures:
 #   * `build` compiles the runtime with `runtime-benchmarks` on a GitHub-hosted runner (this
 #     repository is public, so its minutes are free) and uploads the Wasm blob;
 #   * `bench` runs the benchmarks on the reference hardware (`self-hosted`, `benchmark`, `ccx43`)
@@ -104,7 +105,7 @@ jobs:
             const cmd = args.join(' ');
             const help = args.includes('--help');
             const command = args[0];
-            if (!help && !['bench', 'fmt'].includes(command)) {
+            if (!help && !['bench', 'bench-overhead', 'fmt'].includes(command)) {
               return deny(`Sorry, \`${command}\` is not a command. Comment \`/cmd --help\` to see the available commands.`);
             }
             core.setOutput('cmd', cmd);
@@ -357,12 +358,12 @@ jobs:
           path: ${{ runner.temp }}/cmd/changes.patch
           retention-days: 7
 
-  # `/cmd bench`, step 1: build the runtime on a GitHub-hosted runner. This repository is public, so
+  # `/cmd bench` and `/cmd bench-overhead`, step 1: build the runtime on a GitHub-hosted runner. This repository is public, so
   # its minutes are free, and the reference hardware is left to measure. A read-only token, no
   # secrets.
   build:
     needs: [auth, acknowledge]
-    if: ${{ needs.auth.outputs.allowed == 'true' && needs.auth.outputs.command == 'bench' }}
+    if: ${{ needs.auth.outputs.allowed == 'true' && (needs.auth.outputs.command == 'bench' || needs.auth.outputs.command == 'bench-overhead') }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
@@ -413,7 +414,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # `/cmd bench`, step 2: measure on the reference hardware. No Rust toolchain, no cargo build, no
+  # `/cmd bench` and `/cmd bench-overhead`, step 2: measure on the reference hardware. No Rust toolchain, no cargo build, no
   # credentials and no secrets: it takes the runtime `build` handed it, the `frame-omni-bencher`
   # release that matches the SDK this branch targets, and only the files the benchmarks read or
   # overwrite.
@@ -498,7 +499,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-  # `/cmd bench`, step 3 (and `/cmd fmt`, step 2): commit the result to the pull request's branch
+  # `/cmd bench` and `/cmd bench-overhead`, step 3 (and `/cmd fmt`, step 2): commit the result to the pull request's branch
   # and report back, from a GitHub-hosted runner. Never runs pull request code: it only copies the
   # weights in, or applies a patch whose paths it checked. When the benchmarks fail or time out,
   # it still commits the weights of the pallets that finished, and reports the command as failed.
@@ -515,10 +516,12 @@ jobs:
       COMMAND: ${{ needs.auth.outputs.command }}
       HEAD_SHA: ${{ needs.auth.outputs.head-sha }}
       HEAD_REF: ${{ needs.auth.outputs.head-ref }}
+      # `bench` or `bench-overhead`: weights measured on the reference hardware.
+      BENCH: ${{ needs.auth.outputs.command == 'bench' || needs.auth.outputs.command == 'bench-overhead' }}
       # `bench` only runs when `build` succeeded, so its result covers the whole bench path.
       RUN_RESULT: ${{ needs.auth.outputs.command == 'fmt' && needs.fmt.result || needs.bench.result }}
       # The benchmarks failed or timed out: commit the weights that were measured before that.
-      PARTIAL: ${{ needs.auth.outputs.command == 'bench' && needs.bench.result == 'failure' }}
+      PARTIAL: ${{ (needs.auth.outputs.command == 'bench' || needs.auth.outputs.command == 'bench-overhead') && needs.bench.result == 'failure' }}
     steps:
       - name: Get a GitHub App token
         id: app-token
@@ -548,7 +551,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download the weights
-        if: ${{ (env.RUN_RESULT == 'success' || env.PARTIAL == 'true') && env.COMMAND == 'bench' }}
+        if: ${{ (env.RUN_RESULT == 'success' || env.PARTIAL == 'true') && env.BENCH == 'true' }}
         # A failed run may have stopped before it uploaded anything.
         continue-on-error: ${{ env.PARTIAL == 'true' }}
         uses: actions/download-artifact@v4
@@ -572,6 +575,7 @@ jobs:
           # The paths each command may change; anything else means the result is not what we expect.
           case "$COMMAND" in
             bench) allowed='^runtime/[^/]+/src/weights/.+\.rs$' ;;
+            bench-overhead) allowed='^runtime/[^/]+/src/weights/(block|extrinsic)_weights\.rs$' ;;
             fmt) allowed='\.rs$' ;;
             *) echo "::error::Unknown command $COMMAND"; exit 1 ;;
           esac
