@@ -1,0 +1,17 @@
+[
+  {
+    "file": "xcm/pallet_xcm_benchmarks_generic.rs",
+    "function": "execute_with_origin",
+    "reason": "The SDK dropped the `ExecuteWithOrigin` benchmark (paritytech/polkadot-sdk#7889), so the bencher has nothing to measure; the instruction keeps an unpayable weight, i.e. it stays unusable on Kreivo."
+  },
+  {
+    "file": "xcm/pallet_xcm_benchmarks_fungible.rs",
+    "function": "receive_teleported_asset",
+    "reason": "Kreivo accepts no teleports (`IsTeleporter = ()`), so the benchmark cannot run; `ReceiveTeleportedAsset` must stay unusable."
+  },
+  {
+    "file": "pallet_xcm.rs",
+    "function": "teleport_assets",
+    "reason": "Kreivo teleports nothing (`XcmTeleportFilter = Nothing`, `teleportable_asset_and_dest` is `None`), so the benchmark cannot run; `teleport_assets` must stay unusable."
+  }
+]

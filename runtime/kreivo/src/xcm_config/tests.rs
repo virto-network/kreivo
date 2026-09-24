@@ -10,6 +10,7 @@ use frame_support::{
 use parachains_common::AccountId;
 use parity_scale_codec::Encode;
 use sp_io::TestExternalities;
+use virto_common::CommunityId;
 use xcm::{VersionedLocation, VersionedXcm};
 use xcm_executor::traits::{ConvertLocation, ConvertOrigin, Properties, QueryHandler, ShouldExecute, WeightBounds};
 
@@ -312,6 +313,93 @@ fn root_can_send_xcm_as_here_but_plain_accounts_cannot() {
 			Some(Location::here())
 		);
 		assert!(SendOrigin::try_origin(RuntimeOrigin::signed(AccountId::new(ALICE))).is_err());
+	})
+}
+
+/// `WithdrawAsset` + `DepositAsset` back to `who`: a message that only touches `who`'s own KSM.
+fn withdraw_and_deposit_back(who: Location) -> Box<VersionedXcm<RuntimeCall>> {
+	Box::new(VersionedXcm::from(Xcm::<RuntimeCall>(vec![
+		WithdrawAsset(ksm(UNITS).into()),
+		DepositAsset {
+			assets: AllCounted(1).into(),
+			beneficiary: who,
+		},
+	])))
+}
+
+#[test]
+fn signed_accounts_and_communities_can_execute_xcm() {
+	TestExternalities::default().execute_with(|| {
+		const COMMUNITY: CommunityId = 1;
+		let alice = AccountId::new(ALICE);
+		let community = crate::Communities::community_account(&COMMUNITY);
+		let community_origin: RuntimeOrigin = pallet_communities::Origin::<Runtime>::new(COMMUNITY).into();
+		let cases = [
+			(
+				RuntimeOrigin::signed(alice.clone()),
+				alice,
+				Location::new(
+					0,
+					[AccountId32 {
+						network: RelayNetwork::get(),
+						id: ALICE,
+					}],
+				),
+			),
+			(
+				community_origin,
+				community,
+				Location::new(
+					0,
+					[Plurality {
+						id: BodyId::Index(COMMUNITY.into()),
+						part: BodyPart::Voice,
+					}],
+				),
+			),
+		];
+
+		for (origin, who, location) in cases {
+			Balances::set_balance(&who, 2 * UNITS);
+			assert_eq!(
+				<Runtime as pallet_xcm::Config>::ExecuteXcmOrigin::try_origin(origin.clone()).ok(),
+				Some(location.clone())
+			);
+			assert_ok!(PolkadotXcm::execute(
+				origin,
+				withdraw_and_deposit_back(location),
+				Weight::MAX
+			));
+			// The KSM left the account and came back to it.
+			assert_eq!(Balances::free_balance(&who), 2 * UNITS);
+		}
+	})
+}
+
+#[test]
+fn other_origins_cannot_execute_xcm() {
+	TestExternalities::default().execute_with(|| {
+		type ExecuteOrigin = <Runtime as pallet_xcm::Config>::ExecuteXcmOrigin;
+
+		for origin in [
+			RuntimeOrigin::none(),
+			// A message coming in over XCM that dispatches back into `pallet_xcm`.
+			pallet_xcm::Origin::Xcm(sibling(ASSET_HUB_ID)).into(),
+		] {
+			assert!(ExecuteOrigin::try_origin(origin.clone()).is_err());
+			assert_eq!(
+				PolkadotXcm::execute(origin, withdraw_and_deposit_back(Location::here()), Weight::MAX)
+					.map_err(|e| e.error),
+				Err(sp_runtime::DispatchError::BadOrigin)
+			);
+		}
+
+		// Root executes as `Here` (`EnsureXcmOrigin`'s fallback), which is also the origin the
+		// `pallet_xcm::execute` benchmark uses.
+		assert_eq!(
+			ExecuteOrigin::try_origin(RuntimeOrigin::root()).ok(),
+			Some(Location::here())
+		);
 	})
 }
 

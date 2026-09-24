@@ -3,20 +3,16 @@
     "name": "kreivo",
     "package": "kreivo-runtime",
     "path": "runtime/kreivo",
+    "para_id": 2281,
+    "genesis_preset": "development",
     "build_extra_features": "",
     "build_env": {
       "SKIP_PALLET_REVIVE_FIXTURES": "1"
     },
+    "benchmarks_error_allowlist": "runtime/kreivo/benchmark-error-allowlist.json",
     "benchmarks_templates": {
       "pallet_xcm_benchmarks::generic": "templates/xcm-bench-template.hbs",
       "pallet_xcm_benchmarks::fungible": "templates/xcm-bench-template.hbs"
-    },
-    "benchmarks_exclude_pallets": [
-      "pallet_nfts"
-    ],
-    "benchmarks_scratch_pallets": [
-      "pass_webauthn",
-      "pass_substrate_keys"
-    ]
+    }
   }
 ]

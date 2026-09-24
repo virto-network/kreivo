@@ -9,7 +9,6 @@ use frame_support::{
 	derive_impl,
 	dispatch::DispatchClass,
 	traits::{fungible::HoldConsideration, Consideration, Footprint},
-	weights::constants::{BlockExecutionWeight, ExtrinsicBaseWeight},
 	PalletId,
 };
 use frame_system::{limits::BlockLength, EnsureRootWithSuccess, EnsureSigned};
@@ -58,10 +57,11 @@ parameter_types! {
 		.max_length(MAX_BLOCK_LENGTH)
 		.modify_max_length_for_class(DispatchClass::Normal, |max| *max = NORMAL_DISPATCH_RATIO * MAX_BLOCK_LENGTH)
 		.build();
+	// The overhead of a block and of an extrinsic, as `/cmd bench-overhead` measures them.
 	pub RuntimeBlockWeights: BlockWeights = BlockWeights::builder()
-		.base_block(BlockExecutionWeight::get())
+		.base_block(crate::weights::BlockExecutionWeight::get())
 		.for_class(DispatchClass::all(), |weights| {
-			weights.base_extrinsic = ExtrinsicBaseWeight::get();
+			weights.base_extrinsic = crate::weights::ExtrinsicBaseWeight::get();
 		})
 		.for_class(DispatchClass::Normal, |weights| {
 			weights.max_total = Some(NORMAL_DISPATCH_RATIO * MaximumBlockWeight::get());

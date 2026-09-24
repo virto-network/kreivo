@@ -34,6 +34,8 @@ pub mod pallet_gas_transaction_payment;
 pub mod pallet_listings;
 pub mod pallet_message_queue;
 pub mod pallet_multisig;
+pub mod pallet_nfts_community_memberships;
+pub mod pallet_nfts_listings_catalog;
 pub mod pallet_orders;
 pub mod pallet_pass;
 pub mod pallet_payments;
@@ -55,6 +57,9 @@ pub mod pass_substrate_keys;
 pub mod pass_webauthn;
 pub mod rocksdb_weights;
 pub mod xcm;
+
+pub use block_weights::BlockExecutionWeight;
+pub use extrinsic_weights::ExtrinsicBaseWeight;
 
 // pub use paritydb_weights::constants::ParityDbWeight;
 // pub use rocksdb_weights::constants::RocksDbWeight;

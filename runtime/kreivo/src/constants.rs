@@ -33,6 +33,9 @@ pub mod currency {
 
 /// Fee-related.
 pub mod fee {
+	// The SDK's constant, not the one `/cmd bench-overhead` measures for Kreivo
+	// (`crate::weights::ExtrinsicBaseWeight`): it only sets the scale of fees, which must not move
+	// every time the overhead is benchmarked again.
 	use frame_support::weights::constants::ExtrinsicBaseWeight;
 	use polkadot_core_primitives::Balance;
 

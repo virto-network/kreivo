@@ -6,7 +6,8 @@
 # Changes for Kreivo:
 # - Authorization: repository permission `write`, `maintain` or `admin`, instead of the Fellowship's
 #   on-chain members list. Only pull requests from branches of this repository (not forks).
-# - `/cmd bench` runs in three jobs, so that the reference hardware only ever measures:
+# - `/cmd bench` (pallet weights) and `/cmd bench-overhead` (block and extrinsic overhead) run in
+#   the same three jobs, so that the reference hardware only ever measures:
 #   * `build` compiles the runtime with `runtime-benchmarks` on a GitHub-hosted runner (this
 #     repository is public, so its minutes are free) and uploads the Wasm blob;
 #   * `bench` runs the benchmarks on the reference hardware (`self-hosted`, `benchmark`, `ccx43`)
@@ -19,6 +20,11 @@
 #   that the result only touches the paths the command may change before committing it.
 # - The pull request's head is pinned when the command is authorized: the run checks out that
 #   commit, and the push fails if the branch has moved since.
+# - The bot's scripts (`.github/scripts/cmd`) always come from the default branch, checked out
+#   into `bot/`, and run against the pull request, checked out into `pr/` (as FRAME Contrib's bot
+#   does). A pull request branched before a script existed, or that changes one, still gets the
+#   bot as merged. What describes the runtime (the weight templates, the error-weight allowlist)
+#   comes from the pull request.
 #
 # Security model: `issue_comment` workflows always run the workflow file of the default branch, so a
 # pull request can't change this file to grant itself access. Every job that checks out or runs
@@ -99,7 +105,7 @@ jobs:
             const cmd = args.join(' ');
             const help = args.includes('--help');
             const command = args[0];
-            if (!help && !['bench', 'fmt'].includes(command)) {
+            if (!help && !['bench', 'bench-overhead', 'fmt'].includes(command)) {
               return deny(`Sorry, \`${command}\` is not a command. Comment \`/cmd --help\` to see the available commands.`);
             }
             core.setOutput('cmd', cmd);
@@ -171,18 +177,36 @@ jobs:
               content: 'eyes'
             });
 
+      # Only to learn the App's bot login (`<slug>[bot]`), whose comments `--clean` also removes.
+      - name: Get a GitHub App token
+        id: app-token
+        if: ${{ needs.auth.outputs.clean == 'true' && vars.KREIVOPS_APP_ID != '' }}
+        continue-on-error: true
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.KREIVOPS_APP_ID }}
+          private-key: ${{ secrets.KREIVOPS_APP_PRIVATE_KEY }}
+          permission-contents: read
+
       - name: Clean previous comments
         if: ${{ needs.auth.outputs.clean == 'true' }}
         uses: actions/github-script@v7
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         with:
           script: |
+            // The bot's comments come from `GITHUB_TOKEN` (github-actions) or from the App.
+            const bots = ['github-actions[bot]'];
+            if (process.env.APP_SLUG) {
+              bots.push(`${process.env.APP_SLUG}[bot]`);
+            }
             const comments = await github.paginate(github.rest.issues.listComments, {
               ...context.repo,
               issue_number: context.issue.number,
               per_page: 100
             });
             for (const comment of comments) {
-              const fromBot = comment.user.login === 'github-actions[bot]' &&
+              const fromBot = bots.includes(comment.user.login) &&
                 (comment.body.startsWith('Command') || comment.body.startsWith('<details><summary>Command'));
               const fromAuthor = comment.user.login === context.payload.comment.user.login && comment.body.startsWith('/cmd');
               if (comment.id !== context.payload.comment.id && (fromBot || fromAuthor)) {
@@ -215,9 +239,10 @@ jobs:
       pull-requests: write
     steps:
       # The default branch, not the pull request: the help needs no pull request code.
-      - name: Checkout
+      - name: Checkout the bot
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/scripts/cmd
           persist-credentials: false
 
@@ -279,10 +304,19 @@ jobs:
     outputs:
       changed: ${{ steps.patch.outputs.changed }}
     steps:
+      - name: Checkout the bot
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: bot
+          persist-credentials: false
+          sparse-checkout: .github/scripts/cmd
+
       - name: Checkout the pull request
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.auth.outputs.head-sha }}
+          path: pr
           persist-credentials: false
 
       - name: Install nightly toolchain
@@ -291,17 +325,19 @@ jobs:
           components: rustfmt
 
       - name: Run cmd
+        working-directory: pr
         env:
           CMD: ${{ needs.auth.outputs.cmd }}
-          PYTHONDONTWRITEBYTECODE: 1 # keep `__pycache__` out of the patch
+          PYTHONDONTWRITEBYTECODE: 1
         run: |
           echo "Running command: $CMD"
           read -ra args <<< "$CMD"
-          python3 .github/scripts/cmd/cmd.py "${args[@]}"
+          python3 ../bot/.github/scripts/cmd/cmd.py "${args[@]}"
           git status
 
       - name: Save changes as a patch
         id: patch
+        working-directory: pr
         run: |
           mkdir -p "$RUNNER_TEMP/cmd"
           git add -A
@@ -322,12 +358,12 @@ jobs:
           path: ${{ runner.temp }}/cmd/changes.patch
           retention-days: 7
 
-  # `/cmd bench`, step 1: build the runtime on a GitHub-hosted runner. This repository is public, so
+  # `/cmd bench` and `/cmd bench-overhead`, step 1: build the runtime on a GitHub-hosted runner. This repository is public, so
   # its minutes are free, and the reference hardware is left to measure. A read-only token, no
   # secrets.
   build:
     needs: [auth, acknowledge]
-    if: ${{ needs.auth.outputs.allowed == 'true' && needs.auth.outputs.command == 'bench' }}
+    if: ${{ needs.auth.outputs.allowed == 'true' && (needs.auth.outputs.command == 'bench' || needs.auth.outputs.command == 'bench-overhead') }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
@@ -378,7 +414,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # `/cmd bench`, step 2: measure on the reference hardware. No Rust toolchain, no cargo build, no
+  # `/cmd bench` and `/cmd bench-overhead`, step 2: measure on the reference hardware. No Rust toolchain, no cargo build, no
   # credentials and no secrets: it takes the runtime `build` handed it, the `frame-omni-bencher`
   # release that matches the SDK this branch targets, and only the files the benchmarks read or
   # overwrite.
@@ -392,16 +428,25 @@ jobs:
       group: cmd-bench-${{ github.event.issue.number }}
       cancel-in-progress: false
     steps:
-      # Only what the benchmarks need: the bot's scripts, the XCM weight template, the SDK version
-      # that picks the bencher, and the weight files to overwrite.
+      - name: Checkout the bot
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: bot
+          persist-credentials: false
+          sparse-checkout: .github/scripts/cmd
+
+      # Only what the benchmarks need: the XCM weight template, the SDK version that picks the
+      # bencher, and the weight files to overwrite (cmd.py checks for a `Cargo.toml` at the root).
       - name: Checkout the pull request
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.auth.outputs.head-sha }}
+          path: pr
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: |
-            /.github/scripts/cmd/
+            /Cargo.toml
             /templates/
             /polkadot-sdk-version
             /runtime/kreivo/src/weights/
@@ -413,6 +458,7 @@ jobs:
           path: ${{ runner.temp }}/runtime
 
       - name: Download frame-omni-bencher
+        working-directory: pr
         run: |
           # Use the bencher from the SDK release the runtime targets: an older one can't decode the
           # runtime's host-function arguments.
@@ -428,39 +474,35 @@ jobs:
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
           ./frame-omni-bencher --version
 
+      # Below the job's timeout, so that a run that is too long still uploads what it measured.
       - name: Run the benchmarks
+        timeout-minutes: 165
+        working-directory: pr
         env:
           CMD: ${{ needs.auth.outputs.cmd }}
           PYTHONDONTWRITEBYTECODE: 1
         run: |
           echo "Running command: $CMD"
           read -ra args <<< "$CMD"
-          python3 .github/scripts/cmd/cmd.py "${args[@]}" \
+          python3 ../bot/.github/scripts/cmd/cmd.py "${args[@]}" \
             --runtime-wasm "$RUNNER_TEMP/runtime/$RUNTIME_WASM"
           git status --short
 
+      # Also when the benchmarks failed or timed out: each pallet's weights are written as soon as
+      # it finishes, and `commit` keeps those of the pallets that did.
       - name: Upload the weights
-        uses: actions/upload-artifact@v4
-        with:
-          name: cmd-bench-weights
-          path: ${{ env.WEIGHTS_DIR }}
-          if-no-files-found: error
-          retention-days: 7
-
-      # Weights that live outside this repository (the authenticators', see `runtimes.json`): they
-      # are never committed here, only uploaded.
-      - name: Upload the weights that are not committed
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: cmd-scratch-weights
-          path: target/cmd-bench-scratch
-          if-no-files-found: ignore
+          name: cmd-bench-weights
+          path: pr/${{ env.WEIGHTS_DIR }}
+          if-no-files-found: warn
           retention-days: 7
 
-  # `/cmd bench`, step 3 (and `/cmd fmt`, step 2): commit the result to the pull request's branch
+  # `/cmd bench` and `/cmd bench-overhead`, step 3 (and `/cmd fmt`, step 2): commit the result to the pull request's branch
   # and report back, from a GitHub-hosted runner. Never runs pull request code: it only copies the
-  # weights in, or applies a patch whose paths it checked.
+  # weights in, or applies a patch whose paths it checked. When the benchmarks fail or time out,
+  # it still commits the weights of the pallets that finished, and reports the command as failed.
   commit:
     needs: [auth, fmt, build, bench]
     if: ${{ always() && needs.auth.outputs.allowed == 'true' && needs.auth.outputs.help != 'true' && (needs.fmt.result != 'skipped' || needs.build.result != 'skipped') }}
@@ -474,32 +516,48 @@ jobs:
       COMMAND: ${{ needs.auth.outputs.command }}
       HEAD_SHA: ${{ needs.auth.outputs.head-sha }}
       HEAD_REF: ${{ needs.auth.outputs.head-ref }}
+      # `bench` or `bench-overhead`: weights measured on the reference hardware.
+      BENCH: ${{ needs.auth.outputs.command == 'bench' || needs.auth.outputs.command == 'bench-overhead' }}
       # `bench` only runs when `build` succeeded, so its result covers the whole bench path.
       RUN_RESULT: ${{ needs.auth.outputs.command == 'fmt' && needs.fmt.result || needs.bench.result }}
+      # The benchmarks failed or timed out: commit the weights that were measured before that.
+      PARTIAL: ${{ (needs.auth.outputs.command == 'bench' || needs.auth.outputs.command == 'bench-overhead') && needs.bench.result == 'failure' }}
     steps:
       - name: Get a GitHub App token
         id: app-token
-        if: ${{ env.RUN_RESULT == 'success' && vars.KREIVOPS_APP_ID != '' }}
+        if: ${{ (env.RUN_RESULT == 'success' || env.PARTIAL == 'true') && vars.KREIVOPS_APP_ID != '' }}
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.KREIVOPS_APP_ID }}
           private-key: ${{ secrets.KREIVOPS_APP_PRIVATE_KEY }}
           permission-contents: write
 
+      - name: Checkout the bot
+        if: ${{ env.RUN_RESULT == 'success' || env.PARTIAL == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: bot
+          persist-credentials: false
+          sparse-checkout: .github/scripts/cmd
+
       - name: Checkout the pull request
-        if: ${{ env.RUN_RESULT == 'success' }}
+        if: ${{ env.RUN_RESULT == 'success' || env.PARTIAL == 'true' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.auth.outputs.head-sha }}
+          path: pr
           token: ${{ steps.app-token.outputs.token || github.token }}
           fetch-depth: 0
 
       - name: Download the weights
-        if: ${{ env.RUN_RESULT == 'success' && env.COMMAND == 'bench' }}
+        if: ${{ (env.RUN_RESULT == 'success' || env.PARTIAL == 'true') && env.BENCH == 'true' }}
+        # A failed run may have stopped before it uploaded anything.
+        continue-on-error: ${{ env.PARTIAL == 'true' }}
         uses: actions/download-artifact@v4
         with:
           name: cmd-bench-weights
-          path: ${{ env.WEIGHTS_DIR }}
+          path: pr/${{ env.WEIGHTS_DIR }}
 
       - name: Download the patch
         if: ${{ env.RUN_RESULT == 'success' && env.COMMAND == 'fmt' && needs.fmt.outputs.changed == 'true' }}
@@ -510,12 +568,14 @@ jobs:
 
       - name: Stage the changes
         id: stage
-        if: ${{ env.RUN_RESULT == 'success' }}
+        if: ${{ env.RUN_RESULT == 'success' || env.PARTIAL == 'true' }}
+        working-directory: pr
         run: |
           set -o pipefail
           # The paths each command may change; anything else means the result is not what we expect.
           case "$COMMAND" in
             bench) allowed='^runtime/[^/]+/src/weights/.+\.rs$' ;;
+            bench-overhead) allowed='^runtime/[^/]+/src/weights/(block|extrinsic)_weights\.rs$' ;;
             fmt) allowed='\.rs$' ;;
             *) echo "::error::Unknown command $COMMAND"; exit 1 ;;
           esac
@@ -534,6 +594,12 @@ jobs:
             echo "$bad"
             exit 1
           fi
+          if [ "$COMMAND" = "bench" ]; then
+            # No weight of a benchmark that failed, unless the runtime's allowlist expects it.
+            mapfile -t paths < "$RUNNER_TEMP/paths"
+            CHECK_WEIGHTS_REPORT="$RUNNER_TEMP/weight-errors.md" \
+              python3 ../bot/.github/scripts/cmd/check_weights.py "${paths[@]}"
+          fi
           git diff --cached --stat
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -544,6 +610,7 @@ jobs:
       - name: Commit and push
         id: push
         if: ${{ steps.stage.outputs.changed == 'true' }}
+        working-directory: pr
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
           APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
@@ -557,7 +624,11 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           fi
-          git commit -m "Update from @$GH_ACTOR running command \`$CMD\`"
+          message="Update from @$GH_ACTOR running command \`$CMD\`"
+          if [ "$PARTIAL" = "true" ]; then
+            message="$message (partial: the benchmarks that finished before the run failed)"
+          fi
+          git commit -m "$message"
           # Not a force push: this fails if the branch has moved since the command was authorized.
           if ! git push origin "HEAD:refs/heads/$HEAD_REF"; then
             echo "::error::Could not push to $HEAD_REF: it has probably moved since the command started. Run it again."
@@ -588,6 +659,7 @@ jobs:
         id: subweight
         if: ${{ steps.push.outcome == 'success' && env.COMMAND == 'bench' }}
         continue-on-error: true
+        working-directory: pr
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
@@ -631,13 +703,21 @@ jobs:
       - name: Comment PR (Failure)
         if: ${{ (failure() || env.RUN_RESULT != 'success') && needs.auth.outputs.quiet != 'true' }}
         uses: actions/github-script@v7
+        env:
+          PUSHED: ${{ steps.push.outputs.sha }}
         with:
           script: |
+            const fs = require('fs');
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const report = `${process.env.RUNNER_TEMP}/weight-errors.md`;
+            const details = fs.existsSync(report) ? `\n\n${fs.readFileSync(report, 'utf8')}` : '';
+            const pushed = process.env.PUSHED
+              ? `\n\nThe weights of the pallets that finished were pushed in ${process.env.PUSHED}.`
+              : '';
             await github.rest.issues.createComment({
               ...context.repo,
               issue_number: context.issue.number,
-              body: `Command \`${process.env.CMD}\` has failed ❌! [See logs here](${runUrl})`
+              body: `Command \`${process.env.CMD}\` has failed ❌! [See logs here](${runUrl})` + pushed + details
             });
 
       - name: Add 😕 reaction on failure

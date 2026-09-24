@@ -370,7 +370,10 @@ pub type CanSendXcmMessages = (
 	SignedByCommunityToPlurality<Runtime>,
 );
 
-/// Only signed origins are allowed to execute xcm transactions
+/// The origins that may execute XCM locally through `pallet_xcm::execute`: communities (as their
+/// `Plurality`) and signed accounts (as their `AccountId32`). Root can also execute, as `Here`
+/// (`EnsureXcmOrigin` falls back to it). Anything else (e.g. an unsigned origin, or an XCM
+/// origin dispatching back into the runtime) is rejected.
 pub type CanExecuteXcmTransactions = (
 	pallet_communities::Origin<Runtime>,
 	SignedToAccountId32<RuntimeOrigin, AccountId, RelayNetwork>,
@@ -404,8 +407,9 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, CanSendXcmMessages>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, CanExecuteXcmTransactions>;
-	type XcmExecuteFilter = Nothing;
-	// ^ Disable dispatchable execute on the XCM pallet.
+	// Any message may be executed locally: `ExecuteXcmOrigin` decides who may execute, and the
+	// executor (barrier, asset transactors, aliasing rules) what a message may do.
+	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = NotBridgeBacked;
