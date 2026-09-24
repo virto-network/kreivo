@@ -5,8 +5,8 @@
 # https://github.com/polkadot-fellows/runtimes/blob/1eb4d2e30e016cb965a2dabab6b0e2e8efb39fd4/.github/scripts/cmd/cmd.py
 # Copyright (C) the Polkadot Fellowship and contributors; licensed under GPL-3.0.
 # Changes for Kreivo: runtimes come from `runtimes.json` next to this file, benchmarks reproduce
-# Kreivo's existing weight generation (see `bench_pallet`), some pallets can be benchmarked into a
-# scratch directory instead of the runtime, and `fmt` only runs `cargo +nightly fmt --all`.
+# Kreivo's existing weight generation (see `bench_pallet`), and `fmt` only runs
+# `cargo +nightly fmt --all`.
 # SPDX-License-Identifier: GPL-3.0-only
 
 import os
@@ -32,9 +32,6 @@ runtimeNames = list(map(lambda x: x['name'], runtimesMatrix))
 # Weights are generated from the production build, as `check-frame-omni-bencher.yml` and
 # `benchmarking.yml` do.
 PROFILE = "production"
-# Where the benchmarks of `benchmarks_scratch_pallets` are written: their weights don't live in
-# this repository, so they are never committed (`target/` is ignored), only uploaded as an artifact.
-SCRATCH_DIR = "target/cmd-bench-scratch"
 
 common_args = {
     '--continue-on-fail': {"action": "store_true", "help": "Won't exit(1) on failed command and continue with next "
@@ -145,8 +142,6 @@ def output_path(config, pallet):
     """
     if pallet in (config.get("benchmarks_exclude_pallets") or []):
         return None
-    if pallet in (config.get("benchmarks_scratch_pallets") or []):
-        return f"./{SCRATCH_DIR}/{config['name']}/"
     if pallet.startswith("pallet_xcm_benchmarks"):
         return f"./{config['path']}/src/weights/xcm/"
     return f"./{config['path']}/src/weights/"

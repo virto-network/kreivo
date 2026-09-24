@@ -447,17 +447,6 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      # Weights that live outside this repository (the authenticators', see `runtimes.json`): they
-      # are never committed here, only uploaded.
-      - name: Upload the weights that are not committed
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: cmd-scratch-weights
-          path: target/cmd-bench-scratch
-          if-no-files-found: ignore
-          retention-days: 7
-
   # `/cmd bench`, step 3 (and `/cmd fmt`, step 2): commit the result to the pull request's branch
   # and report back, from a GitHub-hosted runner. Never runs pull request code: it only copies the
   # weights in, or applies a patch whose paths it checked.
