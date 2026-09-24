@@ -176,18 +176,36 @@ jobs:
               content: 'eyes'
             });
 
+      # Only to learn the App's bot login (`<slug>[bot]`), whose comments `--clean` also removes.
+      - name: Get a GitHub App token
+        id: app-token
+        if: ${{ needs.auth.outputs.clean == 'true' && vars.KREIVOPS_APP_ID != '' }}
+        continue-on-error: true
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.KREIVOPS_APP_ID }}
+          private-key: ${{ secrets.KREIVOPS_APP_PRIVATE_KEY }}
+          permission-contents: read
+
       - name: Clean previous comments
         if: ${{ needs.auth.outputs.clean == 'true' }}
         uses: actions/github-script@v7
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         with:
           script: |
+            // The bot's comments come from `GITHUB_TOKEN` (github-actions) or from the App.
+            const bots = ['github-actions[bot]'];
+            if (process.env.APP_SLUG) {
+              bots.push(`${process.env.APP_SLUG}[bot]`);
+            }
             const comments = await github.paginate(github.rest.issues.listComments, {
               ...context.repo,
               issue_number: context.issue.number,
               per_page: 100
             });
             for (const comment of comments) {
-              const fromBot = comment.user.login === 'github-actions[bot]' &&
+              const fromBot = bots.includes(comment.user.login) &&
                 (comment.body.startsWith('Command') || comment.body.startsWith('<details><summary>Command'));
               const fromAuthor = comment.user.login === context.payload.comment.user.login && comment.body.startsWith('/cmd');
               if (comment.id !== context.payload.comment.id && (fromBot || fromAuthor)) {
