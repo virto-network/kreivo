@@ -7,6 +7,7 @@
     "build_env": {
       "SKIP_PALLET_REVIVE_FIXTURES": "1"
     },
+    "benchmarks_error_allowlist": "runtime/kreivo/benchmark-error-allowlist.json",
     "benchmarks_templates": {
       "pallet_xcm_benchmarks::generic": "templates/xcm-bench-template.hbs",
       "pallet_xcm_benchmarks::fungible": "templates/xcm-bench-template.hbs"
