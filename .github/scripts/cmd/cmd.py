@@ -136,7 +136,13 @@ def list_pallets(config):
 
 
 def output_path(config, pallet):
-    """Where the weights of `pallet` go; `None` when the pallet is excluded."""
+    """
+    Where the weights of `pallet` go; `None` when the pallet is excluded.
+
+    Always a directory: the bencher names the file after the pallet, and a pallet with several
+    instances (e.g. `pallet_nfts` as `ListingsCatalog` and `CommunityMemberships`) is benchmarked
+    in one run, each instance into `<pallet>_<instance in snake case>.rs`.
+    """
     if pallet in (config.get("benchmarks_exclude_pallets") or []):
         return None
     if pallet in (config.get("benchmarks_scratch_pallets") or []):

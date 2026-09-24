@@ -64,7 +64,7 @@ impl pallet_nfts::Config<CommunityMembershipsInstance> for Runtime {
 	type OffchainPublic = <Signature as Verify>::Signer;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
-	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = crate::weights::pallet_nfts_community_memberships::WeightInfo<Runtime>;
 	type BlockNumberProvider = RelaychainData;
 }
 

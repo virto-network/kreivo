@@ -34,6 +34,8 @@ pub mod pallet_gas_transaction_payment;
 pub mod pallet_listings;
 pub mod pallet_message_queue;
 pub mod pallet_multisig;
+pub mod pallet_nfts_community_memberships;
+pub mod pallet_nfts_listings_catalog;
 pub mod pallet_orders;
 pub mod pallet_pass;
 pub mod pallet_payments;
