@@ -1,44 +1,32 @@
-// This file is part of Substrate.
 
-// Copyright (C) Parity Technologies (UK) Ltd.
-// SPDX-License-Identifier: Apache-2.0
-
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// 	http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-//! PLACEHOLDER, NOT MEASURED ON KREIVO: `frame_support::weights::constants::BlockExecutionWeight`, which
-//! Kreivo used until now, copied from frame-support 48.1.0 (polkadot-sdk stable2606) as generated
-//! for the SDK's kitchensink node. `/cmd bench-overhead` overwrites this file with the overhead
-//! measured on Kreivo's runtime and reference hardware.
+//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 60.0.0
+//! DATE: 2026-09-24 (Y/M/D)
+//! HOSTNAME: `virto-bench-satwwyb7exyl`, CPU: `AMD EPYC-Milan Processor`
 //!
-//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 32.0.0
-//! DATE: 2024-11-08 (Y/M/D)
-//! HOSTNAME: `runner-wiukf8gn-project-674-concurrent-0`, CPU: `Intel(R) Xeon(R) CPU @ 2.60GHz`
-//!
-//! SHORT-NAME: `block`, LONG-NAME: `BlockExecution`, RUNTIME: `Development`
+//! SHORT-NAME: `block`, LONG-NAME: `BlockExecution`, RUNTIME: `kreivo-parachain`
 //! WARMUPS: `10`, REPEAT: `100`
-//! WEIGHT-PATH: `./substrate/frame/support/src/weights/`
+//! WEIGHT-PATH: `./runtime/kreivo/src/weights/`
 //! WEIGHT-METRIC: `Average`, WEIGHT-MUL: `1.0`, WEIGHT-ADD: `0`
 
 // Executed Command:
-//   ./target/production/substrate-node
+//   frame-omni-bencher
+//   v1
 //   benchmark
 //   overhead
-//   --chain=dev
-//   --wasm-execution=compiled
-//   --weight-path=./substrate/frame/support/src/weights/
-//   --header=./substrate/HEADER-APACHE2
-//   --warmup=10
-//   --repeat=100
+//   --runtime
+//   /home/runner/actions-runner/_work/_temp/runtime/kreivo_runtime.compact.compressed.wasm
+//   --genesis-builder
+//   runtime
+//   --genesis-builder-preset
+//   development
+//   --weight-path
+//   ./runtime/kreivo/src/weights/
+//   --warmup
+//   10
+//   --repeat
+//   100
+//   --para-id
+//   2281
 
 use sp_core::parameter_types;
 use sp_weights::{constants::WEIGHT_REF_TIME_PER_NANOS, Weight};
@@ -48,17 +36,17 @@ parameter_types! {
 	/// Calculated by multiplying the *Average* with `1.0` and adding `0`.
 	///
 	/// Stats nanoseconds:
-	///   Min, Max: 419_969, 685_012
-	///   Average:  431_614
-	///   Median:   427_388
-	///   Std-Dev:  26437.34
+	///   Min, Max: 853_823, 995_530
+	///   Average:  919_269
+	///   Median:   920_373
+	///   Std-Dev:  23284.07
 	///
 	/// Percentiles nanoseconds:
-	///   99th: 456_205
-	///   95th: 443_420
-	///   75th: 431_833
+	///   99th: 980_541
+	///   95th: 953_912
+	///   75th: 929_922
 	pub const BlockExecutionWeight: Weight =
-		Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(431_614), 0);
+		Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(919_269), 4_144);
 }
 
 #[cfg(test)]
