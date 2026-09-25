@@ -59,17 +59,17 @@ runtime-constants = { default-features = false, path = "runtime/runtime-constant
 runtime-common = { default-features = false, path = "runtime/common" }
 
 # Frame Contrib
-frame-contrib-traits = { version = "2.3.0", default-features = false }
-mock-helpers = { version = "2.3.0", default-features = false, package = "fc-mock-helpers" }
+frame-contrib-traits = { version = "2.3.1", default-features = false }
+mock-helpers = { version = "2.3.1", default-features = false, package = "fc-mock-helpers" }
 
-pallet-communities = { version = "2.3.0", default-features = false, package = "fc-pallet-communities" }
-pallet-gas-transaction-payment = { version = "2.3.0", default-features = false, package = "fc-pallet-gas-transaction-payment" }
-pallet-listings = { version = "2.3.0", default-features = false, package = "fc-pallet-listings" }
-pallet-orders = { version = "2.3.0", default-features = false, package = "fc-pallet-orders" }
-pallet-payments = { version = "2.3.0", default-features = false, package = "fc-pallet-payments" }
-pallet-pass = { version = "2.3.0", default-features = false, package = "fc-pallet-pass" }
-pallet-referenda-tracks = { version = "2.3.0", default-features = false, package = "fc-pallet-referenda-tracks" }
-pallet-black-hole = { version = "2.3.0", default-features = false, package = "fc-pallet-black-hole" }
+pallet-communities = { version = "2.3.1", default-features = false, package = "fc-pallet-communities" }
+pallet-gas-transaction-payment = { version = "2.3.1", default-features = false, package = "fc-pallet-gas-transaction-payment" }
+pallet-listings = { version = "2.3.1", default-features = false, package = "fc-pallet-listings" }
+pallet-orders = { version = "2.3.1", default-features = false, package = "fc-pallet-orders" }
+pallet-payments = { version = "2.3.1", default-features = false, package = "fc-pallet-payments" }
+pallet-pass = { version = "2.3.1", default-features = false, package = "fc-pallet-pass" }
+pallet-referenda-tracks = { version = "2.3.1", default-features = false, package = "fc-pallet-referenda-tracks" }
+pallet-black-hole = { version = "2.3.1", default-features = false, package = "fc-pallet-black-hole" }
 
 # Pass Authenticators
 pass-webauthn = { version = "1.2.0", default-features = false, package = "pass-authenticators-webauthn" }
