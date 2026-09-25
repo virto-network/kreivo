@@ -3917,9 +3917,9 @@ dependencies = [
 
 [[package]]
 name = "fc-mock-helpers"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7150ae34edbfa39fe6b34cf035c3e5b45b443cacdb7bf1dbceab4f1944716bf1"
+checksum = "8456a2da6d4dcd558182f256dd40c077bca2bf61f4a021dfd3e3e3d6e3329f2b"
 dependencies = [
  "fc-pallet-listings",
  "frame-support",
@@ -3932,9 +3932,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-black-hole"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41f9453b68d952a5f725bde648f9e218eaa58083145c1a046a885036a4ca802f"
+checksum = "265917e0279ef6d63124ee9ced2b2aa4c63f168da43a86b457f228d3eed784f2"
 dependencies = [
  "parity-scale-codec",
  "polkadot-sdk-frame",
@@ -3943,9 +3943,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-communities"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10229966cbffe434d84db21a4751ae5cb58e5ecd68e2e60f124e064e602d2d93"
+checksum = "30328f12ebb2c4063fea986653037a57b01af741925e162eff5f19a394622b44"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -3961,9 +3961,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-gas-transaction-payment"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7664ba4bcc2fc956717eb71e03f4cb4de9d95ce52b4062c541592c94fd2e9533"
+checksum = "c3a34c46aa37a47ec4bd75cb98ad30be7ea62ef01284c1bfa09a07f18a4fafe8"
 dependencies = [
  "frame-contrib-traits",
  "parity-scale-codec",
@@ -3973,9 +3973,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-listings"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89cd222b50942eac36115459cd7adc496772da7c569c597531c43ba4089b727e"
+checksum = "d7e51337135db3a4466c7ace86ca38431aec02ff97da5fc0fbf14a76d653889e"
 dependencies = [
  "fc-traits-listings",
  "frame-benchmarking",
@@ -3992,9 +3992,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-orders"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fef942d286c823c3aae56769537e62cdafcd05d87447ad40f9dd74a29362e62"
+checksum = "583b986b10555be2fe26b5aea2db765eaa5aaabf8b696114f3b7a27c5b48ab9f"
 dependencies = [
  "frame-benchmarking",
  "frame-contrib-traits",
@@ -4010,9 +4010,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-pass"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ad7afacf262d505d0fb2aa256fbf48106e130cf8143af692df81f95b91dcec1"
+checksum = "fb04ae3bfd465560a4ef3790a742058b98daf3aca2d724d526e0a7894cb9eca5"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -4028,9 +4028,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-payments"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bbd6ae7cf37c6dc7dd06961acd962e995f756afffd1812336b9096bd4ed193d"
+checksum = "16df924752f05c11c5e2b2ca7ab622e5934f4f2d5ad24b129cf61793fc6dccd2"
 dependencies = [
  "fc-traits-payments",
  "frame-benchmarking",
@@ -4046,9 +4046,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-referenda-tracks"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45845353ca4fba180ed82c3cd59a22a4aa769f06f6085a652d46e0178ed8f84e"
+checksum = "0a85755ef8570005505ce6e6e0198bb27fb2f259baf50ccdee7763094e1c7ede"
 dependencies = [
  "fc-traits-tracks",
  "frame-benchmarking",
@@ -4065,9 +4065,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-authn"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8d7b2f52a653fbd7f50ba398e2d2ba3cf5404c4a856d47f56f8456c861f6ed3"
+checksum = "b5b3823c6e22497a80a8f3e3921e2c205f723c0882c0a34e64ab0f481e87b260"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -4078,9 +4078,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-authn-proc"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cee75842a7508fb2cca43498e002d11595cbe0ddc7a3c823f68a0fd869b3242c"
+checksum = "c569445f51bcfbd8b1d24077fddc1830be73e8f6b0aa1d4caa93fd87c6d698a0"
 dependencies = [
  "proc-macro-crate 3.4.0",
  "quote",
@@ -4089,9 +4089,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-gas-tank"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce09aed4a776e407d4c7c2a5f1a38c4109a27a45c447d011a8127452808e7a32"
+checksum = "82205d849d0c2f05cdf30c910edbadfd285fe2082614f35ea074ecfc122b2969"
 dependencies = [
  "fc-traits-nonfungibles-helpers",
  "frame-support",
@@ -4102,9 +4102,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-listings"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5644dc46d2a77cc142f58ab4901b69c7d59538600374eedd5544413483958305"
+checksum = "abcfe7314db2c62e4e811ab10c76b93044497ae6ccc9c1e8d2176484128db6c2"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -4114,9 +4114,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-memberships"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "815eae8c5d5908cfca71e3332fd3c8f4829b7d540ba89b0c9f47eafb37961ded"
+checksum = "f8facb4aa29dac7f9b15b7496585dc2225ec8aa47cf3294a6ab44d716186898d"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -4125,15 +4125,15 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-nonfungibles-helpers"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac582d892fbf674bda727bda4b8e95bcb97dc0e55d3ff2303f9fdd6f1233467a"
+checksum = "915b31b0f8fdf3181499a28adbe2527a97bcfbbc6707996e19578ec20a52e919"
 
 [[package]]
 name = "fc-traits-payments"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c967c99b835519f3bd258dfe3b83d75d83114338b85172cb7356ae19ee70ec6"
+checksum = "864982c971e9d0b29e62d75d8c56f395e8edbeeaca7f77cd70a6617457cd3f74"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -4143,9 +4143,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-tracks"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4149340a92382508037546be383cb256d90cfdc95a6986147ec1fc0539439d8"
+checksum = "04df6cae6a869540e518ad420ba326f7c1a52d4d0516b37f1503e343d9297cf6"
 dependencies = [
  "frame-support",
  "pallet-referenda",
@@ -4321,9 +4321,9 @@ dependencies = [
 
 [[package]]
 name = "frame-contrib-traits"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cb457f2ca7bf006ab49b8d09217efdb28fd53a064fdc32c676867b3316055f7"
+checksum = "b3ec7042bbf082ec8099d030d26b95d93e658425dd568f63fec4659f80f4a0e6"
 dependencies = [
  "fc-traits-authn",
  "fc-traits-gas-tank",
