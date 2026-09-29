@@ -731,3 +731,435 @@ mod relay_chain_time {
 		assert_eq!(parachain::HOURS, 1_800);
 	}
 }
+
+/// 0.17.0 moves the scheduler and referenda from the parachain clock to the relay chain clock,
+/// on a live chain whose relay chain block number is millions of blocks behind its parachain
+/// block number. Each test sets things up as 0.16 did (counting parachain blocks), switches
+/// the clocks, migrates, and checks that everything happens as far from the switch as it would
+/// have before.
+mod scheduler_clock_switch {
+	use super::*;
+
+	use crate::{
+		config::{utilities::MaxScheduledPerBlock, RelaychainData},
+		migrations::{ClockSwitch, MigrationSummary, SchedulerClockSwitch, SchedulerToRelayChainClock},
+		BlockNumber, CommunityReferenda, KreivoReferenda, OriginCaller, Pass, RuntimeCall, RuntimeEvent, Scheduler,
+		System,
+	};
+	use frame_support::traits::{schedule::DispatchTime, Bounded, OnInitialize, OnRuntimeUpgrade};
+	use pallet_referenda::{ReferendumInfo, ReferendumInfoFor, ReferendumStatusOf};
+	use pallet_scheduler::{Agenda, IncompleteSince, Lookup, Retries, RetryConfig, Scheduled, ScheduledOf};
+	use runtime_constants::time::DAYS;
+	use sp_runtime::traits::BlockNumberProvider;
+
+	/// Kreivo on Kusama, around the upgrade to 0.17.0.
+	const PARA: BlockNumber = 39_000_000;
+	const RELAY: BlockNumber = 35_400_000;
+
+	const ALICE: AccountId32 = AccountId32::new([1; 32]);
+	const BOB: AccountId32 = AccountId32::new([2; 32]);
+
+	type KreivoReferendaInstance = pallet_referenda::Instance1;
+	type CommunityReferendaInstance = pallet_referenda::Instance2;
+
+	fn at(parachain_block: BlockNumber, relay_block: BlockNumber) {
+		System::set_block_number(parachain_block);
+		RelaychainData::set_block_number(relay_block);
+	}
+
+	/// On 0.16, the scheduler and referenda counted parachain blocks: have them see the
+	/// parachain block number.
+	fn on_the_parachain_clock(parachain_block: BlockNumber) {
+		at(parachain_block, parachain_block);
+	}
+
+	/// What the upgrade does, with the `try-runtime` checks when they're built.
+	fn upgrade() -> MigrationSummary {
+		#[cfg(feature = "try-runtime")]
+		let state = SchedulerToRelayChainClock::pre_upgrade().expect("pre-upgrade checks pass");
+		let (_, summary) = SchedulerToRelayChainClock::migrate();
+		#[cfg(feature = "try-runtime")]
+		SchedulerToRelayChainClock::post_upgrade(state).expect("post-upgrade checks pass");
+		summary.expect("the migration ran")
+	}
+
+	/// Runs the scheduler in a new block with `relay_block` as its relay parent, until it
+	/// services every agenda up to it (it services ~50 per block).
+	fn run_scheduler_at(relay_block: BlockNumber) {
+		at(System::block_number() + 1, relay_block);
+		for _ in 0..1_000 {
+			if IncompleteSince::<Runtime>::get().is_some_and(|next| next > relay_block) {
+				return;
+			}
+			Scheduler::on_initialize(System::block_number());
+		}
+		panic!("the scheduler didn't catch up");
+	}
+
+	fn remark(remark: &[u8]) -> RuntimeCall {
+		frame_system::Call::remark {
+			remark: remark.to_vec(),
+		}
+		.into()
+	}
+
+	fn inline(call: RuntimeCall) -> Bounded<RuntimeCall, sp_runtime::traits::BlakeTwo256> {
+		Bounded::Inline(call.encode().try_into().expect("a remark is small; qed"))
+	}
+
+	fn root_task(name: Option<[u8; 32]>, call: RuntimeCall) -> ScheduledOf<Runtime> {
+		Scheduled {
+			maybe_id: name,
+			priority: 0,
+			call: inline(call),
+			maybe_periodic: None,
+			origin: frame_system::RawOrigin::Root.into(),
+			_phantom: Default::default(),
+		}
+	}
+
+	fn name(name: &str) -> [u8; 32] {
+		sp_io::hashing::blake2_256(name.as_bytes())
+	}
+
+	fn schedule(when: BlockNumber, call: RuntimeCall) {
+		assert_ok!(Scheduler::schedule(
+			RuntimeOrigin::root(),
+			when,
+			None,
+			0,
+			Box::new(call)
+		));
+	}
+
+	fn schedule_named(name: [u8; 32], when: BlockNumber) {
+		assert_ok!(Scheduler::schedule_named(
+			RuntimeOrigin::root(),
+			name,
+			when,
+			None,
+			0,
+			Box::new(remark(&name))
+		));
+	}
+
+	fn ongoing<I: 'static>(index: u32) -> ReferendumStatusOf<Runtime, I>
+	where
+		Runtime: pallet_referenda::Config<I>,
+	{
+		match ReferendumInfoFor::<Runtime, I>::get(index) {
+			Some(ReferendumInfo::Ongoing(status)) => status,
+			other => panic!("referendum {index} isn't ongoing: {other:?}"),
+		}
+	}
+
+	fn timed_out<I: 'static>(index: u32) -> bool
+	where
+		Runtime: pallet_referenda::Config<I>,
+	{
+		matches!(
+			ReferendumInfoFor::<Runtime, I>::get(index),
+			Some(ReferendumInfo::TimedOut(..))
+		)
+	}
+
+	fn dispatched_at(when: BlockNumber) -> usize {
+		System::events()
+			.iter()
+			.filter(|record| {
+				matches!(
+					record.event,
+					RuntimeEvent::Scheduler(pallet_scheduler::Event::Dispatched { task: (at, _), .. }) if at == when
+				)
+			})
+			.count()
+	}
+
+	/// Community 1, with `ALICE` as its admin and `BOB` as a member.
+	fn community_with_a_member() {
+		if cfg!(feature = "runtime-benchmarks") {
+			assert_ok!(Balances::mint_into(
+				&TreasuryAccount::get(),
+				EXISTENTIAL_DEPOSIT + 10 * CENTS
+			));
+		}
+		assert_ok!(CommunitiesManager::create_memberships(
+			RuntimeOrigin::root(),
+			10,
+			0,
+			CENTS,
+			TankConfig::default(),
+			None,
+		));
+		assert_ok!(CommunitiesManager::register(
+			RuntimeOrigin::root(),
+			1,
+			BoundedVec::try_from(b"First Community".to_vec()).expect("meets max length; qed"),
+			CommunityLookup::unlookup(ALICE),
+			None,
+			None,
+		));
+		assert_ok!(Balances::mint_into(&Communities::community_account(&1), UNITS));
+		assert_ok!(Communities::dispatch_as_account(
+			RuntimeOrigin::signed(ALICE),
+			Box::new(
+				pallet_nfts::Call::<Runtime, CommunityMembershipsInstance>::buy_item {
+					collection: 0,
+					item: 0,
+					bid_price: CENTS
+				}
+				.into()
+			)
+		));
+		assert_ok!(Communities::add_member(
+			RuntimeOrigin::signed(ALICE),
+			CommunityLookup::unlookup(BOB)
+		));
+	}
+
+	/// The task `pallet_pass` schedules to end a session.
+	fn session_removal(session: &AccountId) -> Option<(BlockNumber, u32)> {
+		Lookup::<Runtime>::get(sp_io::hashing::blake2_256(&("remove_session_key", session).encode()))
+	}
+
+	#[test]
+	fn everything_scheduled_happens_as_far_from_the_switch_as_before() {
+		let session = AccountId32::new([42; 32]);
+		let max_per_block = MaxScheduledPerBlock::get();
+
+		TestExternalities::default().execute_with(|| {
+			assert_ok!(Balances::mint_into(&ALICE, 10 * UNITS));
+
+			// A community referendum, submitted 14 days (its undeciding timeout) minus 200
+			// blocks before the switch.
+			on_the_parachain_clock(PARA - 14 * DAYS + 200);
+			community_with_a_member();
+			assert_ok!(CommunityReferenda::submit(
+				RuntimeOrigin::signed(BOB),
+				Box::new(OriginCaller::from(pallet_communities::Origin::<Runtime>::new(1))),
+				inline(remark(b"community")),
+				DispatchTime::After(1),
+			));
+			assert_eq!(
+				ongoing::<CommunityReferendaInstance>(0).alarm.map(|(when, _)| when),
+				Some(PARA + 200)
+			);
+
+			// A Kreivo referendum, submitted 2 days (its undeciding timeout) minus 100 blocks
+			// before the switch, to be enacted at a given block.
+			on_the_parachain_clock(PARA - 2 * DAYS + 100);
+			assert_ok!(KreivoReferenda::submit(
+				RuntimeOrigin::signed(ALICE),
+				Box::new(frame_system::RawOrigin::Root.into()),
+				inline(remark(b"kreivo")),
+				DispatchTime::At(PARA + 5_000),
+			));
+			assert_eq!(
+				ongoing::<KreivoReferendaInstance>(0).alarm.map(|(when, _)| when),
+				Some(PARA + 100)
+			);
+
+			// A pass session of 1800 blocks, opened right before the switch.
+			on_the_parachain_clock(PARA);
+			let account = pass::account([1u8; 32]);
+			let (device, _) = pass::attestation(&account, [10u8; 32]);
+			assert_ok!(Pass::register(RuntimeOrigin::signed(ALICE), [1u8; 32], device));
+			assert_ok!(Pass::add_session_key(
+				RuntimeOrigin::signed(account),
+				CommunityLookup::unlookup(session.clone()),
+				Some(1_800),
+			));
+			assert_eq!(session_removal(&session), Some((PARA + 1_801, 0)));
+
+			// A full agenda right after the switch, one of its tasks with retries.
+			for _ in 0..max_per_block {
+				schedule(PARA + 1, remark(b"next"));
+			}
+			let retry = RetryConfig {
+				total_retries: 3,
+				remaining: 3,
+				period: 10,
+			};
+			Retries::<Runtime>::insert((PARA + 1, 7), retry.clone());
+
+			// The scheduler serviced every agenda up to the last block.
+			IncompleteSince::<Runtime>::put(PARA + 1);
+			// Agendas it will never go back to, as on Kusama: an empty one, and a named task
+			// with its lookup and retries. And one where a moved agenda will land.
+			let dead = name("the scheduler won't reach");
+			Agenda::<Runtime>::insert(1_000, BoundedVec::new());
+			Agenda::<Runtime>::insert(
+				3_570_164,
+				BoundedVec::truncate_from(vec![Some(root_task(Some(dead), remark(b"dead")))]),
+			);
+			Lookup::<Runtime>::insert(dead, (3_570_164, 0));
+			Retries::<Runtime>::insert((3_570_164, 0), retry.clone());
+			Agenda::<Runtime>::insert(
+				RELAY + 1,
+				BoundedVec::truncate_from(vec![Some(root_task(None, remark(b"dead")))]),
+			);
+
+			// The upgrade: now the scheduler and referenda see the relay chain block number.
+			at(PARA, RELAY);
+			assert_eq!(
+				upgrade(),
+				MigrationSummary {
+					removed_agendas: 3,
+					removed_tasks: 2,
+					moved_tasks: max_per_block + 3,
+					removed_lookups: 1,
+					removed_retries: 1,
+					remapped_referenda: 2,
+					..Default::default()
+				}
+			);
+
+			// The scheduler goes on from the next relay chain block, where the agenda that came
+			// next on the parachain is now. What it would never reach is gone.
+			assert_eq!(IncompleteSince::<Runtime>::get(), Some(RELAY + 1));
+			assert_eq!(
+				SchedulerClockSwitch::get(),
+				Some(ClockSwitch {
+					parachain: PARA,
+					relay_chain: RELAY
+				})
+			);
+			let next = Agenda::<Runtime>::get(RELAY + 1);
+			assert_eq!(next.len() as u32, max_per_block);
+			assert!(next.iter().flatten().all(|task| task.call == inline(remark(b"next"))));
+			assert_eq!(Retries::<Runtime>::get((RELAY + 1, 7)), Some(retry));
+			assert!(!Agenda::<Runtime>::contains_key(1_000));
+			assert!(!Agenda::<Runtime>::contains_key(3_570_164));
+			assert_eq!(Lookup::<Runtime>::get(dead), None);
+			assert_eq!(Retries::<Runtime>::get((3_570_164, 0)), None);
+
+			// The session ends 1800 relay chain blocks after the switch, not ~3.6M later.
+			assert_eq!(session_removal(&session), Some((RELAY + 1_801, 0)));
+
+			// Referenda keep the time that passed, and the time left.
+			let kreivo = ongoing::<KreivoReferendaInstance>(0);
+			assert_eq!(kreivo.submitted, RELAY - 2 * DAYS + 100);
+			assert_eq!(kreivo.enactment, DispatchTime::At(RELAY + 5_000));
+			assert_eq!(kreivo.alarm, Some((RELAY + 100, (RELAY + 100, 0))));
+			let community = ongoing::<CommunityReferendaInstance>(0);
+			assert_eq!(community.submitted, RELAY - 14 * DAYS + 200);
+			assert_eq!(community.alarm, Some((RELAY + 200, (RELAY + 200, 0))));
+
+			// And everything happens when it should.
+			run_scheduler_at(RELAY + 1);
+			assert_eq!(dispatched_at(RELAY + 1), max_per_block as usize);
+
+			run_scheduler_at(RELAY + 99);
+			assert!(!timed_out::<KreivoReferendaInstance>(0));
+			run_scheduler_at(RELAY + 100);
+			assert!(timed_out::<KreivoReferendaInstance>(0));
+
+			run_scheduler_at(RELAY + 199);
+			assert!(!timed_out::<CommunityReferendaInstance>(0));
+			run_scheduler_at(RELAY + 200);
+			assert!(timed_out::<CommunityReferendaInstance>(0));
+
+			let active = || pallet_pass::SessionKeys::<Runtime>::contains_key(&session);
+			run_scheduler_at(RELAY + 1_800);
+			assert!(active());
+			run_scheduler_at(RELAY + 1_801);
+			assert!(!active(), "the session ended 1800 blocks after it was opened");
+		})
+	}
+
+	/// If the scheduler fell behind, what it didn't get to runs first; what doesn't fit in an
+	/// agenda goes to the next one.
+	#[test]
+	fn a_backlog_runs_first_and_full_agendas_spill_over() {
+		let max_per_block = MaxScheduledPerBlock::get();
+
+		TestExternalities::default().execute_with(|| {
+			on_the_parachain_clock(PARA - 20);
+			schedule_named(name("before the scheduler fell behind"), PARA - 10);
+			schedule_named(name("the scheduler didn't reach"), PARA - 3);
+			for _ in 0..max_per_block {
+				schedule(PARA + 1, remark(b"next"));
+			}
+			schedule_named(name("two blocks after the switch"), PARA + 2);
+			// It fell behind at `PARA - 5`.
+			IncompleteSince::<Runtime>::put(PARA - 5);
+
+			at(PARA, RELAY);
+			let summary = upgrade();
+			assert_eq!(summary.removed_agendas, 1);
+			assert_eq!(summary.moved_tasks, max_per_block + 2);
+			assert_eq!(summary.spilled_tasks, 1);
+
+			assert_eq!(Lookup::<Runtime>::get(name("before the scheduler fell behind")), None);
+			assert_eq!(
+				Lookup::<Runtime>::get(name("the scheduler didn't reach")),
+				Some((RELAY + 1, 0))
+			);
+			assert_eq!(Agenda::<Runtime>::get(RELAY + 1).len() as u32, max_per_block);
+			// The last task of `PARA + 1`, then the one of `PARA + 2`.
+			let after = Agenda::<Runtime>::get(RELAY + 2);
+			assert_eq!(after.len(), 2);
+			assert_eq!(after[0].as_ref().map(|task| &task.call), Some(&inline(remark(b"next"))));
+			assert_eq!(
+				Lookup::<Runtime>::get(name("two blocks after the switch")),
+				Some((RELAY + 2, 1))
+			);
+
+			run_scheduler_at(RELAY + 2);
+			assert_eq!(dispatched_at(RELAY + 1), max_per_block as usize);
+			assert_eq!(dispatched_at(RELAY + 2), 2);
+		})
+	}
+
+	/// A referendum whose alarm isn't a pending task would never be serviced: it gets a new
+	/// alarm.
+	#[test]
+	fn a_referendum_without_its_alarm_gets_a_new_one() {
+		TestExternalities::default().execute_with(|| {
+			assert_ok!(Balances::mint_into(&ALICE, 10 * UNITS));
+			on_the_parachain_clock(PARA - 2 * DAYS + 100);
+			assert_ok!(KreivoReferenda::submit(
+				RuntimeOrigin::signed(ALICE),
+				Box::new(frame_system::RawOrigin::Root.into()),
+				inline(remark(b"kreivo")),
+				DispatchTime::After(1),
+			));
+			Agenda::<Runtime>::remove(PARA + 100);
+			IncompleteSince::<Runtime>::put(PARA + 1);
+
+			at(PARA, RELAY);
+			assert_eq!(upgrade().rearmed_referenda, 1);
+			assert_eq!(
+				ongoing::<KreivoReferendaInstance>(0).alarm,
+				Some((RELAY + 100, (RELAY + 100, 0)))
+			);
+
+			run_scheduler_at(RELAY + 100);
+			assert!(timed_out::<KreivoReferendaInstance>(0));
+		})
+	}
+
+	#[test]
+	fn the_migration_runs_once() {
+		TestExternalities::default().execute_with(|| {
+			on_the_parachain_clock(PARA);
+			schedule(PARA + 10, remark(b"later"));
+			IncompleteSince::<Runtime>::put(PARA + 1);
+
+			at(PARA, RELAY);
+			upgrade();
+			assert_eq!(Agenda::<Runtime>::get(RELAY + 10).len(), 1);
+
+			// Even once the clocks moved on, it does nothing.
+			at(PARA + 10, RELAY + 5);
+			let root = sp_io::storage::root(sp_runtime::StateVersion::V1);
+			#[cfg(feature = "try-runtime")]
+			let state = SchedulerToRelayChainClock::pre_upgrade().expect("pre-upgrade checks pass");
+			SchedulerToRelayChainClock::on_runtime_upgrade();
+			#[cfg(feature = "try-runtime")]
+			SchedulerToRelayChainClock::post_upgrade(state).expect("post-upgrade checks pass");
+			assert_eq!(sp_io::storage::root(sp_runtime::StateVersion::V1), root);
+			assert_eq!(SchedulerToRelayChainClock::migrate().1, None);
+		})
+	}
+}
