@@ -749,7 +749,7 @@ mod scheduler_clock_switch {
 	use frame_support::traits::{schedule::DispatchTime, Bounded, OnInitialize, OnRuntimeUpgrade};
 	use pallet_referenda::{ReferendumInfo, ReferendumInfoFor, ReferendumStatusOf};
 	use pallet_scheduler::{Agenda, IncompleteSince, Lookup, Retries, RetryConfig, Scheduled, ScheduledOf};
-	use runtime_constants::time::DAYS;
+	use runtime_constants::time::{DAYS, MINUTES};
 	use sp_runtime::traits::BlockNumberProvider;
 
 	/// Kreivo on Kusama, around the upgrade to 0.17.0.
@@ -959,7 +959,7 @@ mod scheduler_clock_switch {
 				Some(PARA + 100)
 			);
 
-			// A pass session of 1800 blocks, opened right before the switch.
+			// A pass session of 15 minutes (the longest one), opened right before the switch.
 			on_the_parachain_clock(PARA);
 			let account = pass::account([1u8; 32]);
 			let (device, _) = pass::attestation(&account, [10u8; 32]);
@@ -967,9 +967,9 @@ mod scheduler_clock_switch {
 			assert_ok!(Pass::add_session_key(
 				RuntimeOrigin::signed(account),
 				CommunityLookup::unlookup(session.clone()),
-				Some(1_800),
+				Some(15 * MINUTES),
 			));
-			assert_eq!(session_removal(&session), Some((PARA + 1_801, 0)));
+			assert_eq!(session_removal(&session), Some((PARA + 15 * MINUTES + 1, 0)));
 
 			// A full agenda right after the switch, one of its tasks with retries.
 			for _ in 0..max_per_block {
@@ -1033,8 +1033,8 @@ mod scheduler_clock_switch {
 			assert_eq!(Lookup::<Runtime>::get(dead), None);
 			assert_eq!(Retries::<Runtime>::get((3_570_164, 0)), None);
 
-			// The session ends 1800 relay chain blocks after the switch, not ~3.6M later.
-			assert_eq!(session_removal(&session), Some((RELAY + 1_801, 0)));
+			// The session ends 15 minutes after it was opened, not ~3.6M blocks later.
+			assert_eq!(session_removal(&session), Some((RELAY + 15 * MINUTES + 1, 0)));
 
 			// Referenda keep the time that passed, and the time left.
 			let kreivo = ongoing::<KreivoReferendaInstance>(0);
@@ -1054,16 +1054,16 @@ mod scheduler_clock_switch {
 			run_scheduler_at(RELAY + 100);
 			assert!(timed_out::<KreivoReferendaInstance>(0));
 
+			let active = || pallet_pass::SessionKeys::<Runtime>::contains_key(&session);
+			run_scheduler_at(RELAY + 15 * MINUTES);
+			assert!(active());
+			run_scheduler_at(RELAY + 15 * MINUTES + 1);
+			assert!(!active(), "the session ended 15 minutes after it was opened");
+
 			run_scheduler_at(RELAY + 199);
 			assert!(!timed_out::<CommunityReferendaInstance>(0));
 			run_scheduler_at(RELAY + 200);
 			assert!(timed_out::<CommunityReferendaInstance>(0));
-
-			let active = || pallet_pass::SessionKeys::<Runtime>::contains_key(&session);
-			run_scheduler_at(RELAY + 1_800);
-			assert!(active());
-			run_scheduler_at(RELAY + 1_801);
-			assert!(!active(), "the session ended 1800 blocks after it was opened");
 		})
 	}
 
