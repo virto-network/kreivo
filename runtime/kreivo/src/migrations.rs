@@ -178,6 +178,7 @@ impl SchedulerToRelayChainClock {
 			for (index, task) in agenda.into_iter().enumerate() {
 				// A cancelled task leaves an empty slot. There's nothing to move.
 				let Some(task) = task else { continue };
+				let wanted = destination;
 				loop {
 					let agenda = agendas.entry(destination).or_insert_with(|| {
 						// An agenda we left in place, since it couldn't be decoded, can't take
@@ -196,6 +197,9 @@ impl SchedulerToRelayChainClock {
 						let new_address = (destination, agenda.len() as u32 - 1);
 						moved.insert((when, index as u32), new_address);
 						summary.moved_tasks += 1;
+						if destination != wanted {
+							summary.spilled_tasks += 1;
+						}
 						break;
 					}
 					if destination == BlockNumber::MAX {
@@ -203,7 +207,6 @@ impl SchedulerToRelayChainClock {
 						break;
 					}
 					destination += 1;
-					summary.spilled_tasks += 1;
 				}
 			}
 		}
