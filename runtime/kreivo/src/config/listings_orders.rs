@@ -105,9 +105,21 @@ impl pallet_nfts::Config<ListingsInstance> for Runtime {
 	type ItemAttributesApprovalsLimit = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type ItemAttributesApprovalsLimit = ConstU32<1>;
+	// Tips, swap deadlines and multi-attribute calls are off on the catalog (a zero bound rejects any
+	// real call). Benchmark builds need a range to fit a slope, so they get small bounds instead;
+	// the weights still apply, since a call that exceeds the live zero bound fails anyway.
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type MaxTips = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type MaxTips = ConstU32<10>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type MaxDeadlineDuration = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type MaxDeadlineDuration = ConstU32<{ 30 * runtime_constants::time::DAYS }>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type MaxAttributesPerCall = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type MaxAttributesPerCall = ConstU32<10>;
 	type Features = ();
 	type OffchainSignature = Signature;
 	type OffchainPublic = <Signature as Verify>::Signer;
