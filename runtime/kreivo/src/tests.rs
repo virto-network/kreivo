@@ -980,7 +980,7 @@ mod scheduler_clock_switch {
 				remaining: 3,
 				period: 10,
 			};
-			Retries::<Runtime>::insert((PARA + 1, 7), retry.clone());
+			Retries::<Runtime>::insert((PARA + 1, 7), retry);
 
 			// The scheduler serviced every agenda up to the last block.
 			IncompleteSince::<Runtime>::put(PARA + 1);
@@ -993,7 +993,7 @@ mod scheduler_clock_switch {
 				BoundedVec::truncate_from(vec![Some(root_task(Some(dead), remark(b"dead")))]),
 			);
 			Lookup::<Runtime>::insert(dead, (3_570_164, 0));
-			Retries::<Runtime>::insert((3_570_164, 0), retry.clone());
+			Retries::<Runtime>::insert((3_570_164, 0), retry);
 			Agenda::<Runtime>::insert(
 				RELAY + 1,
 				BoundedVec::truncate_from(vec![Some(root_task(None, remark(b"dead")))]),

@@ -43,7 +43,7 @@ impl ClockSwitch {
 
 	/// A block number on the parachain clock, on the relay chain clock: the same distance from
 	/// `now` (one relay chain block per parachain block, the rate Kreivo had on 0.16).
-	fn to_relay_chain(&self, block: BlockNumber) -> BlockNumber {
+	fn on_relay_chain(&self, block: BlockNumber) -> BlockNumber {
 		if block >= self.parachain {
 			self.relay_chain.saturating_add(block - self.parachain)
 		} else {
@@ -277,13 +277,13 @@ impl SchedulerToRelayChainClock {
 			.collect::<Vec<_>>();
 
 		for (index, mut status) in ongoing {
-			status.submitted = clocks.to_relay_chain(status.submitted);
+			status.submitted = clocks.on_relay_chain(status.submitted);
 			if let DispatchTime::At(when) = status.enactment {
-				status.enactment = DispatchTime::At(clocks.to_relay_chain(when));
+				status.enactment = DispatchTime::At(clocks.on_relay_chain(when));
 			}
 			if let Some(deciding) = status.deciding.as_mut() {
-				deciding.since = clocks.to_relay_chain(deciding.since);
-				deciding.confirming = deciding.confirming.map(|when| clocks.to_relay_chain(when));
+				deciding.since = clocks.on_relay_chain(deciding.since);
+				deciding.confirming = deciding.confirming.map(|when| clocks.on_relay_chain(when));
 			}
 			if let Some((when, address)) = status.alarm {
 				status.alarm = match moved.get(&address) {
@@ -294,7 +294,7 @@ impl SchedulerToRelayChainClock {
 						summary.rearmed_referenda += 1;
 						Self::set_alarm::<I>(
 							index,
-							clocks.to_relay_chain(when).max(clocks.relay_chain.saturating_add(1)),
+							clocks.on_relay_chain(when).max(clocks.relay_chain.saturating_add(1)),
 							db,
 						)
 					}
