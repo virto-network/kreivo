@@ -21,6 +21,7 @@ mod config;
 mod constants;
 mod genesis_config_presets;
 mod impls;
+pub mod migrations;
 mod weights;
 pub mod xcm_config;
 
@@ -137,6 +138,8 @@ pub type Migrations = (
 	frame_support::migrations::RemovePallet<ReviveName, RocksDbWeight>,
 	// Permanent
 	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,
+	// Unreleased, one-shot. Last: it moves every task scheduled by then to the relay chain clock.
+	migrations::SchedulerToRelayChainClock,
 );
 
 parameter_types! {
