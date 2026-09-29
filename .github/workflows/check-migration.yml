@@ -1,9 +1,21 @@
 name: Run Check Migrations
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
     types: [ opened, synchronize, reopened, ready_for_review ]
+  # Release gate: run it by hand on the commit about to be released, against a snapshot of the
+  # live chain (`fresh-snapshot` takes a new one instead of reusing today's cached snapshot).
+  workflow_dispatch:
+    inputs:
+      fresh-snapshot:
+        description: "Take a new snapshot of the live chain instead of reusing today's cached one"
+        type: boolean
+        default: false
+
+env:
+  # The live Kreivo chain (Kusama, para 2281) the runtime upgrade is checked against.
+  SNAPSHOT_URI: wss://kreivo.kippu.rocks
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -69,21 +81,43 @@ jobs:
       - name: Get Date
         id: get-date
         run: |
-          echo "today=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
+          echo "today=$(/bin/date -u "+%Y%m%d")" >> "$GITHUB_OUTPUT"
         shell: bash
 
-      - name: Download Snapshot
-        uses: actions/cache@v4
+      # One snapshot of the live chain per day. It is restored and saved in separate steps (rather
+      # than `actions/cache` with the deprecated `save-always`) so that it is saved as soon as it is
+      # taken, even when the migration checks below fail. Caches saved on `master` are visible to
+      # every PR; those saved on a PR only to that PR.
+      - name: Restore Snapshot
+        id: snapshot
+        if: ${{ !inputs.fresh-snapshot }}
+        uses: actions/cache/restore@v4
         with:
           path: snapshot.raw
-          key: try-runtime-snapshot-${{ matrix.network }}-${{ steps.get-date.outputs.today }}
-          save-always: true
+          key: try-runtime-snapshot-kreivo-${{ steps.get-date.outputs.today }}
 
       - name: Create Snapshot If Stale
-        if: ${{ hashFiles('snapshot.raw') == '' }}
+        id: create-snapshot
+        if: ${{ steps.snapshot.outputs.cache-hit != 'true' }}
         run: |
-          echo "Creating new snapshot for today (${{ steps.get-date.outputs.today }})"
-          ./try-runtime create-snapshot --uri="wss://kreivo.kippu.rocks" snapshot.raw
+          echo "Creating a new snapshot of $SNAPSHOT_URI for today (${{ steps.get-date.outputs.today }})"
+          rm -f snapshot.raw
+          ./try-runtime create-snapshot --uri="$SNAPSHOT_URI" snapshot.raw
+
+      - name: Save Snapshot
+        if: ${{ steps.create-snapshot.outcome == 'success' }}
+        uses: actions/cache/save@v4
+        with:
+          path: snapshot.raw
+          key: try-runtime-snapshot-kreivo-${{ steps.get-date.outputs.today }}
+
+      - name: Summary
+        run: |
+          {
+            echo "### Check Migrations"
+            echo "- Runtime: \`${{ github.sha }}\` (\`${{ github.ref_name }}\`)"
+            echo "- Snapshot: $SNAPSHOT_URI, ${{ steps.snapshot.outputs.cache-hit == 'true' && 'restored from the cache of' || 'taken on' }} ${{ steps.get-date.outputs.today }}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - run: |
           ./try-runtime --runtime kreivo_runtime.compact.compressed.wasm \
