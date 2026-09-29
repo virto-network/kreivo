@@ -1,79 +1,215 @@
 name: Release
 
+# The runtime is built with srtool (https://github.com/paritytech/srtool): a pinned Docker image
+# with a pinned Rust toolchain, so that anyone can rebuild the same commit and get a byte-identical
+# `kreivo_runtime.compact.compressed.wasm`, and check its hash against the one the runtime upgrade
+# (`System::authorize_upgrade(code_hash)`) authorizes.
+
 on:
   push:
     tags:
       - '*'
+  # Dry run: the same srtool build, on any ref, without publishing a release. The runtime, its
+  # srtool digest and the release notes are uploaded as an artifact of the run.
+  workflow_dispatch:
+    inputs:
+      paseo:
+        description: "Build with `--features paseo`, as `-pre` tags are released"
+        type: boolean
+        default: false
+
+env:
+  # srtool 0.18.4 with Rust 1.93.0. The runtime's dependencies need Rust >= 1.91, and srtool has no
+  # 1.91 image: 1.93.0 is the first one after it. Pinned by digest, so that a rebuild uses the very
+  # same image, not just the same tag.
+  SRTOOL_IMAGE: docker.io/paritytech/srtool:1.93.0-0.18.4@sha256:8638a668bd6d29111dc01953fbead6eb08c062e1cc62d3047a245a52b6edb3bf
+  PACKAGE: kreivo-runtime
+  RUNTIME_DIR: runtime/kreivo
+  PROFILE: production
+  # `System::authorize_upgrade` is call 9 of pallet 0. With these, subwasm's
+  # `parachain_authorize_upgrade_hash` is the hash of the `authorize_upgrade(code_hash)` call
+  # (instead of `ParachainSystem::authorize_upgrade`, which no longer exists).
+  PARACHAIN_PALLET_ID: '0x00'
+  AUTHORIZE_UPGRADE_PREFIX: '0x09'
+  ARTIFACT_NAME: kreivo-runtime-srtool
 
 jobs:
   build:
+    name: Build runtime (srtool)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PASEO: ${{ (github.event_name == 'workflow_dispatch' && inputs.paseo) || (github.event_name == 'push' && contains(github.ref, '-pre')) }}
     steps:
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: wasm32v1-none
-          components: rust-src
-
-      - name: Install 1.91 toolchain (release builds)
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: 1.91
-          target: wasm32v1-none
-          components: rust-src
+      # The build runs in srtool's container; this only makes room for its image and target dir.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
 
       - uses: actions/checkout@v4
-
-      - name: Rust Cache
-        uses: swatinem/rust-cache@v2
         with:
-          cache-on-failure: true
-          cache-all-crates: true
-          key: build
+          # srtool records the latest tag (`git describe --tags`) in its digest.
+          fetch-depth: 0
 
-      - name: Production build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          toolchain: 1.91
-          args: --profile production ${{ contains(github.ref, '-pre') && '--features paseo' || '' }} --locked -p kreivo-runtime
+      # Only the image, the source and `BUILD_OPTS` decide the output. Nothing else from the runner
+      # reaches the build: no cache, no toolchain, no other environment. `SKIP_PALLET_REVIVE_FIXTURES`
+      # isn't needed either: the revive fixtures (which need `solc`/`resolc`) are only built under
+      # `runtime-benchmarks`, which a release doesn't enable.
+      - name: Build ${{ env.PACKAGE }} with srtool
+        run: |
+          set -euo pipefail
+
+          BUILD_OPTS=""
+          if [ "$PASEO" = "true" ]; then
+            BUILD_OPTS="--features paseo"
+          fi
+          echo "BUILD_OPTS=$BUILD_OPTS" >> "$GITHUB_ENV"
+
+          docker pull --platform linux/amd64 "$SRTOOL_IMAGE"
+
+          # The image builds as `builder` (uid 1001), which is also the runner's uid: it can write to
+          # the checkout it gets mounted at `/build`.
+          docker run --rm --platform linux/amd64 \
+            -e PACKAGE="$PACKAGE" \
+            -e RUNTIME_DIR="$RUNTIME_DIR" \
+            -e PROFILE="$PROFILE" \
+            -e BUILD_OPTS="$BUILD_OPTS" \
+            -e PARACHAIN_PALLET_ID="$PARACHAIN_PALLET_ID" \
+            -e AUTHORIZE_UPGRADE_PREFIX="$AUTHORIZE_UPGRADE_PREFIX" \
+            -v "$GITHUB_WORKSPACE":/build \
+            "$SRTOOL_IMAGE" build --app --json -cM | tee "$RUNNER_TEMP/srtool.log"
+
+          # With `--app`, the last line of the output is srtool's JSON digest.
+          tail -n 1 "$RUNNER_TEMP/srtool.log" | jq . > kreivo_runtime-srtool-digest.json
+          cp "$(jq -r .wasm kreivo_runtime-srtool-digest.json)" kreivo_runtime.compact.compressed.wasm
+
+      - name: Check the hashes and write the release notes
+        env:
+          ENDPOINT: ${{ env.PASEO == 'true' && 'testnet.virto.dev' || 'kreivo.io' }}
+        run: |
+          set -euo pipefail
+
+          WASM=kreivo_runtime.compact.compressed.wasm
+          DIGEST=kreivo_runtime-srtool-digest.json
+          SUBWASM=$(jq -c .runtimes.compressed.subwasm "$DIGEST")
+          lower() { tr '[:upper:]' '[:lower:]'; }
+
+          # `authorize_upgrade(code_hash)` takes the blake2-256 hash of the compressed runtime: the
+          # very bytes `apply_authorized_upgrade(code)` is later called with.
+          CODE_HASH=0x$(b2sum -l 256 "$WASM" | awk '{print $1}')
+          SUBWASM_CODE_HASH=$(jq -r .blake2_256 <<< "$SUBWASM" | lower)
+          if [ "$CODE_HASH" != "$SUBWASM_CODE_HASH" ]; then
+            echo "::error::blake2-256 of $WASM is $CODE_HASH, but subwasm reports $SUBWASM_CODE_HASH"
+            exit 1
+          fi
+
+          # The call `System::authorize_upgrade(code_hash)`, and its hash: the preimage the
+          # referendum proposes.
+          CALL_DATA=0x0009${CODE_HASH#0x}
+          CALL_HASH=0x$(python3 -c 'import hashlib, sys; print(hashlib.blake2b(bytes.fromhex(sys.argv[1][2:]), digest_size=32).hexdigest())' "$CALL_DATA")
+          SUBWASM_CALL_HASH=$(jq -r .parachain_authorize_upgrade_hash <<< "$SUBWASM" | lower)
+          if [ "$CALL_HASH" != "$SUBWASM_CALL_HASH" ]; then
+            echo "::error::authorize_upgrade call hash is $CALL_HASH, but subwasm reports $SUBWASM_CALL_HASH"
+            exit 1
+          fi
+
+          version() { jq -r ".core_version.$1 // .core_version.$2" <<< "$SUBWASM"; }
+          SPEC_NAME=$(version specName spec_name)
+          SPEC_VERSION=$(version specVersion spec_version)
+          TX_VERSION=$(version transactionVersion transaction_version)
+          SIZE=$(stat -c %s "$WASM")
+          SHA256=$(jq -r .sha256 "$DIGEST")
+          IPFS=$(jq -r .ipfs "$DIGEST")
+          SET_CODE_HASH=$(jq -r .prop "$DIGEST")
+          RUSTC=$(jq -r .rustc "$DIGEST")
+          SRTOOL=$(jq -r .gen "$DIGEST")
+          CRATE_VERSION=$(jq -r .version "$DIGEST")
+
+          if [ -n "$BUILD_OPTS" ]; then
+            BUILD_OPTS_ARG="-e BUILD_OPTS=\"$BUILD_OPTS\" "
+          else
+            BUILD_OPTS_ARG=""
+          fi
+
+          cat > RELEASE_NOTES.md <<EOF
+          ## Runtime
+
+          \`$PACKAGE\` $CRATE_VERSION, built with srtool from \`$GITHUB_SHA\`${BUILD_OPTS:+ (\`$BUILD_OPTS\`)}.
+
+          | | |
+          |---|---|
+          | \`spec_name\` | \`$SPEC_NAME\` |
+          | \`spec_version\` | \`$SPEC_VERSION\` |
+          | \`transaction_version\` | \`$TX_VERSION\` |
+          | **Code hash** (blake2-256 of \`$WASM\`, the \`code_hash\` of \`authorize_upgrade\`) | \`$CODE_HASH\` |
+          | \`System::authorize_upgrade(code_hash)\` call data | \`$CALL_DATA\` |
+          | \`System::authorize_upgrade(code_hash)\` call hash (the proposal's preimage) | \`$CALL_HASH\` |
+          | \`System::set_code\` proposal hash (srtool \`prop\`, not used by this upgrade path) | \`$SET_CODE_HASH\` |
+          | SHA-256 of \`$WASM\` | \`$SHA256\` |
+          | IPFS | \`$IPFS\` |
+          | Size | $SIZE bytes |
+          | Toolchain | $SRTOOL, \`$RUSTC\` |
+
+          You can create the \`authorizeUpgrade\` extrinsic [here](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2F$ENDPOINT#/extrinsics/decode/$CALL_DATA).
+          Once it is enacted, anyone can submit \`System::apply_authorized_upgrade(code)\` with \`$WASM\`.
+
+          ### Reproduce the build
+
+          On an x86-64 machine with Docker (elsewhere it runs under emulation, much slower):
+
+          \`\`\`sh
+          git clone https://github.com/$GITHUB_REPOSITORY.git kreivo && cd kreivo
+          git checkout $GITHUB_SHA
+          # srtool builds as uid 1001: make the checkout writable for it.
+          chmod -R a+w .
+          docker run --rm --platform linux/amd64 \\
+            -e PACKAGE=$PACKAGE -e RUNTIME_DIR=$RUNTIME_DIR -e PROFILE=$PROFILE ${BUILD_OPTS_ARG}\\
+            -e PARACHAIN_PALLET_ID=$PARACHAIN_PALLET_ID -e AUTHORIZE_UPGRADE_PREFIX=$AUTHORIZE_UPGRADE_PREFIX \\
+            -v "\$PWD":/build \\
+            $SRTOOL_IMAGE \\
+            build --app --json -cM
+          b2sum -l 256 $RUNTIME_DIR/target/srtool/$PROFILE/wbuild/$PACKAGE/$WASM
+          \`\`\`
+
+          The last line of srtool's output is its JSON digest (attached as \`$DIGEST\`); the
+          \`b2sum\` must print \`${CODE_HASH#0x}\`.
+          EOF
+
+          cat RELEASE_NOTES.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload runtime to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.run_number }}-runtime
-          path: ./target/production/wbuild/kreivo-runtime/kreivo_runtime.compact.compressed.wasm
+          name: ${{ env.ARTIFACT_NAME }}
+          if-no-files-found: error
+          path: |
+            kreivo_runtime.compact.compressed.wasm
+            kreivo_runtime-srtool-digest.json
+            RELEASE_NOTES.md
 
   release:
     name: Publish Release
     needs: build
+    # A `workflow_dispatch` run is a dry run: it stops at the build.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-
       - name: Get artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.run_number }}-runtime
-
-      - name: Generate release notes
-        env:
-          ENDPOINT: ${{ contains(github.ref, '-pre') && 'testnet.virto.dev' || 'kreivo.io' }}
-        run: |
-          HASH=$(b2sum -l256 kreivo_runtime.compact.compressed.wasm | awk '{print $1}')
-
-          echo "You can create the \`authorizeUpgrade\` extrinsic [here](https://polkadot.js.org/apps/?rpc=wss%3A%2F%2F"$ENDPOINT"#/extrinsics/decode/0x0009"$HASH")." \
-            >> RELEASE_NOTES.txt
+          name: ${{ env.ARTIFACT_NAME }}
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           prerelease: ${{ contains(github.ref, '-pre') }}
-          body_path: RELEASE_NOTES.txt
+          body_path: RELEASE_NOTES.md
           append_body: true
           files: |
             kreivo_runtime.compact.compressed.wasm
+            kreivo_runtime-srtool-digest.json
