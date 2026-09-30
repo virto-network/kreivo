@@ -19,6 +19,8 @@ use sp_io::TestExternalities;
 use sp_runtime::{traits::StaticLookup, BoundedVec};
 use xcm_executor::{WeighedMessage, XcmExecutor};
 
+mod membership_gas_tank;
+
 macro_rules! assert_call_size {
 	($pallet: ident) => {
 		println!(
