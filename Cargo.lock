@@ -6235,6 +6235,7 @@ dependencies = [
  "pallet-contracts-fixtures",
  "pallet-contracts-store",
  "pallet-message-queue",
+ "pallet-migrations",
  "pallet-multisig",
  "pallet-nfts",
  "pallet-preimage",

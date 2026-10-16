@@ -31,8 +31,13 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 
 // #[runtime::pallet_index(33)]
 // pub type MessageQueue
+/// The share of the block that `pallet_message_queue` may use in `on_initialize`. The migrations'
+/// `MaxServiceWeight` leaves it room (see `config::system::MigrationsMaxServiceWeight`).
+pub const MESSAGE_QUEUE_SERVICE_PERCENT: u32 = 35;
+
 parameter_types! {
-	pub MessageQueueServiceWeight: Weight = Perbill::from_percent(35) * RuntimeBlockWeights::get().max_block;
+	pub MessageQueueServiceWeight: Weight =
+		Perbill::from_percent(MESSAGE_QUEUE_SERVICE_PERCENT) * RuntimeBlockWeights::get().max_block;
 }
 
 impl pallet_message_queue::Config for Runtime {

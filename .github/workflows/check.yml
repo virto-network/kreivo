@@ -177,6 +177,18 @@ jobs:
           # under runtime-benchmarks, which would need solc and resolc.
           SKIP_PALLET_REVIVE_FIXTURES: 1
 
+      # `test` runs with `--all-features`, so `runtime-benchmarks` compiles the stepped-migration
+      # tests (behind `not(runtime-benchmarks)`) out. This job has no features, so it runs them:
+      # named here so that the coverage doesn't depend on this job's filter above.
+      - name: Run the stepped-migration tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          toolchain: ${{ env.NIGHTLY_VERSION }}
+          args: --lib --locked -p kreivo-runtime tests::multi_block_migrations::stepped
+        env:
+          SKIP_PALLET_REVIVE_FIXTURES: 1
+
   emulated-tests:
     runs-on: ubuntu-latest
     steps:

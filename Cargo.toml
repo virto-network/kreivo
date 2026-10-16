@@ -148,6 +148,7 @@ cumulus-primitives-core = { version = "0.26.0", default-features = false }
 cumulus-primitives-utility = { version = "0.32.0", default-features = false }
 pallet-collator-selection = { version = "30.0.0", default-features = false }
 pallet-message-queue = { version = "52.0.0", default-features = false }
+pallet-migrations = { version = "19.0.0", default-features = false }
 parachain-info = { version = "0.28.0", package = "staging-parachain-info", default-features = false }
 parachains-common = { version = "36.0.0", default-features = false }
 

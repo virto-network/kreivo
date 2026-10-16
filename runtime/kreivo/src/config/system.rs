@@ -127,6 +127,76 @@ impl frame_system::Config for Runtime {
 	// Sets the block's weight mode (a share of the core, or the whole core) before inherents.
 	type PreInherents =
 		cumulus_pallet_parachain_system::block_weight::DynamicMaxBlockWeightHooks<Runtime, TargetBlockRate>;
+	/// Constant-size migrations, run in the upgrade block.
+	type SingleBlockMigrations = crate::Migrations;
+	/// Stepped migrations (`DEC-30`).
+	type MultiBlockMigrator = MultiBlockMigrations;
+}
+
+// #[runtime::pallet_index(5)]
+// pub type MultiBlockMigrations
+/// One block's share of a core when a core carries `TargetBlockRate` blocks: `ref_time` 2 s / 3 and
+/// proof size 10 MiB / 3 (what `MaximumBlockWeight` returns outside the first block of a core).
+const MIGRATIONS_BLOCK_SHARE: Weight = Weight::from_parts(666_666_666_666, 3_495_253);
+
+parameter_types! {
+	/// What inherents may use besides the migration step: 15 % of the block's share.
+	pub MigrationsInherentReserve: Weight = Perbill::from_percent(15) * MIGRATIONS_BLOCK_SHARE;
+
+	/// The most weight a migration step may use (`DEC-30`, `RISK-14`). The executive registers the
+	/// step's weight unchecked, after the inherents, and `on_initialize` still runs during a
+	/// migration, so the step has to leave room for everything else in the block's share:
+	///
+	/// ```text
+	/// MaxServiceWeight = share
+	///                  - MessageQueueServiceWeight   (35 % of the share, `config::xcm`)
+	///                  - BlockExecutionWeight        (the base block)
+	///                  - MigrationsInherentReserve   (15 % of the share)
+	/// ```
+	///
+	/// In the third-of-a-core mode that is about 50 % of the share: `ref_time` 0.33 s and proof size
+	/// 1.7 MiB. Taking 80 % instead could exceed the core's PoV with heavy XCM traffic, and the
+	/// chain would stall in the middle of the migration. Must stay at or below `max_block`
+	/// (`pallet_migrations`'s `integrity_test`).
+	///
+	/// The final value is the owner's: decision form item `m3-max-service-weight` (recommended:
+	/// "derive, about 50 %").
+	pub MigrationsMaxServiceWeight: Weight = MIGRATIONS_BLOCK_SHARE
+		.saturating_sub(Perbill::from_percent(super::xcm::MESSAGE_QUEUE_SERVICE_PERCENT) * MIGRATIONS_BLOCK_SHARE)
+		.saturating_sub(crate::weights::BlockExecutionWeight::get())
+		.saturating_sub(MigrationsInherentReserve::get());
+}
+
+/// The stepped migrations this runtime runs. None yet: the memberships migration (`F-10`) is
+/// registered here. Tests run a no-op one that takes several blocks; the benchmarks need the
+/// pallet's mocked migrations.
+pub type ReleaseSteppedMigrations = ();
+#[cfg(feature = "runtime-benchmarks")]
+pub type SteppedMigrations = pallet_migrations::mock_helpers::MockedMigrations;
+#[cfg(all(test, not(feature = "runtime-benchmarks")))]
+pub type SteppedMigrations = crate::migrations::test_migration::NoopStepped;
+#[cfg(not(any(test, feature = "runtime-benchmarks")))]
+pub type SteppedMigrations = ReleaseSteppedMigrations;
+
+/// The migrations' status handler: `()` until `F-08` binds listings' hand-off.
+pub type MigrationsStatusHandler = ();
+
+impl pallet_migrations::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Migrations = SteppedMigrations;
+	/// Fit every cursor and identifier this release registers (Asset Hub Westend's values).
+	type CursorMaxLen = ConstU32<65_536>;
+	type IdentifierMaxLen = ConstU32<256>;
+	/// Nothing pauses while a migration runs yet: listings' hand-off (`DEC-35`) needs
+	/// frame-contrib 2.4.0, and is bound by `F-08`. `F-08` must land before `F-10` registers a
+	/// stepped migration: with `()`, listings' recurring charges keep running during it, which
+	/// breaks `INV-21`. A test fails if the release list is non-empty while this is `()`.
+	type MigrationStatusHandler = MigrationsStatusHandler;
+	/// A half-applied migration holds every transaction until governance clears it: the chain
+	/// keeps producing blocks, with inherents only (see F-12 NOTES for the recovery path).
+	type FailedMigrationHandler = frame_support::migrations::FreezeChainOnFailedMigration;
+	type MaxServiceWeight = MigrationsMaxServiceWeight;
+	type WeightInfo = weights::pallet_migrations::WeightInfo<Runtime>;
 }
 
 // #[runtime::pallet_index(1)]

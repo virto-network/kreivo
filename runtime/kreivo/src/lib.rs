@@ -119,46 +119,23 @@ pub type SignedPayload = generic::SignedPayload<RuntimeCall, TransactionExtensio
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, TransactionExtensions>;
 
-/// A list of migrations that need to undergo.
+/// Single-block migrations: `frame_system::Config::SingleBlockMigrations` runs them in the
+/// upgrade block.
+///
+/// Only constant-size work belongs here. Anything that scans data is a stepped migration, registered
+/// in `pallet_migrations::Config::Migrations` (`DEC-30`).
+///
+/// The 0.17 entries are gone: 0.17 is enacted on Kreivo (spec version 134, and the clock switch of
+/// [`migrations::SchedulerToRelayChainClock`] is recorded on chain), so none of them would do more
+/// than a storage-version check. `migrations` keeps the code of the scheduler one.
 pub type Migrations = (
-	// Unreleased
-	pallet_collator_selection::migration::v2::MigrationToV2<Runtime>,
-	pallet_session::migrations::v1::MigrateV0ToV1<
-		Runtime,
-		pallet_session::migrations::v1::InitOffenceSeverity<Runtime>,
-	>,
-	cumulus_pallet_aura_ext::migration::MigrateV0ToV1<Runtime>,
-	cumulus_pallet_xcmp_queue::migration::v4::MigrationToV4<Runtime>,
-	cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,
-	cumulus_pallet_xcmp_queue::migration::v6::MigrateV5ToV6<Runtime>,
-	cumulus_pallet_xcmp_queue::migration::v7::MigrateV6ToV7<Runtime>,
-	// Stepwise, up to v3 (stable2606): clears `PoVMessagesTracker`.
-	cumulus_pallet_parachain_system::migration::Migration<Runtime>,
-	// pallet-revive was never used on mainnet: its storage version is the only key left.
-	frame_support::migrations::RemovePallet<ReviveName, RocksDbWeight>,
 	// Permanent
 	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,
-	// Unreleased, one-shot. Last: it moves every task scheduled by then to the relay chain clock.
-	migrations::SchedulerToRelayChainClock,
 );
 
-parameter_types! {
-	pub const ReviveName: &'static str = "Revive";
-}
-
-impl cumulus_pallet_xcmp_queue::migration::v5::V5Config for Runtime {
-	type ChannelList = ParachainSystem;
-}
-
 /// Executive: handles dispatch to the various modules.
-pub type Executive = frame_executive::Executive<
-	Runtime,
-	Block,
-	frame_system::ChainContext<Runtime>,
-	Runtime,
-	AllPalletsWithSystem,
-	Migrations,
->;
+pub type Executive =
+	frame_executive::Executive<Runtime, Block, frame_system::ChainContext<Runtime>, Runtime, AllPalletsWithSystem>;
 
 impl_opaque_keys! {
 	pub struct SessionKeys {
@@ -216,6 +193,8 @@ mod runtime {
 	pub type ParachainInfo = parachain_info;
 	#[runtime::pallet_index(4)]
 	pub type Origins = pallet_custom_origins;
+	#[runtime::pallet_index(5)]
+	pub type MultiBlockMigrations = pallet_migrations;
 	#[runtime::pallet_index(6)]
 	pub type Pass = pallet_pass;
 

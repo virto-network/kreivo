@@ -102,6 +102,7 @@ cumulus-primitives-core.workspace = true
 cumulus-primitives-utility.workspace = true
 pallet-collator-selection.workspace = true
 pallet-message-queue.workspace = true
+pallet-migrations.workspace = true
 parachain-info.workspace = true
 parachains-common.workspace = true
 
@@ -156,6 +157,7 @@ std = [
   "pallet-collator-selection/std",
   "pallet-gas-transaction-payment/std",
   "pallet-message-queue/std",
+  "pallet-migrations/std",
   "pallet-multisig/std",
   "pallet-nfts/std",
   "pallet-pass/std",
@@ -234,6 +236,7 @@ runtime-benchmarks = [
   "pallet-collator-selection/runtime-benchmarks",
   "pallet-gas-transaction-payment/runtime-benchmarks",
   "pallet-message-queue/runtime-benchmarks",
+  "pallet-migrations/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
   "pallet-nfts/runtime-benchmarks",
   "pallet-payments/runtime-benchmarks",
@@ -300,6 +303,7 @@ try-runtime = [
   "pallet-gas-transaction-payment/try-runtime",
   "pallet-listings/try-runtime",
   "pallet-message-queue/try-runtime",
+  "pallet-migrations/try-runtime",
   "pallet-nfts/try-runtime",
   "pallet-multisig/try-runtime",
   "pallet-orders/try-runtime",

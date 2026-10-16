@@ -20,6 +20,7 @@ use sp_runtime::{traits::StaticLookup, BoundedVec};
 use xcm_executor::{WeighedMessage, XcmExecutor};
 
 mod kreivo_apis;
+mod multi_block_migrations;
 
 macro_rules! assert_call_size {
 	($pallet: ident) => {

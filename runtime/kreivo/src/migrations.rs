@@ -523,3 +523,57 @@ mod try_runtime {
 		Ok(())
 	}
 }
+
+/// A stepped migration that changes nothing, for the tests: it takes as many steps as the test
+/// sets, each costing most of `MaxServiceWeight` so that every block runs a single one, and it
+/// fails at a step the test names. It lives outside the release build (`DEC-30`, `F-12`).
+#[cfg(all(test, not(feature = "runtime-benchmarks")))]
+pub mod test_migration {
+	use super::*;
+	use frame_support::{
+		migrations::{SteppedMigration, SteppedMigrationError},
+		parameter_types,
+		weights::WeightMeter,
+	};
+
+	parameter_types! {
+		/// How many steps it takes.
+		pub storage NoopSteps: u32 = 3;
+		/// The step that fails, if any.
+		pub storage NoopFailsAt: Option<u32> = None;
+	}
+
+	pub struct NoopStepped;
+
+	impl NoopStepped {
+		/// A step costs three-quarters of `MaxServiceWeight` in both components, so no block fits two.
+		pub fn step_weight() -> frame_support::weights::Weight {
+			config::system::MigrationsMaxServiceWeight::get() * 3 / 4
+		}
+	}
+
+	impl SteppedMigration for NoopStepped {
+		type Cursor = u32;
+		type Identifier = [u8; 8];
+
+		fn id() -> Self::Identifier {
+			*b"NoopStep"
+		}
+
+		fn max_steps() -> Option<u32> {
+			Some(NoopSteps::get())
+		}
+
+		fn step(cursor: Option<u32>, meter: &mut WeightMeter) -> Result<Option<u32>, SteppedMigrationError> {
+			let required = Self::step_weight();
+			if meter.try_consume(required).is_err() {
+				return Err(SteppedMigrationError::InsufficientWeight { required });
+			}
+			let done = cursor.unwrap_or(0);
+			if NoopFailsAt::get() == Some(done) {
+				return Err(SteppedMigrationError::Failed);
+			}
+			Ok((done + 1 < NoopSteps::get()).then_some(done + 1))
+		}
+	}
+}
