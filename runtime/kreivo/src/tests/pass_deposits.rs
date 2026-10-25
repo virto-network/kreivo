@@ -208,14 +208,13 @@ fn ensure_pass_and_proxy_deposits_are_as_expected() {
 		}
 
 		// Devices #1 (from `register`) and #2 are free: `FirstItemsAreFree<2>` charges the footprint
-		// from the third on. Device #3 is charged through `new` (the whole size of a device for one
-		// charged item), and #4 through `update`, which scales the size by the charged share: so the
-		// hold of #4 is lower than the one of #3. That is a defect of frame-contrib's `FirstItemsAreFree`
-		// (`new()` prices the first charged item on the full footprint, free items included, while
-		// `update()` scales it to the charged ones): see the fc `FirstItemsAreFree` fix. These values will
-		// shift slightly with it: re-pin the expected values at the crates.io switch (W5).
+		// from the third on. Device #3 is charged through `new` and #4 through `update`; since
+		// frame-contrib#162 both price the same footprint (the items beyond the free ones, with the
+		// per-item size scaled to them), so the hold of #3 is lower than the one of #4. Before it,
+		// `new` priced the first charged item on the whole size of a device (130 bytes, 4_666_623
+		// planck for #3, more than the 4_599_957 of #4); now it prices `mel / 3` = 43 bytes.
 		assert_eq!(held[0], 0);
-		assert_eq!(held[1], MILLICENTS + (MILLICENTS / 10) * mel as Balance);
+		assert_eq!(held[1], MILLICENTS + (MILLICENTS / 10) * (mel / 3) as Balance);
 
 		// 3. Adding a proxy controller.
 		//
@@ -241,7 +240,7 @@ fn ensure_pass_and_proxy_deposits_are_as_expected() {
 			assert_eq!(registrar_hold, 43_999_989);
 			assert_eq!(registrar_hold_2 - registrar_hold, 10_666_656);
 			// Devices #2, #3, #4 (cumulative hold on the pass account).
-			assert_eq!(held, alloc::vec![0, 4_666_623, 4_599_957]);
+			assert_eq!(held, alloc::vec![0, 1_766_652, 4_599_957]);
 			// Adding the first proxy controller.
 			assert_eq!(proxy_deposit, 44_333_289);
 		}
