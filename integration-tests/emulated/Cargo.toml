@@ -18,7 +18,7 @@ repository.workspace = true
 frame-support = { workspace = true, default-features = true }
 sp-core = { workspace = true, default-features = true }
 sp-runtime = { workspace = true, default-features = true }
-sc-consensus-grandpa = { version = "0.44.0" }
+sc-consensus-grandpa = { version = "0.46.0" }
 sp-authority-discovery = { version = "43.0.0" }
 sp-consensus-babe = { version = "0.49.0" }
 sp-consensus-beefy = { version = "31.0.0" }
@@ -26,8 +26,8 @@ sp-keyring = { version = "48.0.0" }
 
 # Polkadot
 polkadot-primitives = { version = "25.0.0" }
-westend-runtime = { version = "37.0.0" }
-westend-runtime-constants = { version = "32.0.0" }
+westend-runtime = { version = "39.0.0" }
+westend-runtime-constants = { version = "34.0.0" }
 xcm = { workspace = true, default-features = true }
 xcm-builder = { workspace = true, default-features = true }
 xcm-executor = { workspace = true, default-features = true }
@@ -35,11 +35,11 @@ xcm-runtime-apis = { workspace = true, default-features = true }
 pallet-xcm = { workspace = true, default-features = true }
 
 # Cumulus
-asset-hub-westend-runtime = { version = "0.54.0" }
+asset-hub-westend-runtime = { version = "0.56.0" }
 cumulus-primitives-core = { workspace = true, default-features = true }
-emulated-integration-tests-common = { version = "38.0.0" }
+emulated-integration-tests-common = { version = "40.0.0" }
 parachains-common = { workspace = true, default-features = true }
-testnet-parachains-constants = { version = "25.0.0", features = ["westend"] }
+testnet-parachains-constants = { version = "27.0.0", features = ["westend"] }
 
 # Kreivo
 kreivo-runtime = { workspace = true, default-features = true }
