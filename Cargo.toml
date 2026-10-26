@@ -174,23 +174,23 @@ ink_env = { version = "5.1.1", default-features = false }
 
 # temporary: until the fc 3.x release (W5); the final PR removes this patch and the lint.yml relaxation
 [patch.crates-io]
-fc-mock-helpers = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-pallet-black-hole = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-pallet-communities = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-pallet-listings = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-pallet-orders = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-pallet-pass = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-pallet-payments = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-pallet-referenda-tracks = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-pallet-usage-subscription = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-traits-authn = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-traits-authn-proc = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-traits-gas-tank = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-traits-listings = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-traits-memberships = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-traits-nonfungibles-helpers = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-fc-traits-payments = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-frame-contrib-traits = { git = "https://github.com/virto-network/frame-contrib", rev = "a6bb2557c60c52f86b7ce59a6d76d678fd71a526" }
-pass-authenticators-substrate-keys = { git = "https://github.com/virto-network/pass-authenticators", rev = "9d432b044ceba8a185f9f3e124ee6ea0b51be62b" }
-pass-authenticators-webauthn = { git = "https://github.com/virto-network/pass-authenticators", rev = "9d432b044ceba8a185f9f3e124ee6ea0b51be62b" }
-pass-authenticators-webauthn-verifier = { git = "https://github.com/virto-network/pass-authenticators", rev = "9d432b044ceba8a185f9f3e124ee6ea0b51be62b" }
+fc-mock-helpers = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-pallet-black-hole = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-pallet-communities = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-pallet-listings = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-pallet-orders = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-pallet-pass = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-pallet-payments = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-pallet-referenda-tracks = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-pallet-usage-subscription = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-traits-authn = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-traits-authn-proc = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-traits-gas-tank = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-traits-listings = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-traits-memberships = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-traits-nonfungibles-helpers = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+fc-traits-payments = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+frame-contrib-traits = { git = "https://github.com/virto-network/frame-contrib", rev = "4d16b1e196621a62f48ca8f1a8fea1ae7807d18a" }
+pass-authenticators-substrate-keys = { git = "https://github.com/virto-network/pass-authenticators", rev = "86674b2f191d8e4a11cf78ca6d8c61af38a7998b" }
+pass-authenticators-webauthn = { git = "https://github.com/virto-network/pass-authenticators", rev = "86674b2f191d8e4a11cf78ca6d8c61af38a7998b" }
+pass-authenticators-webauthn-verifier = { git = "https://github.com/virto-network/pass-authenticators", rev = "86674b2f191d8e4a11cf78ca6d8c61af38a7998b" }
