@@ -17,7 +17,7 @@ use pallet_pass::FirstItemsAreFree;
 use parachains_common::{AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO};
 use polkadot_runtime_common::BlockHashCount;
 pub use runtime_constants::async_backing_params::{BLOCK_PROCESSING_VELOCITY, RELAY_PARENT_OFFSET};
-use sp_core::ConstU128;
+use sp_core::{ConstBool, ConstU128};
 use sp_runtime::{
 	traits::{AccountIdConversion, LookupError, StaticLookup},
 	DispatchError,
@@ -167,9 +167,28 @@ parameter_types! {
 		.saturating_sub(MigrationsInherentReserve::get());
 }
 
-/// The stepped migrations this runtime runs: the memberships migration (`F-10`). Tests run a no-op
-/// one that takes several blocks; the benchmarks need the pallet's mocked migrations.
-pub type ReleaseSteppedMigrations = (crate::migrations::memberships::MembershipsToGroupCollections,);
+/// The stepped migrations this runtime runs, in order:
+/// 1. the community tracks (`pallet_referenda_tracks` `MigrateV0ToV1`: the old id becomes the group of
+///    the new `u32` one);
+/// 2. the community referenda's storage, re-keyed by the new track id (it needs the same
+///    `combine(old, 0)`);
+/// 3. the pass migration (backfills every device's call filter, which frame-contrib 3.x denies
+///    without; `SessionKeys` gain their filter);
+/// 4. the memberships migration (`F-10`).
+///
+/// Tests run a no-op one that takes several blocks; the benchmarks need the pallet's mocked
+/// migrations.
+pub type ReleaseSteppedMigrations = (
+	pallet_referenda_tracks::migration::MigrateV0ToV1<
+		Runtime,
+		communities::governance::CommunityTracksInstance,
+		u16,
+		pallet_referenda_tracks::migration::TryIntoGroup,
+	>,
+	crate::migrations::referenda_rekey::ReferendaTrackIds,
+	pallet_pass::migrations::MigrateV0ToV1<Runtime>,
+	crate::migrations::memberships::MembershipsToGroupCollections,
+);
 #[cfg(feature = "runtime-benchmarks")]
 pub type SteppedMigrations = pallet_migrations::mock_helpers::MockedMigrations;
 #[cfg(all(test, not(feature = "runtime-benchmarks")))]
@@ -390,6 +409,17 @@ impl pallet_pass::Config for Runtime {
 	type MaxSessionDuration = ConstU32<{ 15 * MINUTES }>;
 	type MaxDevicesPerAccount = ConstU32<100>;
 	type MaxSessionsPerAccount = ConstU32<10>;
+	// Provisional: frame-contrib's kitchensink values.
+	type SpendMatcher = ();
+	// Sees through the wrappers of the runtime (`Utility`, `Proxy`, `Multisig`, `Scheduler`, ...).
+	type CallMatcher = call_matcher::KreivoCallMatcher;
+	// How deep and how wide a transaction of a restricted device or session key may nest wrapper calls.
+	type MaxNestedCallDepth = ConstU32<4>;
+	type MaxNestedCalls = ConstU32<64>;
+	type MaxFilteredCalls = ConstU32<32>;
+	type MaxFilteredAssets = ConstU32<8>;
+	// Existing integrators keep `add_session_key` until they move to `add_session_key_with_filter`.
+	type UnrestrictedSessionKeys = ConstBool<true>;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

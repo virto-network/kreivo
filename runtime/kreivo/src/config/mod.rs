@@ -2,6 +2,7 @@
 
 use super::*;
 
+pub mod call_matcher;
 pub(crate) mod collator_support;
 pub mod currency;
 pub mod system;

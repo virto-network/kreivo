@@ -17,6 +17,7 @@ use sp_runtime::traits::BlockNumberProvider;
 use sp_runtime::TryRuntimeError;
 
 pub mod memberships;
+pub mod referenda_rekey;
 
 const LOG_TARGET: &str = "runtime::kreivo::migrations";
 

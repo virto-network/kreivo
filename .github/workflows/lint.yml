@@ -67,6 +67,8 @@ jobs:
           fi
 
       - name: Ensure any git-sourced frame-contrib is one tagged commit
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           repo=https://github.com/virto-network/frame-contrib
           commits="$(grep -oE "git\+$repo[^#\"]*#[0-9a-f]{40}" Cargo.lock | sed 's/.*#//' | sort -u || true)"
@@ -78,7 +80,14 @@ jobs:
           fi
           tags="$(git ls-remote --tags "$repo" | awk -v c="$commits" '$1 == c { sub("refs/tags/", "", $2); sub(/\^\{\}$/, "", $2); print $2 }')"
           if [ -z "$tags" ]; then
-            echo "::error file=Cargo.lock::frame-contrib is locked to $commits, which is not a tagged release."
+            # temporary: until the fc 3.x release (W5); the final PR removes the pin and this relaxation.
+            # An untagged commit is accepted only if it is on frame-contrib's main.
+            status="$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/virto-network/frame-contrib/compare/main...$commits" | jq -r .status || true)"
+            if [ "$status" = "behind" ] || [ "$status" = "identical" ]; then
+              echo "frame-contrib (git) locked to $commits, an untagged commit on its main (temporary, until the fc 3.x release)." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "::error file=Cargo.lock::frame-contrib is locked to $commits, which is neither a tagged release nor on its main."
             exit 1
           fi
           echo "frame-contrib (git) locked to $commits ($(echo $tags | tr ' ' ','))" >> "$GITHUB_STEP_SUMMARY"

@@ -1,13 +1,45 @@
 use super::*;
 
 use core::marker::PhantomData;
+use frame_support::{dispatch::DispatchResult, traits::AsEnsureOriginWithArg};
+#[cfg(not(feature = "runtime-benchmarks"))]
+use frame_system::EnsureNever;
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureRootWithSuccess};
 use pallet_communities::RuntimeOriginFor;
+use sp_runtime::traits::Convert;
 
 use pallet_referenda::{BalanceOf, PalletsOriginOf, TrackIdOf, TracksInfo};
+use pallet_referenda_tracks::SplitId;
 
 pub type CommunityTracksInstance = pallet_referenda_tracks::Instance2;
 pub type CommunityReferendaInstance = pallet_referenda::Instance2;
+
+/// The id of a community track: `combine(community_id: u16, sub: u16)`, see
+/// [`pallet_referenda_tracks::SplitId`]. A community's first track is `combine(community_id, 0)`.
+pub type CommunityTrackId = u32;
+
+/// The community that a track (a poll class) belongs to: the group half of its id.
+pub struct CommunityOfTrack;
+impl Convert<CommunityTrackId, Option<CommunityId>> for CommunityOfTrack {
+	fn convert(track: CommunityTrackId) -> Option<CommunityId> {
+		Some(track.split().0)
+	}
+}
+
+/// Creates the governance track of a community, as `combine(community_id, 0)`.
+pub struct CommunityTracksWrapper;
+impl pallet_communities_manager::MutateTracks<Balance, BlockNumber> for CommunityTracksWrapper {
+	type Id = CommunityId;
+	type RuntimeOrigin = PalletsOriginOf<Runtime>;
+
+	fn insert(
+		id: Self::Id,
+		info: pallet_referenda::TrackInfo<Balance, BlockNumber>,
+		origin: Self::RuntimeOrigin,
+	) -> DispatchResult {
+		CommunityTracks::do_insert(CommunityTrackId::combine(id, 0), info, origin)
+	}
+}
 
 parameter_types! {
 	pub const AlarmInterval: BlockNumber = 1;
@@ -32,14 +64,46 @@ impl EnsureOriginWithArg<RuntimeOrigin, TrackIdOf<Runtime, CommunityTracksInstan
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn try_successful_origin(id: &TrackIdOf<Runtime, CommunityTracksInstance>) -> Result<RuntimeOrigin, ()> {
-		Ok(pallet_communities::Origin::<Runtime>::new(*id).into())
+		Ok(pallet_communities::Origin::<Runtime>::new(id.split().0).into())
+	}
+}
+
+/// Root creates groups (and sub-tracks) on the first group, as frame-contrib's kitchensink does.
+/// Only in the benchmark build: it is what the benchmarks of `pallet_referenda_tracks` call with.
+#[cfg(feature = "runtime-benchmarks")]
+pub struct EnsureRootReturnsFirstGroup;
+#[cfg(feature = "runtime-benchmarks")]
+impl EnsureOriginWithArg<RuntimeOrigin, PalletsOriginOf<Runtime>> for EnsureRootReturnsFirstGroup {
+	type Success = <CommunityTrackId as SplitId>::Half;
+
+	fn try_origin(o: RuntimeOrigin, _: &PalletsOriginOf<Runtime>) -> Result<Self::Success, RuntimeOrigin> {
+		<EnsureRoot<AccountId> as frame_support::traits::EnsureOrigin<RuntimeOrigin>>::try_origin(o)
+			.map(|_| Default::default())
+	}
+
+	fn try_successful_origin(_: &PalletsOriginOf<Runtime>) -> Result<RuntimeOrigin, ()> {
+		Ok(RuntimeOrigin::root())
 	}
 }
 
 impl pallet_referenda_tracks::Config<CommunityTracksInstance> for Runtime {
-	type AdminOrigin = EnsureRoot<AccountId>;
-	type UpdateOrigin = EnsureOriginToTrack;
-	type TrackId = CommunityId;
+	// Community tracks are created by `pallet_communities_manager` (`CommunityTracksWrapper`), never by
+	// a call, and no call adds sub-tracks to a community yet.
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type GroupManagerCreateOrigin = AsEnsureOriginWithArg<EnsureNever<<CommunityTrackId as SplitId>::Half>>;
+	// The benchmarks of `pallet_referenda_tracks` create groups and sub-tracks as root.
+	#[cfg(feature = "runtime-benchmarks")]
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureRoot<AccountId>>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type GroupManagerCreateOrigin = EnsureRootReturnsFirstGroup;
+	// A community configures its own track (deposit, periods, curves, deciding limit), as root does
+	// (the former `UpdateOrigin`). It cannot remove it: only root does.
+	type GroupManagerOrigin = EitherOf<AsEnsureOriginWithArg<EnsureRoot<AccountId>>, EnsureOriginToTrack>;
+	type RemoveOrigin = AsEnsureOriginWithArg<EnsureRoot<AccountId>>;
+	type RemoveGroupOrigin = AsEnsureOriginWithArg<EnsureRoot<AccountId>>;
+	type TrackId = CommunityTrackId;
 	type MaxTracks = ConstU32<65536>;
 	type WeightInfo = weights::pallet_referenda_tracks::WeightInfo<Self>;
 
@@ -51,13 +115,9 @@ pub struct EnsureCommunityMember<T, I: 'static = ()>(PhantomData<T>, PhantomData
 
 impl<T, I> EnsureOriginWithArg<RuntimeOriginFor<T>, PalletsOriginOf<T>> for EnsureCommunityMember<T, I>
 where
-	T: pallet_communities::Config + pallet_referenda::Config<I>,
-	T::Tracks: TracksInfo<
-		BalanceOf<T, I>,
-		BlockNumberFor<T>,
-		RuntimeOrigin = PalletsOriginOf<T>,
-		Id = <T as pallet_communities::Config>::CommunityId,
-	>,
+	T: pallet_communities::Config<CommunityId = CommunityId> + pallet_referenda::Config<I>,
+	T::Tracks:
+		TracksInfo<BalanceOf<T, I>, BlockNumberFor<T>, RuntimeOrigin = PalletsOriginOf<T>, Id = CommunityTrackId>,
 {
 	type Success = T::AccountId;
 
@@ -67,7 +127,7 @@ where
 	) -> Result<Self::Success, RuntimeOriginFor<T>> {
 		use frame_contrib_traits::memberships::Inspect;
 		use frame_system::RawOrigin::Signed;
-		let community_id = T::Tracks::track_for(track_origin).map_err(|_| o.clone())?;
+		let community_id = T::Tracks::track_for(track_origin).map_err(|_| o.clone())?.split().0;
 
 		match o.clone().into() {
 			Ok(Signed(who)) => {

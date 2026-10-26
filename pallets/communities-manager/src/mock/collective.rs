@@ -1,7 +1,7 @@
 use super::*;
 
 use alloc::borrow::Cow;
-use pallet_referenda::{Curve, Track};
+use pallet_referenda::{Curve, Track, TracksInfo};
 use sp_runtime::{str_array as s, Perbill};
 
 pub type TrackId = u16;

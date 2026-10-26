@@ -3,7 +3,7 @@
 extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
-use frame_contrib_traits::{memberships::Issue, tracks::MutateTracks};
+use frame_contrib_traits::memberships::Issue;
 use frame_support::{
 	pallet_prelude::*,
 	traits::{
@@ -22,7 +22,7 @@ use pallet_communities::{
 	PalletsOriginOf, RuntimeOriginFor,
 };
 use pallet_nfts::{AttributeNamespace, CollectionConfig};
-use pallet_referenda::{TrackInfo, TracksInfo};
+use pallet_referenda::TrackInfo;
 use sp_runtime::{
 	str_array,
 	traits::{BlockNumberProvider, Saturating, StaticLookup, Zero},
@@ -42,6 +42,20 @@ pub use pallet::*;
 
 pub mod weights;
 pub use weights::*;
+
+/// What the pallet needs of the tracks pallet: to create the governance track of a community.
+///
+/// `Id` is the community's id, not the track's: the implementation decides which track (or tracks)
+/// belong to the community, e.g. `combine(community_id, 0)` over a split track id.
+pub trait MutateTracks<Balance, Moment> {
+	/// The id of the community that the track belongs to.
+	type Id;
+	/// The origin that the track is associated with.
+	type RuntimeOrigin;
+
+	/// Inserts the first track of the community `id`, associated with `origin`.
+	fn insert(id: Self::Id, info: TrackInfo<Balance, Moment>, origin: Self::RuntimeOrigin) -> DispatchResult;
+}
 
 type TrackInfoOf<T> = TrackInfo<NativeBalanceOf<T>, BlockNumberFor<T>>;
 
@@ -144,13 +158,13 @@ pub mod pallet {
 			CollectionId = CommunityIdOf<Self>,
 		>;
 
-		type Tracks: TracksInfo<NativeBalanceOf<Self>, BlockNumberFor<Self>>
-			+ MutateTracks<
-				NativeBalanceOf<Self>,
-				BlockNumberFor<Self>,
-				Id = CommunityIdOf<Self>,
-				RuntimeOrigin = PalletsOriginOf<Self>,
-			>;
+		/// Creates the governance track of a community.
+		type Tracks: MutateTracks<
+			NativeBalanceOf<Self>,
+			BlockNumberFor<Self>,
+			Id = CommunityIdOf<Self>,
+			RuntimeOrigin = PalletsOriginOf<Self>,
+		>;
 
 		type RankedCollective: RankedMembers<AccountId = AccountIdOf<Self>>;
 

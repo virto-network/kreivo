@@ -14,14 +14,21 @@ use sp_io::TestExternalities;
 use sp_runtime::{traits::StaticLookup, BoundedVec};
 use xcm_executor::{WeighedMessage, XcmExecutor};
 
+mod call_matcher_completeness;
+#[cfg(feature = "runtime-benchmarks")]
+mod community_tracks;
 mod deposit_values;
 mod group_issuance;
 mod kreivo_apis;
 mod listings;
 mod memberships_migration;
 mod multi_block_migrations;
+mod pass_deposits;
+mod pass_migration;
+mod pass_nested_calls;
 #[cfg(feature = "runtime-benchmarks")]
 mod payments_orders;
+mod referenda_rekey;
 mod usage_subscription;
 
 macro_rules! assert_call_size {
@@ -215,6 +222,14 @@ mod pass {
 		BlockNumber, System,
 	};
 
+	/// Makes `device_id` the device that authenticated the current transaction of `account`, as
+	/// `PassAuthenticate` does. Since frame-contrib 3.x, `add_device` and `add_session_key` require
+	/// it (no escalation), and the pallet keeps it private.
+	pub fn authenticated_as(account: &AccountId, device_id: DeviceId) {
+		let key = frame_support::storage::storage_prefix(b"Pass", b"AuthenticatedDevice");
+		frame_support::storage::unhashed::put(&key, &(account.clone(), device_id));
+	}
+
 	/// Builds a valid `SubstrateKey` device attestation for `pass_account`.
 	pub fn attestation(pass_account: &AccountId, seed: [u8; 32]) -> (PassDeviceAttestation, DeviceId) {
 		let pair = sr25519::Pair::from_seed(&seed);
@@ -241,6 +256,25 @@ mod pass {
 		)
 	}
 
+	/// Builds a valid `SubstrateKey` credential, as the `PassAuthenticate` transaction extension
+	/// would carry it. `xtc` is the extrinsic context the challenge is bound to.
+	pub fn credential(user_id: HashedUserId, seed: [u8; 32], xtc: &[u8]) -> crate::config::system::PassCredential {
+		let pair = sr25519::Pair::from_seed(&seed);
+		let context: BlockNumber = System::block_number();
+		let message = SignedMessage {
+			context,
+			challenge: KreivoChallenger::generate(&context, &xtc),
+			authority_id: AuthorityFromPalletId::<PassPalletId>::get(),
+		};
+		let signature = MultiSignature::Sr25519(pair.sign(message.message().as_ref()));
+
+		crate::config::system::PassCredential::SubstrateKey(pass_substrate_keys::KeySignature {
+			user_id,
+			message,
+			signature,
+		})
+	}
+
 	/// The address `pallet_pass` derives for a given user id.
 	pub fn account(user: HashedUserId) -> AccountId {
 		<() as pallet_pass::AddressGenerator<Runtime, ()>>::generate_address(user)
@@ -259,8 +293,9 @@ fn pass_accounts_hold_two_devices_for_free() {
 		assert_ok!(Balances::mint_into(&ALICE, UNITS));
 
 		let account = pass::account([1u8; 32]);
-		let (first, _) = pass::attestation(&account, [10u8; 32]);
+		let (first, first_id) = pass::attestation(&account, [10u8; 32]);
 		assert_ok!(Pass::register(RuntimeOrigin::signed(ALICE), [1u8; 32], first));
+		pass::authenticated_as(&account, first_id);
 		assert_ok!(Balances::mint_into(&account, UNITS));
 
 		let held = || Balances::balance_on_hold(&AccountDevicesReason::get(), &account);
@@ -595,8 +630,9 @@ mod relay_chain_time {
 			at(1, 1_000);
 
 			let account = pass::account([1u8; 32]);
-			let (device, _) = pass::attestation(&account, [10u8; 32]);
+			let (device, device_id) = pass::attestation(&account, [10u8; 32]);
 			assert_ok!(Pass::register(RuntimeOrigin::signed(ALICE), [1u8; 32], device));
+			pass::authenticated_as(&account, device_id);
 			assert_ok!(Pass::add_session_key(
 				RuntimeOrigin::signed(account),
 				CommunityLookup::unlookup(session.clone()),
@@ -850,8 +886,9 @@ mod scheduler_clock_switch {
 			// A pass session of 15 minutes (the longest one), opened right before the switch.
 			on_the_parachain_clock(PARA);
 			let account = pass::account([1u8; 32]);
-			let (device, _) = pass::attestation(&account, [10u8; 32]);
+			let (device, device_id) = pass::attestation(&account, [10u8; 32]);
 			assert_ok!(Pass::register(RuntimeOrigin::signed(ALICE), [1u8; 32], device));
+			pass::authenticated_as(&account, device_id);
 			assert_ok!(Pass::add_session_key(
 				RuntimeOrigin::signed(account),
 				CommunityLookup::unlookup(session.clone()),

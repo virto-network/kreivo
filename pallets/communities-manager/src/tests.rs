@@ -108,6 +108,19 @@ fn a_root_registration_moves_nothing_holds_nothing_and_records_nothing() {
 	})
 }
 
+#[test]
+fn registering_a_community_creates_its_first_track_in_its_own_group() {
+	use pallet_referenda_tracks::SplitId;
+
+	new_test_ext().execute_with(|| {
+		register_community(7, ALICE, 0);
+
+		let track = <TrackId as SplitId>::combine(7, 0);
+		assert!(pallet_referenda_tracks::TracksIds::<Test>::get().contains(&track));
+		assert_eq!(track.split(), (7, 0));
+	})
+}
+
 // 0010-Q3, REQ-MI-12
 #[test]
 fn a_later_change_of_the_parts_does_not_change_an_existing_hold() {

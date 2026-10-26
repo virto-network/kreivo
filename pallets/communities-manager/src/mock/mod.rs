@@ -2,7 +2,10 @@ use super::*;
 use frame_contrib_traits::memberships::GroupCollectionMemberships;
 use frame_support::{
 	derive_impl, parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU16, ConstU32, ConstU64, EitherOf, EqualPrivilegeOnly, VariantCountOf},
+	traits::{
+		AsEnsureOriginWithArg, ConstU16, ConstU32, ConstU64, EitherOf, EnsureOriginWithArg, EqualPrivilegeOnly,
+		VariantCountOf,
+	},
 	PalletId,
 };
 use frame_system::{EnsureNever, EnsureRoot, EnsureRootWithSuccess, EnsureSigned};
@@ -154,14 +157,57 @@ impl pallet_referenda::Config for Test {
 	type BlockNumberProvider = System;
 }
 
+/// A track id combines a community (its group) and a sub-track.
+pub type TrackId = u32;
+
 impl pallet_referenda_tracks::Config for Test {
-	type TrackId = CommunityId;
+	type TrackId = TrackId;
 	type MaxTracks = MaxTracks;
-	type AdminOrigin = EnsureRoot<AccountId>;
-	type UpdateOrigin = EnsureRoot<AccountId>;
+	// Tracks are created by the manager, through `do_insert`.
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
+	type GroupManagerCreateOrigin = EnsureNeverGroup;
+	type GroupManagerOrigin = AsEnsureOriginWithArg<EnsureRoot<AccountId>>;
+	type RemoveOrigin = AsEnsureOriginWithArg<EnsureRoot<AccountId>>;
+	type RemoveGroupOrigin = AsEnsureOriginWithArg<EnsureRoot<AccountId>>;
 	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = TracksBenchmarkHelper;
+}
+
+pub struct EnsureNeverGroup;
+impl EnsureOriginWithArg<RuntimeOrigin, pallet_referenda::PalletsOriginOf<Test>> for EnsureNeverGroup {
+	type Success = CommunityId;
+
+	fn try_origin(
+		o: RuntimeOrigin,
+		_: &pallet_referenda::PalletsOriginOf<Test>,
+	) -> Result<Self::Success, RuntimeOrigin> {
+		Err(o)
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin(_: &pallet_referenda::PalletsOriginOf<Test>) -> Result<RuntimeOrigin, ()> {
+		Err(())
+	}
+}
+
+/// Inserts the first track of a community: `combine(community_id, 0)`.
+pub struct CommunityTracks;
+impl MutateTracks<Balance, BlockNumber> for CommunityTracks {
+	type Id = CommunityId;
+	type RuntimeOrigin = pallet_referenda::PalletsOriginOf<Test>;
+
+	fn insert(
+		id: Self::Id,
+		info: pallet_referenda::TrackInfo<Balance, BlockNumber>,
+		origin: Self::RuntimeOrigin,
+	) -> frame_support::dispatch::DispatchResult {
+		Tracks::do_insert(
+			<TrackId as pallet_referenda_tracks::SplitId>::combine(id, 0),
+			info,
+			origin,
+		)
+	}
 }
 
 type Deposit = Option<(Balance, AccountId, AccountId)>;
@@ -224,6 +270,14 @@ pub type MembershipsManager = GroupCollectionMemberships<
 	RetirementHolderOption,
 >;
 
+/// The community of a track is the group half of its id.
+pub struct CommunityOfTrack;
+impl sp_runtime::traits::Convert<TrackId, Option<CommunityId>> for CommunityOfTrack {
+	fn convert(track: TrackId) -> Option<CommunityId> {
+		Some(pallet_referenda_tracks::SplitId::split(track).0)
+	}
+}
+
 /// The account of a community, which holds its stock of memberships.
 pub struct CommunityAccount;
 impl sp_runtime::traits::Convert<CommunityId, AccountId> for CommunityAccount {
@@ -243,6 +297,7 @@ impl pallet_communities::Config for Test {
 	type MembershipId = MembershipId;
 	type MemberMgmt = MembershipsManager;
 	type Polls = Referenda;
+	type CommunityOfClass = CommunityOfTrack;
 	type Assets = Assets;
 	type AssetsFreezer = AssetsFreezer;
 	type Balances = Balances;
@@ -255,7 +310,7 @@ impl pallet_communities::Config for Test {
 impl Config for Test {
 	// Types to support community creation
 	type CreateCollection = Memberships;
-	type Tracks = Tracks;
+	type Tracks = CommunityTracks;
 	type RankedCollective = Collective;
 	type WeightInfo = WeightInfo;
 	type RegisterOrigin = EitherOf<

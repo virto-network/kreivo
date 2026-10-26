@@ -103,6 +103,7 @@ impl pallet_communities::Config for Runtime {
 	type MembershipId = MembershipId;
 	type MemberMgmt = Memberships;
 	type Polls = CommunityReferenda;
+	type CommunityOfClass = governance::CommunityOfTrack;
 	type Assets = Assets;
 
 	type AssetsFreezer = AssetsFreezer;
@@ -117,7 +118,7 @@ impl pallet_communities::Config for Runtime {
 
 impl pallet_communities_manager::Config for Runtime {
 	type CreateCollection = CommunityMemberships;
-	type Tracks = CommunityTracks;
+	type Tracks = governance::CommunityTracksWrapper;
 	type RankedCollective = KreivoCollective;
 	type WeightInfo = weights::pallet_communities_manager::WeightInfo<Self>;
 	type RegisterOrigin = EitherOf<RootCreatesCommunitiesForFree, AnyoneElsePays>;
@@ -232,7 +233,12 @@ mod benchmarks {
 				},
 			};
 
-			Tracks::<Runtime, CommunityTracksInstance>::insert(RuntimeOrigin::root(), id, info, pallet_origin)?;
+			// The community's first track, as `pallet_communities_manager` creates it.
+			Tracks::<Runtime, CommunityTracksInstance>::do_insert(
+				<governance::CommunityTrackId as pallet_referenda_tracks::SplitId>::combine(id, 0),
+				info,
+				pallet_origin,
+			)?;
 
 			Ok(())
 		}
