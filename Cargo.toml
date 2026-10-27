@@ -76,7 +76,7 @@ pass-webauthn = { version = "2.0.0-pre.1", default-features = false, package = "
 pass-substrate-keys = { version = "2.0.0-pre.1", default-features = false, package = "pass-authenticators-substrate-keys" }
 
 # Substrate std
-sc-chain-spec = { version = "52.0.0" }
+sc-chain-spec = { version = "54.0.0" }
 
 # Substrate non-std
 frame-benchmarking = { version = "49.0.0", default-features = false }
@@ -125,7 +125,7 @@ pallet-proxy = { version = "49.0.0", default-features = false }
 pallet-ranked-collective = { version = "49.0.0", default-features = false }
 pallet-referenda = { version = "49.0.0", default-features = false }
 pallet-scheduler = { version = "50.0.0", default-features = false }
-pallet-session = { version = "49.0.0", default-features = false }
+pallet-session = { version = "49.0.1", default-features = false }
 pallet-skip-feeless-payment = { version = "23.0.0", default-features = false }
 pallet-timestamp = { version = "48.0.0", default-features = false }
 pallet-transaction-payment = { version = "49.0.0", default-features = false }
@@ -138,19 +138,19 @@ pallet-vesting = { version = "49.0.0", default-features = false }
 cumulus-primitives-aura = { version = "0.24.0", default-features = false }
 
 # Cumulus runtime dependencies
-assets-common = { version = "0.37.0", default-features = false }
+assets-common = { version = "0.39.0", default-features = false }
 cumulus-pallet-aura-ext = { version = "0.30.0", default-features = false }
 cumulus-pallet-parachain-system = { version = "0.30.0", default-features = false }
 cumulus-pallet-session-benchmarking = { version = "30.0.0", default-features = false }
 cumulus-pallet-xcm = { version = "0.27.0", default-features = false }
-cumulus-pallet-xcmp-queue = { version = "0.32.0", default-features = false }
+cumulus-pallet-xcmp-queue = { version = "0.34.0", default-features = false }
 cumulus-primitives-core = { version = "0.26.0", default-features = false }
-cumulus-primitives-utility = { version = "0.32.0", default-features = false }
-pallet-collator-selection = { version = "30.0.0", default-features = false }
+cumulus-primitives-utility = { version = "0.34.1", default-features = false }
+pallet-collator-selection = { version = "30.0.1", default-features = false }
 pallet-message-queue = { version = "52.0.0", default-features = false }
 pallet-migrations = { version = "19.0.0", default-features = false }
 parachain-info = { version = "0.28.0", package = "staging-parachain-info", default-features = false }
-parachains-common = { version = "36.0.0", default-features = false }
+parachains-common = { version = "38.0.0", default-features = false }
 
 # Polkadot
 polkadot-primitives = { version = "25.0.0", default-features = false }
@@ -160,11 +160,11 @@ pallet-xcm = { version = "29.1.0", default-features = false }
 pallet-xcm-benchmarks = { version = "29.0.0", default-features = false }
 polkadot-core-primitives = { version = "24.0.0", default-features = false }
 polkadot-parachain-primitives = { version = "23.0.0", default-features = false }
-polkadot-runtime-common = { version = "31.0.0", default-features = false }
+polkadot-runtime-common = { version = "33.0.0", default-features = false }
 xcm = { version = "24.1.0", package = "staging-xcm", default-features = false }
 xcm-builder = { version = "29.0.1", package = "staging-xcm-builder", default-features = false }
 xcm-runtime-apis = { version = "0.16.0", default-features = false }
-xcm-executor = { version = "28.0.1", package = "staging-xcm-executor", default-features = false }
+xcm-executor = { version = "28.1.0", package = "staging-xcm-executor", default-features = false }
 
 # ink!
 ink = { version = "5.1.1", default-features = false }
