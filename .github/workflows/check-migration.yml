@@ -42,12 +42,13 @@ jobs:
           cache-all-crates: true
           key: build
 
+      # The mainnet runtime on every branch, `dev` included: it is what the snapshot below holds.
       - name: Release build with try-runtime
         uses: actions-rs/cargo@v1
         with:
           command: build
           toolchain: stable
-          args: --profile production --features ${{ github.ref_name == 'dev' && 'paseo,try-runtime' || 'try-runtime' }} --locked -p kreivo-runtime
+          args: --profile production --features try-runtime --locked -p kreivo-runtime
         env:
           # pallet-revive is out of the runtime, but assets-common still builds its fixtures
           # under runtime-benchmarks, which would need solc and resolc.
